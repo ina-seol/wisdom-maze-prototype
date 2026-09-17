@@ -21,32 +21,22 @@ export default class Map01Scene
 
 
   preload() {
+  const base = import.meta.env.BASE_URL;
 
-    const urls =
-      window
-        .WISDOM_PROFILE
-        ?.spriteUrls;
+  this.load.image(
+    "map01",
+    `${base}assets/maps/map01.png`
+  );
 
+  const urls =
+    window.WISDOM_PROFILE?.spriteUrls;
 
-    if (urls) {
-
-      this.load.image(
-        "mage_front",
-        urls.front
-      );
-
-      this.load.image(
-        "mage_back",
-        urls.back
-      );
-
-      this.load.image(
-        "mage_side",
-        urls.side
-      );
-    }
+  if (urls) {
+    this.load.image("mage_front", urls.front);
+    this.load.image("mage_back", urls.back);
+    this.load.image("mage_side", urls.side);
   }
-
+}
 
   create() {
 
