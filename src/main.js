@@ -3,71 +3,34 @@ import "./style.css";
 
 import Map01Scene from "./game/Map01Scene.js";
 
-const base = import.meta.env.BASE_URL;
-
-const titleBg = document.querySelector(".title-bg");
-const bgm = document.querySelector("#bgm");
-const musicBtn = document.querySelector("#music-btn");
-
-if (titleBg) {
-  titleBg.style.backgroundImage =
-    `url("${base}assets/title.png")`;
-}
-
-if (bgm) {
-  bgm.src =
-    `${base}assets/theme.mp3`;
-
-  bgm.volume = 0.45;
-}
-
-if (musicBtn && bgm) {
-  musicBtn.textContent = "음악 켜기";
-
-  musicBtn.addEventListener("click", async () => {
-    if (bgm.paused) {
-      try {
-        await bgm.play();
-        musicBtn.textContent = "음악 끄기";
-      } catch (error) {
-        console.error("음악 재생 실패:", error);
-      }
-    } else {
-      bgm.pause();
-      musicBtn.textContent = "음악 켜기";
-    }
-  });
-}
 import {
   saveProfile,
   getProfile,
   newMapState,
-  saveMapProgress,
   loadMapProgress,
   clearMapProgress,
   shuffle
 } from "./data.js";
 
+
+/* =========================================================
+   BASE URL
+   GitHub Pages:
+   /wisdom-maze-prototype/
+========================================================= */
+
 const base = import.meta.env.BASE_URL;
 
-const titleBg =
-  document.querySelector(".title-bg");
 
-if (titleBg) {
-  titleBg.style.backgroundImage = `
-    linear-gradient(
-      90deg,
-      rgba(8, 17, 32, 0.04) 0%,
-      rgba(8, 17, 32, 0.04) 48%,
-      rgba(8, 17, 32, 0.18) 63%,
-      rgba(8, 17, 32, 0.48) 100%
-    ),
-    url("${base}assets/title.png")
-  `;
-}
+/* =========================================================
+   DOM
+========================================================= */
 
 const titleScreen =
   document.querySelector("#title-screen");
+
+const titleBg =
+  document.querySelector(".title-bg");
 
 const gameScreen =
   document.querySelector("#game-screen");
@@ -81,158 +44,404 @@ const modal =
 const modalBody =
   document.querySelector("#modal-body");
 
+const startBtn =
+  document.querySelector("#start-btn");
+
+const continueBtn =
+  document.querySelector("#continue-btn");
+
+const adminBtn =
+  document.querySelector("#admin-btn");
+
+const musicBtn =
+  document.querySelector("#music-btn");
+
+const beginBtn =
+  document.querySelector("#begin-btn");
+
+const cancelBtn =
+  document.querySelector("#setup-cancel");
+
+const studentNameInput =
+  document.querySelector("#student-name");
+
 const bgm =
   document.querySelector("#bgm");
 
-
-let selectedGender = "male";
-let phaserGame = null;
-
-
-document
-  .querySelector("#start-btn")
-  .onclick = () => {
-
-    setupModal.classList.remove("hidden");
-
-  };
+const hudName =
+  document.querySelector("#hud-name");
 
 
-document
-  .querySelector("#setup-cancel")
-  .onclick = () => {
+/* =========================================================
+   TITLE IMAGE
+========================================================= */
 
-    setupModal.classList.add("hidden");
+if (titleBg) {
 
-  };
+  titleBg.style.backgroundImage =
+    `url("${base}assets/title.png")`;
+
+}
 
 
-document
-  .querySelectorAll(".character-card")
-  .forEach(button => {
+/* =========================================================
+   MUSIC
+========================================================= */
 
-    button.onclick = () => {
+if (bgm) {
 
-      document
-        .querySelectorAll(".character-card")
-        .forEach(v =>
-          v.classList.remove("selected")
+  bgm.src =
+    `${base}assets/theme.mp3`;
+
+  bgm.volume =
+    0.45;
+
+}
+
+
+if (musicBtn && bgm) {
+
+  musicBtn.textContent =
+    "음악 켜기";
+
+
+  musicBtn.addEventListener(
+    "click",
+
+    async () => {
+
+      if (bgm.paused) {
+
+        try {
+
+          await bgm.play();
+
+          musicBtn.textContent =
+            "음악 끄기";
+
+        }
+
+        catch (error) {
+
+          console.error(
+            "음악 재생 실패:",
+            error
+          );
+
+          musicBtn.textContent =
+            "음악 켜기";
+
+        }
+
+      }
+
+      else {
+
+        bgm.pause();
+
+        musicBtn.textContent =
+          "음악 켜기";
+
+      }
+    }
+  );
+}
+
+
+/* =========================================================
+   CHARACTER SELECT
+========================================================= */
+
+let selectedGender =
+  "male";
+
+
+const characterCards =
+  document.querySelectorAll(
+    ".character-card"
+  );
+
+
+characterCards.forEach(
+  card => {
+
+    card.addEventListener(
+      "click",
+
+      () => {
+
+        characterCards.forEach(
+          item => {
+
+            item.classList.remove(
+              "selected"
+            );
+
+          }
         );
 
-      button.classList.add("selected");
+
+        card.classList.add(
+          "selected"
+        );
+
+
+        selectedGender =
+          card.dataset.gender;
+      }
+    );
+  }
+);
+
+
+/* =========================================================
+   START
+========================================================= */
+
+if (startBtn) {
+
+  startBtn.addEventListener(
+    "click",
+
+    () => {
 
       selectedGender =
-        button.dataset.gender;
-    };
-
-  });
+        "male";
 
 
-document
-  .querySelector("#begin-btn")
-  .onclick = async () => {
+      characterCards.forEach(
+        card => {
 
-    const name =
-      document
-        .querySelector("#student-name")
-        .value
-        .trim();
+          card.classList.toggle(
+            "selected",
+            card.dataset.gender ===
+              "male"
+          );
 
-    if (!name) {
-
-      alert("이름을 입력해 주세요.");
-      return;
-    }
-
-    const profile = {
-      name,
-      gender: selectedGender
-    };
-
-    saveProfile(profile);
-
-    clearMapProgress(name);
-
-    setupModal.classList.add("hidden");
-
-    await launchGame(profile, false);
-  };
-
-
-document
-  .querySelector("#continue-btn")
-  .onclick = async () => {
-
-    const profile = getProfile();
-
-    if (!profile) {
-
-      alert(
-        "저장된 모험가 정보가 없습니다."
+        }
       );
 
-      return;
+
+      if (studentNameInput) {
+
+        studentNameInput.value =
+          "";
+
+      }
+
+
+      setupModal?.classList.remove(
+        "hidden"
+      );
+
+
+      setTimeout(
+        () => {
+
+          studentNameInput?.focus();
+
+        },
+        50
+      );
     }
+  );
+}
 
-    await launchGame(profile, true);
-  };
 
+/* =========================================================
+   CANCEL
+========================================================= */
 
-document
-  .querySelector("#music-btn")
-  .onclick = async event => {
+if (cancelBtn) {
 
-    if (bgm.paused) {
+  cancelBtn.addEventListener(
+    "click",
 
-      bgm.volume = 0.35;
+    () => {
 
-      try {
-        await bgm.play();
-      } catch {}
+      setupModal?.classList.add(
+        "hidden"
+      );
 
-      event.target.textContent =
-        "음악 끄기";
-
-    } else {
-
-      bgm.pause();
-
-      event.target.textContent =
-        "음악 켜기";
     }
+  );
+}
 
-  };
+
+/* =========================================================
+   BEGIN GAME
+========================================================= */
+
+if (beginBtn) {
+
+  beginBtn.addEventListener(
+    "click",
+
+    async () => {
+
+      const name =
+        studentNameInput
+          ?.value
+          .trim();
+
+
+      if (!name) {
+
+        alert(
+          "이름을 입력해 주세요."
+        );
+
+        studentNameInput?.focus();
+
+        return;
+      }
+
+
+      const profile = {
+
+        name,
+
+        gender:
+          selectedGender
+
+      };
+
+
+      saveProfile(
+        profile
+      );
+
+
+      clearMapProgress(
+        name
+      );
+
+
+      setupModal?.classList.add(
+        "hidden"
+      );
+
+
+      await launchGame(
+        profile,
+        false
+      );
+    }
+  );
+}
+
+
+/* =========================================================
+   ENTER KEY ON NAME
+========================================================= */
+
+if (studentNameInput) {
+
+  studentNameInput.addEventListener(
+    "keydown",
+
+    event => {
+
+      if (
+        event.key ===
+        "Enter"
+      ) {
+
+        beginBtn?.click();
+
+      }
+    }
+  );
+}
+
+
+/* =========================================================
+   CONTINUE
+========================================================= */
+
+if (continueBtn) {
+
+  continueBtn.addEventListener(
+    "click",
+
+    async () => {
+
+      const profile =
+        getProfile();
+
+
+      if (
+        !profile?.name
+      ) {
+
+        alert(
+          "저장된 모험 기록이 없습니다.\n먼저 게임을 시작해 주세요."
+        );
+
+        return;
+      }
+
+
+      await launchGame(
+        profile,
+        true
+      );
+
+    }
+  );
+}
+
+
+/* =========================================================
+   ADMIN
+========================================================= */
+
+if (adminBtn) {
+
+  adminBtn.addEventListener(
+    "click",
+
+    () => {
+
+      window.location.href =
+        `${base}admin.html`;
+
+    }
+  );
+}
+
+
+/* =========================================================
+   PHASER
+========================================================= */
+
+let phaserGame =
+  null;
 
 
 async function launchGame(
   profile,
-  resume
+  continueGame
 ) {
 
-  titleScreen.classList.add("hidden");
+  /*
+    혹시 이전 Phaser가 남아 있으면 제거
+  */
 
-  gameScreen.classList.remove("hidden");
+  if (phaserGame) {
 
-  document.querySelector(
-    "#hud-name"
-  ).textContent = profile.name;
-
-
-  let state = resume
-    ? loadMapProgress(profile.name)
-    : null;
-
-
-  if (!state || state.completed) {
-
-    state = newMapState();
-
-    saveMapProgress(
-      profile.name,
-      state
+    phaserGame.destroy(
+      true
     );
+
+    phaserGame =
+      null;
   }
 
+
+  /*
+    캐릭터 이미지 준비
+  */
 
   const spriteUrls =
     await prepareCharacterSprites(
@@ -240,348 +449,379 @@ async function launchGame(
     );
 
 
-  window.WISDOM_PROFILE = {
-    ...profile,
-    spriteUrls
-  };
+  /*
+    진행상황
+  */
 
-  window.WISDOM_MAP_STATE = state;
+  let state = null;
 
 
-  if (phaserGame) {
+  if (continueGame) {
 
-    phaserGame.destroy(true);
+    state =
+      loadMapProgress(
+        profile.name
+      );
 
   }
 
 
+  if (!state) {
+
+    state =
+      newMapState();
+
+  }
+
+
+  /*
+    Phaser Scene에서 사용
+  */
+
+  window.WISDOM_PROFILE = {
+
+    ...profile,
+
+    spriteUrls
+
+  };
+
+
+  window.WISDOM_MAP_STATE =
+    state;
+
+
+  /*
+    UI 변경
+  */
+
+  titleScreen?.classList.add(
+    "hidden"
+  );
+
+
+  gameScreen?.classList.remove(
+    "hidden"
+  );
+
+
+  if (hudName) {
+
+    hudName.textContent =
+      profile.name;
+
+  }
+
+
+  /*
+    Phaser 생성
+  */
+
   phaserGame =
     new Phaser.Game({
 
-      type: Phaser.AUTO,
+      type:
+        Phaser.AUTO,
 
-      width: 768,
-      height: 576,
+      width:
+        768,
 
-      parent: "phaser-root",
+      height:
+        576,
 
-      backgroundColor: "#1b2034",
+      parent:
+        "phaser-root",
 
-      pixelArt: true,
+      backgroundColor:
+        "#101827",
+
+      pixelArt:
+        true,
+
+      roundPixels:
+        true,
 
       physics: {
 
-        default: "arcade",
+        default:
+          "arcade",
 
         arcade: {
+
+          debug:
+            false,
+
           gravity: {
-            x: 0,
-            y: 0
-          },
-          debug: false
+
+            y:
+              0
+
+          }
+
         }
-      },
 
-      scale: {
-
-        mode: Phaser.Scale.FIT,
-
-        autoCenter:
-          Phaser.Scale.CENTER_BOTH
       },
 
       scene: [
         Map01Scene
       ]
+
     });
-
-
-  try {
-
-    bgm.volume = 0.3;
-    await bgm.play();
-
-  } catch {}
 }
 
 
-/*
-  캐릭터시트의 배경은 파란색이므로
-  가장자리에서 연결된 파란 영역만 투명화한다.
+/* =========================================================
+   CHARACTER IMAGE PREPARATION
+========================================================= */
 
-  남자 캐릭터의 파란 로브는 검은 외곽선으로
-  배경과 분리되어 있기 때문에 그대로 남는다.
-*/
 async function prepareCharacterSprites(
   gender
 ) {
 
-  const base = import.meta.env.BASE_URL;
+  const imageUrl =
+    gender === "female"
 
-const url =
-  gender === "female"
-    ? `${base}assets/female.png`
-    : `${base}assets/male.png`;
+      ? `${base}assets/female.png`
+
+      : `${base}assets/male.png`;
+
 
   try {
 
     const image =
-      await loadImage(url);
+      await loadImage(
+        imageUrl
+      );
 
 
-    const W = image.naturalWidth;
-    const H = image.naturalHeight;
+    /*
+      현재 캐릭터 시트에서
+      앞 / 뒤 / 옆 방향을 잘라내기 위한
+      프로토타입 좌표.
+
+      원본 에셋 비율이 바뀌면
+      여기만 조정하면 됨.
+    */
 
 
-    const crops = {
+    const cellWidth =
+      Math.floor(
+        image.width / 4
+      );
 
-      front: {
-        x: W * 0.015,
-        y: H * 0.21,
-        w: W * 0.23,
-        h: H * 0.60
-      },
 
-      back: {
-        x: W * 0.255,
-        y: H * 0.21,
-        w: W * 0.22,
-        h: H * 0.60
-      },
+    const cellHeight =
+      Math.floor(
+        image.height / 4
+      );
 
-      side: {
-        x: W * 0.49,
-        y: H * 0.21,
-        w: W * 0.21,
-        h: H * 0.60
-      }
-    };
+
+    /*
+      정면
+    */
+
+    const front =
+      cropImage(
+
+        image,
+
+        0,
+
+        0,
+
+        cellWidth,
+
+        cellHeight
+
+      );
+
+
+    /*
+      후면
+    */
+
+    const back =
+      cropImage(
+
+        image,
+
+        cellWidth,
+
+        0,
+
+        cellWidth,
+
+        cellHeight
+
+      );
+
+
+    /*
+      측면
+    */
+
+    const side =
+      cropImage(
+
+        image,
+
+        cellWidth * 2,
+
+        0,
+
+        cellWidth,
+
+        cellHeight
+
+      );
 
 
     return {
 
-      front:
-        cropAndRemoveBackground(
-          image,
-          crops.front
-        ),
+      front,
 
-      back:
-        cropAndRemoveBackground(
-          image,
-          crops.back
-        ),
+      back,
 
-      side:
-        cropAndRemoveBackground(
-          image,
-          crops.side
-        )
+      side
+
     };
 
-  } catch (error) {
+  }
 
-    console.warn(
-      "캐릭터시트 가공 실패",
+  catch (error) {
+
+    console.error(
+      "캐릭터 이미지 준비 실패:",
       error
     );
 
-    return null;
+
+    /*
+      실패 시에도 Phaser에서
+      최소한 같은 이미지를 로딩할 수 있도록
+      원본 사용
+    */
+
+    return {
+
+      front:
+        imageUrl,
+
+      back:
+        imageUrl,
+
+      side:
+        imageUrl
+
+    };
+
   }
 }
 
 
-function loadImage(url) {
+/* =========================================================
+   LOAD IMAGE
+========================================================= */
+
+function loadImage(
+  src
+) {
 
   return new Promise(
-    (resolve, reject) => {
+    (
+      resolve,
+      reject
+    ) => {
 
-      const image = new Image();
+      const image =
+        new Image();
+
 
       image.onload =
-        () => resolve(image);
+        () => {
+
+          resolve(
+            image
+          );
+
+        };
+
 
       image.onerror =
-        reject;
+        () => {
 
-      image.src = url;
+          reject(
+            new Error(
+              `이미지 로딩 실패: ${src}`
+            )
+          );
+
+        };
+
+
+      image.src =
+        src;
+
     }
   );
 }
 
 
-function cropAndRemoveBackground(
+/* =========================================================
+   CROP IMAGE
+========================================================= */
+
+function cropImage(
   image,
-  crop
+  sx,
+  sy,
+  sw,
+  sh
 ) {
 
   const canvas =
-    document.createElement("canvas");
-
-  const width =
-    Math.round(crop.w);
-
-  const height =
-    Math.round(crop.h);
-
-
-  canvas.width = width;
-  canvas.height = height;
-
-
-  const ctx =
-    canvas.getContext(
-      "2d",
-      {
-        willReadFrequently: true
-      }
+    document.createElement(
+      "canvas"
     );
 
 
-  ctx.drawImage(
+  canvas.width =
+    sw;
+
+
+  canvas.height =
+    sh;
+
+
+  const context =
+    canvas.getContext(
+      "2d"
+    );
+
+
+  context.imageSmoothingEnabled =
+    false;
+
+
+  context.drawImage(
 
     image,
 
-    crop.x,
-    crop.y,
-    crop.w,
-    crop.h,
+    sx,
+    sy,
+    sw,
+    sh,
 
     0,
     0,
-    width,
-    height
+    sw,
+    sh
 
   );
 
 
-  const data =
-    ctx.getImageData(
-      0,
-      0,
-      width,
-      height
-    );
-
-
-  const pixels =
-    data.data;
-
-  const visited =
-    new Uint8Array(
-      width * height
-    );
-
-  const queue =
-    new Int32Array(
-      width * height
-    );
-
-  let head = 0;
-  let tail = 0;
-
-
-  function isBlueBackground(index) {
-
-    const offset =
-      index * 4;
-
-    const r =
-      pixels[offset];
-
-    const g =
-      pixels[offset + 1];
-
-    const b =
-      pixels[offset + 2];
-
-    return (
-      b > 80 &&
-      b > r + 15 &&
-      b > g + 4
-    );
-  }
-
-
-  function enqueue(index) {
-
-    if (
-      visited[index] ||
-      !isBlueBackground(index)
-    ) {
-      return;
-    }
-
-    visited[index] = 1;
-
-    queue[tail++] = index;
-  }
-
-
-  for (
-    let x = 0;
-    x < width;
-    x++
-  ) {
-
-    enqueue(x);
-
-    enqueue(
-      (height - 1) * width + x
-    );
-  }
-
-
-  for (
-    let y = 0;
-    y < height;
-    y++
-  ) {
-
-    enqueue(y * width);
-
-    enqueue(
-      y * width + width - 1
-    );
-  }
-
-
-  while (head < tail) {
-
-    const index =
-      queue[head++];
-
-    const x =
-      index % width;
-
-    const y =
-      Math.floor(
-        index / width
-      );
-
-    pixels[
-      index * 4 + 3
-    ] = 0;
-
-
-    if (x > 0)
-      enqueue(index - 1);
-
-    if (x < width - 1)
-      enqueue(index + 1);
-
-    if (y > 0)
-      enqueue(index - width);
-
-    if (y < height - 1)
-      enqueue(index + width);
-  }
-
-
-  ctx.putImageData(
-    data,
-    0,
-    0
+  removeEdgeBackground(
+    canvas
   );
 
 
@@ -591,378 +831,805 @@ function cropAndRemoveBackground(
 }
 
 
-/* ------------------------
-   게임 UI
------------------------- */
+/* =========================================================
+   REMOVE BLUE BACKGROUND
+========================================================= */
+
+function removeEdgeBackground(
+  canvas
+) {
+
+  const context =
+    canvas.getContext(
+      "2d",
+      {
+        willReadFrequently:
+          true
+      }
+    );
+
+
+  const width =
+    canvas.width;
+
+
+  const height =
+    canvas.height;
+
+
+  if (
+    width <= 0 ||
+    height <= 0
+  ) {
+
+    return;
+
+  }
+
+
+  const imageData =
+    context.getImageData(
+      0,
+      0,
+      width,
+      height
+    );
+
+
+  const data =
+    imageData.data;
+
+
+  /*
+    모서리 색상 기준으로
+    배경색 추정
+  */
+
+  const corners = [
+
+    getPixel(
+      data,
+      width,
+      0,
+      0
+    ),
+
+    getPixel(
+      data,
+      width,
+      width - 1,
+      0
+    ),
+
+    getPixel(
+      data,
+      width,
+      0,
+      height - 1
+    ),
+
+    getPixel(
+      data,
+      width,
+      width - 1,
+      height - 1
+    )
+
+  ];
+
+
+  const bg = {
+
+    r:
+      Math.round(
+        corners.reduce(
+          (sum, p) =>
+            sum + p.r,
+          0
+        ) / corners.length
+      ),
+
+    g:
+      Math.round(
+        corners.reduce(
+          (sum, p) =>
+            sum + p.g,
+          0
+        ) / corners.length
+      ),
+
+    b:
+      Math.round(
+        corners.reduce(
+          (sum, p) =>
+            sum + p.b,
+          0
+        ) / corners.length
+      )
+
+  };
+
+
+  const tolerance =
+    45;
+
+
+  for (
+    let i = 0;
+    i < data.length;
+    i += 4
+  ) {
+
+    const r =
+      data[i];
+
+    const g =
+      data[i + 1];
+
+    const b =
+      data[i + 2];
+
+
+    const distance =
+      Math.sqrt(
+
+        (r - bg.r) ** 2 +
+
+        (g - bg.g) ** 2 +
+
+        (b - bg.b) ** 2
+
+      );
+
+
+    /*
+      캐릭터 내부 색상을 너무 많이
+      날리지 않도록 비교적 보수적으로 처리
+    */
+
+    if (
+      distance <
+      tolerance
+    ) {
+
+      data[i + 3] =
+        0;
+
+    }
+
+  }
+
+
+  context.putImageData(
+    imageData,
+    0,
+    0
+  );
+}
+
+
+function getPixel(
+  data,
+  width,
+  x,
+  y
+) {
+
+  const index =
+    (
+      y * width +
+      x
+    ) * 4;
+
+
+  return {
+
+    r:
+      data[index],
+
+    g:
+      data[index + 1],
+
+    b:
+      data[index + 2]
+
+  };
+}
+
+
+/* =========================================================
+   GAME UI
+========================================================= */
 
 window.GameUI = {
 
-  async say(lines) {
 
-    if (!Array.isArray(lines)) {
-      lines = [lines];
-    }
+  /*
+    일반 대화
+  */
 
-    for (const line of lines) {
-
-      await showSimpleDialog(line);
-    }
-  },
-
-
-  async english(
-    instruction,
-    english
+  async say(
+    messages
   ) {
 
-    return new Promise(resolve => {
+    const list =
+      Array.isArray(
+        messages
+      )
 
-      modal.classList.remove(
-        "hidden"
+        ? messages
+
+        : [messages];
+
+
+    for (
+      const message of
+      list
+    ) {
+
+      await showDialogue(
+        message
       );
 
-      modalBody.innerHTML = "";
+    }
 
-      const p =
-        document.createElement("p");
-
-      p.textContent =
-        instruction;
-
-
-      const englishBox =
-        document.createElement("div");
-
-      englishBox.className =
-        "english-box";
-
-      englishBox.textContent =
-        english;
-
-
-      const button =
-        document.createElement("button");
-
-      button.className =
-        "big-gold";
-
-      button.textContent =
-        "확인";
-
-
-      button.onclick = () => {
-
-        modal.classList.add(
-          "hidden"
-        );
-
-        resolve();
-      };
-
-
-      modalBody.append(
-        p,
-        englishBox,
-        button
-      );
-    });
   },
 
 
-  async wordOrder(sentence) {
+  /*
+    영어 문제 / 단서
+  */
 
-    return new Promise(resolve => {
+  async english(
+    description,
+    englishText
+  ) {
 
-      const words =
-        sentence.split(/\s+/);
+    return new Promise(
+      resolve => {
 
-      let pool =
-        shuffle(words);
-
-      let answer = [];
-
-
-      function draw() {
-
-        modal.classList.remove(
-          "hidden"
-        );
-
-        modalBody.innerHTML = "";
+        openModal();
 
 
-        const title =
-          document.createElement("h2");
+        modalBody.innerHTML = `
 
-        title.textContent =
-          "문장 복원";
+          <p class="dialogue-text">
+            ${escapeHtml(description)}
+          </p>
+
+          <div class="english-box">
+            ${escapeHtml(englishText)}
+          </div>
+
+          <button
+            id="english-ok"
+            class="big-gold"
+            type="button"
+          >
+            확인
+          </button>
+
+        `;
 
 
-        const instruction =
-          document.createElement("p");
+        document
+          .querySelector(
+            "#english-ok"
+          )
+          ?.addEventListener(
+            "click",
 
-        instruction.textContent =
-          "단어를 올바른 순서로 선택해 보자.";
+            () => {
+
+              closeModal();
+
+              resolve(
+                true
+              );
+
+            }
+          );
+      }
+    );
+  },
 
 
-        const answerBox =
-          document.createElement("div");
+  /*
+    문장 순서 맞추기
+  */
 
-        answerBox.className =
-          "english-box";
+  async wordOrder(
+    sentence
+  ) {
 
-        answerBox.textContent =
-          answer.join(" ");
+    return new Promise(
+      resolve => {
+
+        const words =
+          sentence
+            .trim()
+            .split(/\s+/);
+
+
+        const shuffled =
+          shuffle(
+            words
+          );
+
+
+        let selected =
+          [];
+
+
+        openModal();
+
+
+        modalBody.innerHTML = `
+
+          <p class="dialogue-text">
+            단어를 올바른 순서대로 선택해 문장을 완성하세요.
+          </p>
+
+          <div
+            id="sentence-answer"
+            class="english-box"
+          >
+            &nbsp;
+          </div>
+
+          <div
+            id="sentence-tokens"
+            class="token-area"
+          ></div>
+
+          <button
+            id="sentence-reset"
+            class="text-button"
+            type="button"
+          >
+            다시 선택
+          </button>
+
+          <button
+            id="sentence-submit"
+            class="big-gold"
+            type="button"
+          >
+            확인
+          </button>
+
+        `;
 
 
         const tokenArea =
-          document.createElement("div");
+          document.querySelector(
+            "#sentence-tokens"
+          );
 
-        tokenArea.className =
-          "token-area";
+
+        const answerArea =
+          document.querySelector(
+            "#sentence-answer"
+          );
 
 
-        pool.forEach(
-          (word, index) => {
+        function updateAnswer() {
+
+          answerArea.textContent =
+            selected
+              .map(
+                item =>
+                  item.word
+              )
+              .join(
+                " "
+              ) ||
+            " ";
+
+        }
+
+
+        shuffled.forEach(
+          (
+            word,
+            index
+          ) => {
 
             const button =
               document.createElement(
                 "button"
               );
 
+
+            button.type =
+              "button";
+
+
             button.className =
               "token";
+
 
             button.textContent =
               word;
 
-            button.onclick = () => {
 
-              answer.push(word);
+            button.addEventListener(
+              "click",
 
-              pool.splice(
-                index,
-                1
-              );
+              () => {
 
-              draw();
-            };
+                if (
+                  button.disabled
+                ) {
+
+                  return;
+
+                }
+
+
+                button.disabled =
+                  true;
+
+
+                selected.push({
+
+                  word,
+
+                  index,
+
+                  button
+
+                });
+
+
+                updateAnswer();
+
+              }
+            );
+
 
             tokenArea.appendChild(
               button
             );
+
           }
         );
 
 
-        const reset =
-          document.createElement(
-            "button"
+        document
+          .querySelector(
+            "#sentence-reset"
+          )
+          ?.addEventListener(
+            "click",
+
+            () => {
+
+              selected.forEach(
+                item => {
+
+                  item.button.disabled =
+                    false;
+
+                }
+              );
+
+
+              selected =
+                [];
+
+
+              updateAnswer();
+
+            }
           );
 
-        reset.textContent =
-          "다시 배열";
 
-        reset.onclick = () => {
+        document
+          .querySelector(
+            "#sentence-submit"
+          )
+          ?.addEventListener(
+            "click",
 
-          answer = [];
+            () => {
 
-          pool =
-            shuffle(words);
+              const answer =
+                selected
+                  .map(
+                    item =>
+                      item.word
+                  )
+                  .join(
+                    " "
+                  );
 
-          draw();
-        };
 
+              if (
+                normalizeSentence(
+                  answer
+                ) ===
+                normalizeSentence(
+                  sentence
+                )
+              ) {
 
-        const confirm =
-          document.createElement(
-            "button"
+                closeModal();
+
+                resolve(
+                  true
+                );
+
+              }
+
+              else {
+
+                answerArea.textContent =
+                  "순서를 다시 확인해 보세요.";
+
+              }
+            }
           );
-
-        confirm.className =
-          "big-gold";
-
-        confirm.textContent =
-          "정답 확인";
-
-        confirm.onclick = () => {
-
-          const correct =
-            answer.join(" ") ===
-            sentence;
-
-          if (correct) {
-
-            modal.classList.add(
-              "hidden"
-            );
-
-            resolve(true);
-
-          } else {
-
-            alert(
-              "문장이 아직 맞지 않아."
-            );
-          }
-        };
-
-
-        modalBody.append(
-          title,
-          instruction,
-          answerBox,
-          tokenArea,
-          reset,
-          confirm
-        );
       }
-
-
-      draw();
-    });
+    );
   },
 
 
-  async finish(stats) {
+  /*
+    결과창
+  */
 
-    return new Promise(resolve => {
+  async finish(
+    result
+  ) {
 
-      modal.classList.remove(
-        "hidden"
-      );
+    return new Promise(
+      resolve => {
+
+        openModal();
+
+
+        modalBody.innerHTML = `
+
+          <h2 class="clear-title">
+            MAP 01 CLEAR!
+          </h2>
+
+          <p class="dialogue-text">
+            ${escapeHtml(result.name)}의 첫 번째 모험 완료!
+          </p>
+
+          <div class="result-box">
+
+            <div>
+              플레이 시간
+              <strong>
+                ${formatTime(result.seconds)}
+              </strong>
+            </div>
+
+            <div>
+              첫 시도 정답
+              <strong>
+                ${result.firstTry}
+              </strong>
+            </div>
+
+            <div>
+              오답 횟수
+              <strong>
+                ${result.wrong}
+              </strong>
+            </div>
+
+            <div>
+              말의 조각
+              <strong>
+                ◆ ◆ ◆
+              </strong>
+            </div>
+
+          </div>
+
+          <button
+            id="finish-home"
+            class="big-gold"
+            type="button"
+          >
+            타이틀로 돌아가기
+          </button>
+
+        `;
+
+
+        document
+          .querySelector(
+            "#finish-home"
+          )
+          ?.addEventListener(
+            "click",
+
+            () => {
+
+              closeModal();
+
+
+              if (phaserGame) {
+
+                phaserGame.destroy(
+                  true
+                );
+
+                phaserGame =
+                  null;
+
+              }
+
+
+              gameScreen?.classList.add(
+                "hidden"
+              );
+
+
+              titleScreen?.classList.remove(
+                "hidden"
+              );
+
+
+              resolve(
+                true
+              );
+
+            }
+          );
+      }
+    );
+  }
+};
+
+
+/* =========================================================
+   DIALOG HELPERS
+========================================================= */
+
+function showDialogue(
+  text
+) {
+
+  return new Promise(
+    resolve => {
+
+      openModal();
+
 
       modalBody.innerHTML = `
-        <h1 class="clear-title">
-          탈출 성공!
-        </h1>
 
-        <p>
-          ${escapeHtml(stats.name)}의
-          첫 번째 모험이 끝났습니다.
+        <p class="dialogue-text">
+          ${escapeHtml(text)}
         </p>
 
-        <div class="result-box">
-
-          <div>
-            플레이 시간
-            <strong>
-              ${formatTime(stats.seconds)}
-            </strong>
-          </div>
-
-          <div>
-            말의 조각
-            <strong>3 / 3</strong>
-          </div>
-
-          <div>
-            첫 시도 성공
-            <strong>
-              ${stats.firstTry}
-            </strong>
-          </div>
-
-          <div>
-            다시 시도
-            <strong>
-              ${stats.wrong}
-            </strong>
-          </div>
-
-        </div>
-
-        <button id="result-title"
-                class="big-gold">
-          처음 화면
+        <button
+          id="dialog-next"
+          class="big-gold"
+          type="button"
+        >
+          다음
         </button>
+
       `;
 
 
       document
         .querySelector(
-          "#result-title"
+          "#dialog-next"
         )
-        .onclick = () => {
+        ?.addEventListener(
+          "click",
 
-          location.reload();
+          () => {
 
-          resolve();
-        };
-    });
-  }
-};
+            closeModal();
 
+            resolve(
+              true
+            );
 
-function showSimpleDialog(text) {
-
-  return new Promise(resolve => {
-
-    modal.classList.remove(
-      "hidden"
-    );
-
-    modalBody.innerHTML = "";
-
-    const paragraph =
-      document.createElement("p");
-
-    paragraph.className =
-      "dialogue-text";
-
-    paragraph.textContent =
-      text;
-
-
-    const button =
-      document.createElement(
-        "button"
-      );
-
-    button.className =
-      "big-gold";
-
-    button.textContent =
-      "계속";
-
-
-    button.onclick = () => {
-
-      modal.classList.add(
-        "hidden"
-      );
-
-      resolve();
-    };
-
-
-    modalBody.append(
-      paragraph,
-      button
-    );
-  });
+          }
+        );
+    }
+  );
 }
 
 
-function escapeHtml(text) {
+function openModal() {
 
-  const element =
-    document.createElement("div");
+  modal?.classList.remove(
+    "hidden"
+  );
 
-  element.textContent =
-    String(text);
-
-  return element.innerHTML;
 }
 
 
-function formatTime(seconds) {
+function closeModal() {
+
+  modal?.classList.add(
+    "hidden"
+  );
+
+}
+
+
+/* =========================================================
+   UTILS
+========================================================= */
+
+function escapeHtml(
+  value
+) {
+
+  return String(
+    value ?? ""
+  )
+
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
+}
+
+
+function normalizeSentence(
+  value
+) {
+
+  return String(
+    value
+  )
+
+    .trim()
+
+    .replace(
+      /\s+/g,
+      " "
+    )
+
+    .toLowerCase();
+}
+
+
+function formatTime(
+  seconds
+) {
 
   const minutes =
-    Math.floor(seconds / 60);
+    Math.floor(
+      seconds / 60
+    );
 
-  const rest =
+
+  const remain =
     seconds % 60;
 
-  return `${minutes}:${String(rest).padStart(2, "0")}`;
+
+  return `${minutes}분 ${remain}초`;
 }
