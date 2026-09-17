@@ -1,8 +1,15 @@
 :root {
-  --navy: #0d1830;
-  --blue: #173e72;
-  --gold: #f4c85c;
-  --cream: #fff6d5;
+  --navy: #0b1630;
+  --navy-2: #13284a;
+  --blue: #1e4f86;
+  --blue-light: #58c8ff;
+  --gold: #f4c95d;
+  --gold-dark: #9d6a20;
+  --cream: #fff5d6;
+  --white: #ffffff;
+  --text-soft: #c7d5f4;
+  --danger: #d75b62;
+  --green: #54b77a;
 }
 
 * {
@@ -13,12 +20,17 @@ html,
 body {
   margin: 0;
   min-height: 100%;
-  background: #091225;
-  color: white;
+  background: #081120;
+  color: var(--white);
   font-family:
     "Malgun Gothic",
     "Apple SD Gothic Neo",
+    system-ui,
     sans-serif;
+}
+
+body {
+  overflow-x: hidden;
 }
 
 button,
@@ -36,13 +48,16 @@ button {
 }
 
 
-/* TITLE */
+/* =========================================================
+   TITLE SCREEN
+========================================================= */
 
 #title-screen {
-  width: 100vw;
-  height: 100vh;
   position: relative;
+  width: 100vw;
+  min-height: 100vh;
   overflow: hidden;
+  background: #081120;
 }
 
 .title-bg {
@@ -52,65 +67,83 @@ button {
   background:
     linear-gradient(
       90deg,
-      transparent 0%,
-      transparent 52%,
-      rgba(8, 20, 43, .12) 65%,
-      rgba(8, 20, 43, .45) 100%
+      rgba(8, 17, 32, 0.04) 0%,
+      rgba(8, 17, 32, 0.04) 48%,
+      rgba(8, 17, 32, 0.18) 63%,
+      rgba(8, 17, 32, 0.48) 100%
     ),
-    url("wisdom-maze-prototype/assets/title.png")
-      center / cover no-repeat;
+    url("/assets/title.png")
+      center center / cover no-repeat;
+
+  image-rendering: pixelated;
 }
 
 .title-menu {
   position: absolute;
+  z-index: 10;
 
-  width: min(330px, 32vw);
+  top: 53%;
+  right: 7%;
 
-  right: 9%;
-  top: 52%;
+  width: min(330px, 33vw);
 
   display: grid;
   gap: 10px;
 }
 
 .main-button {
-  border: 3px solid #ddae43;
+  width: 100%;
+
+  border: 3px solid #d8ad4c;
+
   background:
     linear-gradient(
-      #163e70,
-      #102c51
+      180deg,
+      #1f548e 0%,
+      #14385f 100%
     );
 
-  color: white;
+  color: var(--white);
 
+  padding: 14px 20px;
+
+  border-radius: 6px;
+
+  font-size: 18px;
   font-weight: 900;
 
-  padding: 14px 22px;
-
-  border-radius: 5px;
-
-  box-shadow:
-    0 3px 0 #09152a;
-
+  text-align: center;
   text-decoration: none;
 
-  text-align: center;
+  box-shadow:
+    0 4px 0 #07111f,
+    inset 0 0 0 1px rgba(255,255,255,.15);
+
+  transition:
+    transform .12s ease,
+    filter .12s ease,
+    border-color .12s ease;
 }
 
 .main-button:hover,
 .main-button.selected {
-  background:
-    linear-gradient(
-      #2363a7,
-      #174574
-    );
+  filter: brightness(1.13);
 
-  border-color:
-    #ffe195;
+  border-color: #ffe798;
+
+  transform: translateY(-1px);
+}
+
+.main-button:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 2px 0 #07111f;
 }
 
 
-/* STUDENT SETUP */
+/* =========================================================
+   OVERLAY / COMMON PANEL
+========================================================= */
 
 .overlay {
   position: fixed;
@@ -124,148 +157,249 @@ button {
   padding: 20px;
 
   background:
-    rgba(3, 9, 23, .79);
+    rgba(3, 8, 20, .82);
+
+  backdrop-filter: blur(3px);
 }
 
 .panel {
-  border: 4px solid #cf9e43;
+  width: min(680px, 96vw);
 
-  border-radius: 8px;
+  border: 4px solid var(--gold-dark);
+
+  border-radius: 10px;
 
   background:
     linear-gradient(
       145deg,
-      #162c51,
-      #0e1930
+      #18345e 0%,
+      #0e1d37 100%
     );
 
   box-shadow:
-    0 18px 60px
-      rgba(0,0,0,.6);
+    0 20px 70px rgba(0,0,0,.62),
+    inset 0 0 0 2px rgba(255,255,255,.05);
 
   padding: 24px;
 }
 
-.setup-panel {
-  width: min(700px, 100%);
+.panel h1,
+.panel h2,
+.panel h3 {
+  margin-top: 0;
 }
 
-.setup-panel input,
-.admin-login-panel input {
+.panel h2 {
+  color: #ffe68b;
+}
 
+.panel p {
+  line-height: 1.7;
+}
+
+
+/* =========================================================
+   STUDENT SETUP
+========================================================= */
+
+.setup-panel {
+  width: min(760px, 96vw);
+}
+
+.setup-panel input {
   width: 100%;
 
-  padding: 12px;
+  margin-top: 7px;
+  margin-bottom: 18px;
 
-  border: 3px solid #a77c32;
+  padding: 13px 14px;
 
-  background: #fff8dc;
+  border: 3px solid #a97c36;
+  border-radius: 5px;
 
-  color: #152033;
+  background: #fff8dd;
+  color: #192238;
 
   font-size: 18px;
+
+  outline: none;
+}
+
+.setup-panel input:focus {
+  border-color: #ffe07a;
+
+  box-shadow:
+    0 0 0 3px rgba(255, 218, 93, .2);
 }
 
 .character-select {
-
   display: grid;
 
   grid-template-columns:
-    repeat(2, 1fr);
+    repeat(2, minmax(0, 1fr));
 
   gap: 18px;
 
-  margin: 15px 0 22px;
+  margin:
+    14px 0 20px;
 }
 
 .character-card {
+  position: relative;
 
-  border:
-    4px solid #364970;
+  border: 4px solid #37476c;
+  border-radius: 10px;
 
   background:
-    #15213a;
+    linear-gradient(
+      180deg,
+      #162643,
+      #0d182c
+    );
 
-  color: white;
+  color: var(--white);
 
-  border-radius: 9px;
+  padding: 12px;
 
-  padding: 10px;
+  overflow: hidden;
+
+  transition:
+    border-color .15s ease,
+    transform .15s ease,
+    box-shadow .15s ease;
+}
+
+.character-card:hover {
+  transform: translateY(-2px);
 }
 
 .character-card.selected {
-
-  border-color:
-    #ffe486;
+  border-color: #ffe681;
 
   box-shadow:
-    0 0 18px
-      rgba(255,221,95,.5);
+    0 0 20px rgba(255, 226, 112, .42);
+}
+
+.character-card.selected::after {
+  content: "선택됨";
+
+  position: absolute;
+
+  top: 10px;
+  right: 10px;
+
+  padding: 5px 9px;
+
+  border-radius: 999px;
+
+  background: #f4ca55;
+  color: #152039;
+
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.character-card strong {
+  display: block;
+
+  margin-top: 9px;
+
+  font-size: 16px;
 }
 
 .character-preview {
-
   width: 100%;
-  height: 220px;
+  height: 250px;
 
-  background-repeat:
-    no-repeat;
+  border-radius: 7px;
 
-  background-size:
-    430% auto;
+  background-color: #5f88bb;
 
-  background-position:
-    0 43%;
+  background-repeat: no-repeat;
 
-  image-rendering:
-    pixelated;
+  /*
+    첨부한 캐릭터시트의
+    첫 번째 정면 캐릭터가 보이도록 확대.
+  */
+  background-size: 420% auto;
+  background-position: 0% 40%;
+
+  image-rendering: pixelated;
+
+  box-shadow:
+    inset 0 0 0 2px rgba(255,255,255,.08);
 }
 
 .character-preview.male {
   background-image:
-    url("wisdom-maze-prototype/assets/male.png");
+    url("/assets/male.png");
 }
 
 .character-preview.female {
   background-image:
-    url("wisdom-maze-prototype/assets/female.png");
+    url("/assets/female.png");
 }
 
 .big-gold {
-
   border:
-    3px solid #7a5217;
+    3px solid #8f611d;
+
+  border-radius: 6px;
 
   background:
     linear-gradient(
-      #ffe69a,
-      #efb73e
+      180deg,
+      #ffe99a 0%,
+      #eab43d 100%
     );
 
-  color: #15223a;
+  color: #16213a;
 
   font-weight: 900;
 
   padding: 12px 22px;
 
-  border-radius: 5px;
+  margin-top: 12px;
 
-  margin-top: 14px;
+  box-shadow:
+    0 4px 0 #684413;
+
+  transition:
+    transform .12s ease,
+    filter .12s ease;
+}
+
+.big-gold:hover {
+  filter: brightness(1.06);
+}
+
+.big-gold:active {
+  transform: translateY(2px);
+
+  box-shadow:
+    0 2px 0 #684413;
 }
 
 .text-button {
+  border: none;
 
   background: transparent;
 
-  color: #cbd8f8;
+  color: #c6d3f0;
 
-  border: none;
+  padding: 12px 14px;
 
-  padding: 13px;
+  margin-left: 4px;
+}
+
+.text-button:hover {
+  color: #ffffff;
 }
 
 
-/* GAME */
+/* =========================================================
+   GAME
+========================================================= */
 
 #game-screen {
   min-height: 100vh;
@@ -276,47 +410,70 @@ button {
   background:
     radial-gradient(
       circle at top,
-      #243a61,
-      #081225
+      #243e69 0%,
+      #0b1630 55%,
+      #07101e 100%
     );
 }
 
 #game-hud {
-
-  min-height: 65px;
+  min-height: 68px;
 
   display: grid;
 
   grid-template-columns:
-    1fr auto 1fr;
+    minmax(160px, 1fr)
+    auto
+    minmax(220px, 1fr);
 
-  gap: 20px;
+  gap: 16px;
 
   align-items: center;
 
-  padding: 10px 20px;
+  padding:
+    10px 18px;
 
   background:
-    rgba(7, 15, 33, .95);
+    rgba(5, 14, 31, .96);
 
   border-bottom:
-    3px solid #b88a39;
+    3px solid #b98c3e;
+
+  box-shadow:
+    0 4px 14px rgba(0,0,0,.34);
+
+  z-index: 30;
+}
+
+.hud-student strong {
+  color: #ffe580;
+}
+
+.hud-shards {
+  white-space: nowrap;
 }
 
 #hud-shards {
+  color: #5edcff;
+
+  letter-spacing: 5px;
 
   margin-left: 8px;
 
-  color: #64dbff;
-
-  letter-spacing: 5px;
+  text-shadow:
+    0 0 9px rgba(68, 205, 255, .65);
 }
 
 #hud-objective {
   text-align: right;
+
+  color: #d9e7ff;
+
+  line-height: 1.45;
 }
 
 #phaser-root {
+  position: relative;
 
   flex: 1;
 
@@ -324,298 +481,573 @@ button {
 
   display: grid;
   place-items: center;
+
+  padding: 10px;
+
+  overflow: hidden;
 }
 
 #phaser-root canvas {
+  display: block;
 
-  max-width: 100%;
+  width: auto !important;
+  height: auto !important;
+
+  max-width:
+    min(100%, 1100px);
+
   max-height:
-    calc(100vh - 105px);
+    calc(100vh - 118px);
 
-  image-rendering:
-    pixelated;
+  border:
+    4px solid #17213a;
+
+  box-shadow:
+    0 16px 45px rgba(0,0,0,.52);
+
+  image-rendering: pixelated;
 }
 
 #control-help {
-
-  height: 40px;
+  min-height: 38px;
 
   display: grid;
   place-items: center;
 
-  background: #081225;
+  padding: 8px 14px;
 
-  color: #abbce0;
+  background: #07111f;
+
+  color: #aebfe3;
+
+  border-top:
+    1px solid rgba(255,255,255,.06);
 
   font-size: 13px;
 }
 
 
-/* DIALOG */
+/* =========================================================
+   DIALOG / QUIZ
+========================================================= */
 
 #modal-panel {
-
-  width:
-    min(630px, 100%);
-
-  min-height: 170px;
+  width: min(650px, 96vw);
 }
 
 .dialogue-text {
+  margin-top: 0;
+
+  color: #f4f7ff;
 
   font-size: 18px;
 
-  line-height: 1.75;
+  line-height: 1.8;
+
+  white-space: pre-wrap;
 }
 
 .english-box {
+  margin:
+    18px 0;
 
-  margin: 18px 0;
+  padding:
+    20px;
 
   border:
-    3px solid #d7aa49;
+    3px solid #d4a843;
+
+  border-radius:
+    7px;
 
   background:
     #fff9df;
 
-  color: #14233b;
-
-  padding: 20px;
-
-  text-align: center;
-
-  font-size: 22px;
+  color:
+    #16223b;
 
   font-family:
     Arial,
+    Helvetica,
     sans-serif;
 
-  font-weight: 800;
+  font-size:
+    22px;
+
+  font-weight:
+    800;
+
+  text-align:
+    center;
+
+  line-height:
+    1.55;
+
+  white-space:
+    pre-wrap;
 }
 
 .token-area {
+  display:
+    flex;
 
-  display: flex;
+  flex-wrap:
+    wrap;
 
-  flex-wrap: wrap;
+  gap:
+    9px;
 
-  gap: 9px;
-
-  margin: 14px 0;
+  margin:
+    14px 0;
 }
 
 .token {
+  border:
+    2px solid #49658e;
+
+  border-radius:
+    5px;
+
+  background:
+    #d8ebff;
+
+  color:
+    #15213a;
 
   padding:
     9px 13px;
 
-  background: #cde5ff;
-
-  border:
-    2px solid #456084;
-
-  border-radius: 5px;
-
-  color: #15233b;
+  font-weight:
+    800;
 }
 
+.token:hover {
+  background:
+    #eff7ff;
+}
+
+
+/* =========================================================
+   RESULT
+========================================================= */
+
 .clear-title {
+  margin-top:
+    0;
 
   color:
-    #ffe37a;
+    #ffe374;
 
-  text-align: center;
+  text-align:
+    center;
+
+  text-shadow:
+    0 2px 0 #76501c;
 }
 
 .result-box {
-
-  display: grid;
+  display:
+    grid;
 
   grid-template-columns:
-    1fr 1fr;
+    repeat(2, minmax(0, 1fr));
 
-  gap: 10px;
+  gap:
+    10px;
 
   margin:
     18px 0;
 }
 
 .result-box > div {
+  border:
+    2px solid #41567d;
+
+  border-radius:
+    6px;
 
   background:
-    #101f3a;
+    #0f203c;
 
-  border:
-    2px solid #405479;
-
-  padding: 12px;
+  padding:
+    13px;
 }
 
 .result-box strong {
+  display:
+    block;
 
-  display: block;
+  margin-top:
+    6px;
 
-  color: #ffe37a;
+  color:
+    #ffe378;
 
-  font-size: 20px;
-
-  margin-top: 6px;
+  font-size:
+    20px;
 }
 
 
-/* ADMIN */
+/* =========================================================
+   ADMIN
+========================================================= */
 
 .admin-body {
-
-  min-height: 100vh;
+  min-height:
+    100vh;
 
   background:
     radial-gradient(
       circle at top,
-      #243d66,
-      #091326
+      #294873 0%,
+      #0b1830 48%,
+      #07101e 100%
     );
 }
 
 .admin-center {
+  min-height:
+    100vh;
 
-  min-height: 100vh;
+  display:
+    grid;
 
-  display: grid;
+  place-items:
+    center;
 
-  place-items: center;
+  padding:
+    20px;
 }
 
 .admin-login-panel {
-
   width:
-    min(420px, 90vw);
+    min(430px, 94vw);
+}
+
+.admin-login-panel input {
+  width:
+    100%;
+
+  padding:
+    12px 13px;
+
+  border:
+    3px solid #997236;
+
+  border-radius:
+    5px;
+
+  background:
+    #fff9df;
+
+  color:
+    #15213a;
+
+  font-size:
+    18px;
 }
 
 .admin-link {
+  display:
+    inline-block;
 
-  color: #c8d7f8;
+  margin-top:
+    18px;
 
-  display: block;
+  color:
+    #cfe0ff;
 
-  margin-top: 18px;
+  text-decoration:
+    none;
+}
+
+.admin-link:hover {
+  color:
+    #ffffff;
+}
+
+.admin-app {
+  min-height:
+    100vh;
 }
 
 .admin-header {
-
-  display: flex;
+  display:
+    flex;
 
   justify-content:
     space-between;
 
-  align-items: center;
+  align-items:
+    center;
+
+  gap:
+    20px;
 
   padding:
     18px 5vw;
 
   background:
-    #091326;
+    #081326;
 
   border-bottom:
-    3px solid #c3953b;
+    3px solid #bd903e;
+}
+
+.admin-header h1 {
+  margin:
+    0;
+}
+
+.admin-header p {
+  margin:
+    5px 0 0;
+
+  color:
+    #adc0e6;
 }
 
 .admin-main {
-
   width:
-    min(1150px, 94vw);
+    min(1180px, 94vw);
 
   margin:
-    25px auto;
+    26px auto;
 
-  display: grid;
+  display:
+    grid;
 
-  gap: 20px;
+  gap:
+    20px;
+
+  padding-bottom:
+    50px;
 }
 
 .admin-editor {
-
-  display: grid;
+  display:
+    grid;
 
   grid-template-columns:
-    1fr 1fr;
+    repeat(2, minmax(0, 1fr));
 
-  gap: 20px;
+  gap:
+    20px;
 }
 
 .admin-editor textarea {
+  width:
+    100%;
 
-  width: 100%;
+  min-height:
+    330px;
 
-  min-height: 330px;
+  resize:
+    vertical;
 
-  resize: vertical;
-
-  background: #fffbed;
-
-  color: #182039;
+  padding:
+    12px 13px;
 
   border:
-    3px solid #9c793c;
+    3px solid #96713a;
 
-  padding: 12px;
+  border-radius:
+    5px;
+
+  background:
+    #fffbea;
+
+  color:
+    #182139;
 
   font-family:
+    Consolas,
     monospace;
 
-  line-height: 1.6;
+  line-height:
+    1.6;
+
+  outline:
+    none;
+}
+
+.admin-editor textarea:focus {
+  border-color:
+    #e8c661;
 }
 
 #word-count,
 #expression-count {
-
   color:
-    #ffe37a;
+    #ffe175;
 
   font-size:
     14px;
 }
 
 .english-preview {
-
-  color: #bce1ff;
+  color:
+    #b9e0ff;
 
   font-family:
     Arial,
     sans-serif;
+
+  line-height:
+    1.5;
 }
 
 .small {
-  color: #aebcda;
+  color:
+    #adbfdf;
+
+  font-size:
+    13px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media
+(max-width: 900px) {
+
+  .title-menu {
+    width:
+      min(340px, 42vw);
+
+    right:
+      4%;
+  }
+
+  #game-hud {
+    grid-template-columns:
+      1fr 1fr;
+
+    gap:
+      5px 12px;
+  }
+
+  #hud-objective {
+    grid-column:
+      1 / -1;
+
+    text-align:
+      left;
+  }
 }
 
 
 @media
-(max-width: 800px) {
+(max-width: 700px) {
 
-  .title-menu {
-
-    right: 5%;
-
-    width: 42vw;
+  .title-bg {
+    background-position:
+      42% center;
   }
 
-  .character-select,
-  .admin-editor {
+  .title-menu {
+    top:
+      auto;
 
+    right:
+      50%;
+
+    bottom:
+      6%;
+
+    transform:
+      translateX(50%);
+
+    width:
+      min(360px, 88vw);
+  }
+
+  .main-button {
+    padding:
+      11px 16px;
+
+    font-size:
+      16px;
+  }
+
+  .character-select {
     grid-template-columns:
       1fr;
+  }
+
+  .character-preview {
+    height:
+      210px;
   }
 
   #game-hud {
-
     grid-template-columns:
       1fr;
 
-    gap: 5px;
+    align-items:
+      start;
   }
 
   #hud-objective {
-    text-align: left;
+    text-align:
+      left;
+  }
+
+  #phaser-root {
+    padding:
+      4px;
+  }
+
+  #phaser-root canvas {
+    max-height:
+      none;
+  }
+
+  .result-box {
+    grid-template-columns:
+      1fr;
+  }
+
+  .admin-header {
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
+  }
+
+  .admin-editor {
+    grid-template-columns:
+      1fr;
+  }
+}
+
+
+@media
+(max-width: 430px) {
+
+  .panel {
+    padding:
+      18px;
+  }
+
+  .character-preview {
+    height:
+      180px;
+  }
+
+  .english-box {
+    font-size:
+      19px;
+  }
+
+  #control-help {
+    font-size:
+      11px;
+
+    text-align:
+      center;
   }
 }
