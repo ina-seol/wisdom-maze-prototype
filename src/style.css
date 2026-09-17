@@ -57,7 +57,7 @@ button {
       rgba(8, 20, 43, .12) 65%,
       rgba(8, 20, 43, .45) 100%
     ),
-    url("/assets/title.png")
+    url("wisdom-maze-prototype/assets/title.png")
       center / cover no-repeat;
 }
 
@@ -223,12 +223,12 @@ button {
 
 .character-preview.male {
   background-image:
-    url("/assets/male.png");
+    url("wisdom-maze-prototype/assets/male.png");
 }
 
 .character-preview.female {
   background-image:
-    url("/assets/female.png");
+    url("wisdom-maze-prototype/assets/female.png");
 }
 
 .big-gold {
