@@ -13,6 +13,23 @@ import {
   shuffle
 } from "./data.js";
 
+const base = import.meta.env.BASE_URL;
+
+const titleBg =
+  document.querySelector(".title-bg");
+
+if (titleBg) {
+  titleBg.style.backgroundImage = `
+    linear-gradient(
+      90deg,
+      rgba(8, 17, 32, 0.04) 0%,
+      rgba(8, 17, 32, 0.04) 48%,
+      rgba(8, 17, 32, 0.18) 63%,
+      rgba(8, 17, 32, 0.48) 100%
+    ),
+    url("${base}assets/title.png")
+  `;
+}
 
 const titleScreen =
   document.querySelector("#title-screen");
