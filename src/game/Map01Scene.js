@@ -10,33 +10,47 @@ import {
 } from "../data.js";
 
 
-export default class Map01Scene
-  extends Phaser.Scene {
+export default class Map01Scene extends Phaser.Scene {
 
   constructor() {
-
     super("MAP01");
-
   }
 
 
   preload() {
-  const base = import.meta.env.BASE_URL;
 
-  this.load.image(
-    "map01",
-    `${base}assets/maps/map01.png`
-  );
+    const base = import.meta.env.BASE_URL;
 
-  const urls =
-    window.WISDOM_PROFILE?.spriteUrls;
+    // MAP01 배경 이미지
+    this.load.image(
+      "map01",
+      `${base}assets/maps/map01.png`
+    );
 
-  if (urls) {
-    this.load.image("mage_front", urls.front);
-    this.load.image("mage_back", urls.back);
-    this.load.image("mage_side", urls.side);
+
+    // 캐릭터시트에서 main.js가 추출한 이미지
+    const urls =
+      window.WISDOM_PROFILE?.spriteUrls;
+
+    if (urls) {
+
+      this.load.image(
+        "mage_front",
+        urls.front
+      );
+
+      this.load.image(
+        "mage_back",
+        urls.back
+      );
+
+      this.load.image(
+        "mage_side",
+        urls.side
+      );
+    }
   }
-}
+
 
   create() {
 
@@ -49,10 +63,19 @@ export default class Map01Scene
     this.content =
       getUnit1Content();
 
-    this.interactables = [];
 
     this.inputLocked = true;
 
+    this.interactables = [];
+
+    this.obstacles = [];
+
+
+    /*
+      --------------------------------
+      문제 콘텐츠 준비
+      --------------------------------
+    */
 
     if (!this.state.p1Target) {
 
@@ -72,43 +95,101 @@ export default class Map01Scene
 
     this.p2Sentence =
       findExpression(
-
         this.content.expressions,
-
         /under.*desk|desk.*under/i,
-
         "Look under the desk."
       );
 
 
     this.p3Sentence =
       findExpression(
-
         this.content.expressions,
-
         /^.{3,}\s+.{2,}/,
-
         "Open the box."
       );
 
 
-    this.drawClassroom();
+    /*
+      --------------------------------
+      MAP 배경
+      --------------------------------
+    */
+
+    this.mapImage =
+      this.add.image(
+        384,
+        288,
+        "map01"
+      );
+
+    this.mapImage
+      .setDisplaySize(
+        768,
+        576
+      )
+      .setDepth(-100);
+
+
+    /*
+      --------------------------------
+      충돌 영역 생성
+      --------------------------------
+    */
+
+    this.createCollisionAreas();
+
+
+    /*
+      --------------------------------
+      조사 영역 생성
+      --------------------------------
+    */
+
+    this.createInteractables();
+
+
+    /*
+      --------------------------------
+      플레이어
+      --------------------------------
+    */
 
     this.createPlayer();
 
+
+    /*
+      --------------------------------
+      입력
+      --------------------------------
+    */
+
     this.createInput();
+
+
+    /*
+      --------------------------------
+      HUD
+      --------------------------------
+    */
 
     this.updateHUD();
 
 
+    /*
+      --------------------------------
+      오프닝
+      --------------------------------
+    */
+
     this.time.delayedCall(
-      250,
+      350,
       async () => {
 
-        if (!this.state.introDone) {
+        if (
+          !this.state.introDone
+        ) {
 
           await this.playIntro();
-
         }
 
         this.inputLocked = false;
@@ -117,66 +198,48 @@ export default class Map01Scene
   }
 
 
-  drawClassroom() {
+  /*
+  ====================================================
+  COLLISION
+  ====================================================
+  */
 
-    const graphics =
-      this.add.graphics();
+  createCollisionAreas() {
 
+    /*
+      배경 이미지 기준 768 x 576.
 
-    /* 바닥 */
+      현재 좌표는 새 MAP 이미지에 맞춘
+      프로토타입용 값.
 
-    for (
-      let y = 0;
-      y < 576;
-      y += 32
-    ) {
-
-      for (
-        let x = 0;
-        x < 768;
-        x += 32
-      ) {
-
-        graphics.fillStyle(
-          ((x + y) / 32) % 2
-            ? 0x9b744e
-            : 0xa78159
-        );
-
-        graphics.fillRect(
-          x,
-          y,
-          32,
-          32
-        );
-      }
-    }
+      실제 플레이하면서
+      위치를 조금씩 미세조정하면 됨.
+    */
 
 
-    /* 벽 */
-
-    this.wall(
+    // 외곽 벽
+    this.addObstacle(
       384,
       15,
       768,
       30
     );
 
-    this.wall(
+    this.addObstacle(
       15,
       288,
       30,
       576
     );
 
-    this.wall(
+    this.addObstacle(
       753,
       288,
       30,
       576
     );
 
-    this.wall(
+    this.addObstacle(
       384,
       561,
       768,
@@ -184,462 +247,623 @@ export default class Map01Scene
     );
 
 
-    /* 칠판 */
-
-    this.object(
-      "blackboard",
-      "칠판",
-      170,
-      62,
-      210,
-      55,
-      0x274f3c,
-      "blackboard",
-      true
-    );
-
-
-    /* 시계 */
-
-    this.object(
-      "clock",
-      "시계",
-      490,
-      62,
-      48,
-      48,
-      0xd8ca8c,
-      "clock"
-    );
-
-
-    /* 창문 */
-
-    this.object(
-      "window",
-      "창문",
-      52,
-      160,
-      60,
-      130,
-      0x72bce0,
-      "window"
-    );
-
-
-    /* 출구 */
-
-    this.object(
-      "exit",
-      "출구",
-      680,
-      68,
-      65,
-      88,
-      0x43301f,
-      "door",
-      true
-    );
-
-
-    /* 교사용 책상 */
-
-    this.furniture(
+    // 상단 칠판 벽
+    this.addObstacle(
       400,
-      145,
-      160,
-      55,
-      0x704f36
+      82,
+      360,
+      75
     );
 
+
+    // 교사용 책상
+    this.addObstacle(
+      390,
+      150,
+      150,
+      70
+    );
+
+
+    /*
+      학생 책상
+    */
 
     const desks = [
 
-      [180, 235],
-      [320, 235],
-      [460, 235],
-      [600, 235],
+      [210, 250],
+      [335, 250],
+      [460, 250],
+      [585, 250],
 
-      [180, 330],
-      [320, 330],
-      [460, 330],
-      [600, 330]
+      [210, 345],
+      [335, 345],
+      [460, 345],
+      [585, 345]
     ];
 
 
     desks.forEach(
-      ([x, y], index) => {
+      ([x, y]) => {
 
-        const target =
-          index === 6;
-
-        this.object(
-          `desk_${index}`,
-          target
-            ? "붉은 공책이 놓인 책상"
-            : "책상",
+        this.addObstacle(
           x,
           y,
-          75,
-          42,
-          target
-            ? 0x8c5945
-            : 0x745239,
-          "desk",
-          true,
-          {
-            targetDesk: target
-          }
+          78,
+          55
         );
       }
     );
 
 
-    /* 의자 */
-
-    this.object(
-      "chair",
-      "의자",
-      250,
-      395,
-      38,
-      38,
-      0x625044,
-      "chair"
+    // 좌측 책장
+    this.addObstacle(
+      115,
+      455,
+      135,
+      110
     );
 
 
-    /* 책 */
-
-    this.object(
-      "book",
-      "책",
-      260,
-      118,
-      34,
-      24,
-      0x7a2942,
-      "book"
+    // 사물함 3개
+    this.addObstacle(
+      315,
+      470,
+      145,
+      110
     );
 
 
-    /* 가방 */
-
-    this.object(
-      "bag",
-      "가방",
-      330,
-      120,
-      42,
-      35,
-      0x324d73,
-      "bag"
+    // 우측 상자 3개
+    this.addObstacle(
+      560,
+      475,
+      200,
+      80
     );
 
 
-    /* 밀 수 있는 책상 */
+    // 우측 장식/선반
+    this.addObstacle(
+      710,
+      325,
+      65,
+      190
+    );
 
-    this.pushDesk =
-      this.object(
 
+    // 왼쪽 창문 벽
+    this.addObstacle(
+      55,
+      255,
+      60,
+      300
+    );
+
+
+    // 출구
+    this.exitObstacle =
+      this.addObstacle(
+        670,
+        85,
+        85,
+        110
+      );
+  }
+
+
+  addObstacle(
+    x,
+    y,
+    width,
+    height
+  ) {
+
+    const zone =
+      this.add.zone(
+        x,
+        y,
+        width,
+        height
+      );
+
+
+    this.physics.add.existing(
+      zone,
+      true
+    );
+
+
+    this.obstacles.push(
+      zone
+    );
+
+
+    return zone;
+  }
+
+
+  /*
+  ====================================================
+  INTERACTABLES
+  ====================================================
+  */
+
+  createInteractables() {
+
+    /*
+      화면에는 아무것도 그리지 않고
+      조사 좌표만 만든다.
+    */
+
+
+    this.addInteractable({
+
+      id:
+        "blackboard",
+
+      label:
+        "칠판",
+
+      x:
+        390,
+
+      y:
+        95,
+
+      tag:
+        "blackboard"
+    });
+
+
+    this.addInteractable({
+
+      id:
+        "clock",
+
+      label:
+        "시계",
+
+      x:
+        590,
+
+      y:
+        75,
+
+      tag:
+        "clock"
+    });
+
+
+    this.addInteractable({
+
+      id:
+        "window",
+
+      label:
+        "창문",
+
+      x:
+        70,
+
+      y:
+        220,
+
+      tag:
+        "window"
+    });
+
+
+    this.addInteractable({
+
+      id:
+        "exit",
+
+      label:
+        "봉인된 문",
+
+      x:
+        680,
+
+      y:
+        95,
+
+      tag:
+        "door"
+    });
+
+
+    /*
+      학생 책상
+    */
+
+    const desks = [
+
+      {
+        id: "desk_01",
+        x: 210,
+        y: 250
+      },
+
+      {
+        id: "desk_02",
+        x: 335,
+        y: 250
+      },
+
+      {
+        id: "desk_03",
+        x: 460,
+        y: 250
+      },
+
+      {
+        id: "desk_04",
+        x: 585,
+        y: 250
+      },
+
+      {
+        id: "desk_05",
+        x: 210,
+        y: 345
+      },
+
+      {
+        id: "desk_06",
+        x: 335,
+        y: 345,
+        targetDesk: true
+      },
+
+      {
+        id: "desk_07",
+        x: 460,
+        y: 345
+      },
+
+      {
+        id: "desk_08",
+        x: 585,
+        y: 345
+      }
+    ];
+
+
+    desks.forEach(
+      desk => {
+
+        this.addInteractable({
+
+          id:
+            desk.id,
+
+          label:
+            desk.targetDesk
+              ? "빛나는 책상"
+              : "책상",
+
+          x:
+            desk.x,
+
+          y:
+            desk.y,
+
+          tag:
+            "desk",
+
+          targetDesk:
+            !!desk.targetDesk
+        });
+      }
+    );
+
+
+    /*
+      책
+    */
+
+    this.addInteractable({
+
+      id:
+        "book",
+
+      label:
+        "책",
+
+      x:
+        220,
+
+      y:
+        235,
+
+      tag:
+        "book"
+    });
+
+
+    /*
+      가방
+    */
+
+    this.addInteractable({
+
+      id:
+        "bag",
+
+      label:
+        "가방",
+
+      x:
+        480,
+
+      y:
+        285,
+
+      tag:
+        "bag"
+    });
+
+
+    /*
+      의자
+    */
+
+    this.addInteractable({
+
+      id:
+        "chair",
+
+      label:
+        "의자",
+
+      x:
+        585,
+
+      y:
+        365,
+
+      tag:
+        "chair"
+    });
+
+
+    /*
+      사물함
+    */
+
+    this.addInteractable({
+
+      id:
+        "locker_a",
+
+      label:
+        "왼쪽 사물함",
+
+      x:
+        280,
+
+      y:
+        465,
+
+      tag:
+        "locker"
+    });
+
+
+    this.addInteractable({
+
+      id:
+        "locker_b",
+
+      label:
+        "가운데 사물함",
+
+      x:
+        330,
+
+      y:
+        465,
+
+      tag:
+        "locker"
+    });
+
+
+    this.addInteractable({
+
+      id:
+        "locker_c",
+
+      label:
+        "오른쪽 사물함",
+
+      x:
+        380,
+
+      y:
+        465,
+
+      tag:
+        "locker"
+    });
+
+
+    /*
+      세 개의 상자
+    */
+
+    this.addInteractable({
+
+      id:
+        "red_box",
+
+      label:
+        "붉은 상자",
+
+      x:
+        510,
+
+      y:
+        470,
+
+      tag:
+        "box",
+
+      color:
+        "red"
+    });
+
+
+    this.addInteractable({
+
+      id:
+        "blue_box",
+
+      label:
+        "푸른 상자",
+
+      x:
+        575,
+
+      y:
+        470,
+
+      tag:
+        "box",
+
+      color:
+        "blue"
+    });
+
+
+    this.addInteractable({
+
+      id:
+        "old_box",
+
+      label:
+        "낡은 상자",
+
+      x:
+        645,
+
+      y:
+        470,
+
+      tag:
+        "box",
+
+      color:
+        "old"
+    });
+
+
+    /*
+      밀 수 있는 책상
+      임시로 하단 책상 하나 사용
+    */
+
+    this.addInteractable({
+
+      id:
         "push_desk",
+
+      label:
         "무거운 책상",
 
-        455,
-        430 +
-          this.state.pushSteps * 32,
+      x:
+        460,
 
-        82,
-        44,
+      y:
+        345,
 
-        0x68472f,
-
-        "pushDesk",
-
-        true
-      );
-
-
-    /* 사물함 */
-
-    this.object(
-      "locker_a",
-      "왼쪽 사물함",
-      95,
-      475,
-      48,
-      85,
-      0x5e6876,
-      "lockerA",
-      true
-    );
-
-
-    this.object(
-      "locker_b",
-      "가운데 사물함",
-      150,
-      475,
-      48,
-      85,
-      0x697585,
-      "lockerB",
-      true
-    );
-
-
-    this.object(
-      "locker_c",
-      "오른쪽 사물함",
-      205,
-      475,
-      48,
-      85,
-      0x5e6876,
-      "lockerC",
-      true
-    );
-
-
-    /* 상자 */
-
-    this.object(
-      "red_box",
-      "붉은 상자",
-      520,
-      475,
-      60,
-      50,
-      0xa33d35,
-      "box",
-      true,
-      {
-        color: "red"
-      }
-    );
-
-
-    this.object(
-      "old_box",
-      "낡은 상자",
-      605,
-      475,
-      60,
-      50,
-      0x72563a,
-      "box",
-      true,
-      {
-        color: "old"
-      }
-    );
-
-
-    this.object(
-      "blue_box",
-      "푸른 상자",
-      690,
-      475,
-      60,
-      50,
-      0x31558b,
-      "box",
-      true,
-      {
-        color: "blue"
-      }
-    );
+      tag:
+        "pushDesk"
+    });
   }
 
 
-  wall(x, y, w, h) {
-
-    const object =
-      this.add.rectangle(
-        x,
-        y,
-        w,
-        h,
-        0x3b3340
-      );
-
-    this.physics.add.existing(
-      object,
-      true
-    );
-
-    this.collideLater(object);
-  }
-
-
-  furniture(
-    x,
-    y,
-    w,
-    h,
-    color
+  addInteractable(
+    data
   ) {
-
-    const object =
-      this.add.rectangle(
-        x,
-        y,
-        w,
-        h,
-        color
-      );
-
-    object.setStrokeStyle(
-      3,
-      0x332419
-    );
-
-    this.physics.add.existing(
-      object,
-      true
-    );
-
-    this.collideLater(object);
-
-    return object;
-  }
-
-
-  object(
-    id,
-    label,
-    x,
-    y,
-    w,
-    h,
-    color,
-    tag,
-    collision = false,
-    extra = {}
-  ) {
-
-    const visual =
-      this.add.rectangle(
-        x,
-        y,
-        w,
-        h,
-        color
-      );
-
-    visual.setStrokeStyle(
-      3,
-      0x251d26
-    );
-
-
-    this.add.text(
-      x,
-      y,
-      label,
-      {
-        fontFamily: "sans-serif",
-        fontSize: "12px",
-        color: "#fff6d5",
-        backgroundColor:
-          "rgba(20,20,35,.65)",
-        padding: {
-          x: 4,
-          y: 2
-        }
-      }
-    )
-    .setOrigin(0.5);
-
-
-    if (collision) {
-
-      this.physics.add.existing(
-        visual,
-        true
-      );
-
-      this.collideLater(
-        visual
-      );
-    }
-
-
-    const item = {
-
-      id,
-      label,
-      x,
-      y,
-      tag,
-      visual,
-
-      ...extra
-    };
-
 
     this.interactables.push(
-      item
-    );
-
-
-    return item;
-  }
-
-
-  collideLater(object) {
-
-    if (!this.pendingColliders) {
-
-      this.pendingColliders = [];
-    }
-
-    this.pendingColliders.push(
-      object
+      {
+        ...data
+      }
     );
   }
 
+
+  /*
+  ====================================================
+  PLAYER
+  ====================================================
+  */
 
   createPlayer() {
 
-    const hasSprites =
+    const spriteExists =
       this.textures.exists(
         "mage_front"
       );
 
 
-    if (hasSprites) {
+    if (spriteExists) {
 
       this.player =
         this.physics.add.image(
-          375,
-          290,
+          380,
+          385,
           "mage_front"
         );
 
+
       this.player.setDisplaySize(
         48,
-        78
+        74
       );
 
+
       this.player.body.setSize(
-        24,
+        22,
         30
+      );
+
+
+      this.player.body.setOffset(
+        (
+          this.player.width -
+          22
+        ) / 2,
+        this.player.height -
+          32
       );
 
     } else {
 
+      /*
+        캐릭터 로딩 실패 시
+        임시 사각형
+      */
+
       this.player =
         this.add.rectangle(
-          375,
-          290,
-          28,
-          45,
+
+          380,
+          385,
+
+          26,
+          42,
+
           this.profile.gender ===
-            "female"
-            ? 0x2c8451
-            : 0x374aa8
+          "female"
+
+            ? 0x3f8c58
+            : 0x4053a5
         );
+
 
       this.physics.add.existing(
         this.player
@@ -647,14 +871,24 @@ export default class Map01Scene
     }
 
 
-    this.player.body.setCollideWorldBounds(
-      true
+    this.player.setDepth(
+      100
     );
 
 
+    this.player.body
+      .setCollideWorldBounds(
+        true
+      );
+
+
+    /*
+      모든 장애물 충돌
+    */
+
     for (
       const obstacle of
-      this.pendingColliders || []
+      this.obstacles
     ) {
 
       this.physics.add.collider(
@@ -665,9 +899,15 @@ export default class Map01Scene
 
 
     this.hasMageSprites =
-      hasSprites;
+      spriteExists;
   }
 
+
+  /*
+  ====================================================
+  INPUT
+  ====================================================
+  */
 
   createInput() {
 
@@ -685,24 +925,25 @@ export default class Map01Scene
 
   update() {
 
-    if (
-      !this.player ||
-      this.inputLocked
-    ) {
+    if (!this.player) {
+      return;
+    }
 
-      if (this.player?.body) {
 
-        this.player.body.setVelocity(
-          0,
-          0
-        );
-      }
+    if (this.inputLocked) {
+
+      this.player.body.setVelocity(
+        0,
+        0
+      );
 
       return;
     }
 
 
-    const speed = 145;
+    const speed =
+      145;
+
 
     let vx = 0;
     let vy = 0;
@@ -712,14 +953,19 @@ export default class Map01Scene
       this.cursors.left.isDown ||
       this.keys.A.isDown
     ) {
-      vx = -speed;
+
+      vx =
+        -speed;
     }
+
 
     else if (
       this.cursors.right.isDown ||
       this.keys.D.isDown
     ) {
-      vx = speed;
+
+      vx =
+        speed;
     }
 
 
@@ -727,21 +973,36 @@ export default class Map01Scene
       this.cursors.up.isDown ||
       this.keys.W.isDown
     ) {
-      vy = -speed;
+
+      vy =
+        -speed;
     }
+
 
     else if (
       this.cursors.down.isDown ||
       this.keys.S.isDown
     ) {
-      vy = speed;
+
+      vy =
+        speed;
     }
 
 
-    if (vx && vy) {
+    /*
+      대각선 속도 보정
+    */
 
-      vx *= 0.707;
-      vy *= 0.707;
+    if (
+      vx !== 0 &&
+      vy !== 0
+    ) {
+
+      vx *=
+        0.707;
+
+      vy *=
+        0.707;
     }
 
 
@@ -757,15 +1018,31 @@ export default class Map01Scene
     );
 
 
+    /*
+      조사키
+    */
+
     if (
-      Phaser.Input.Keyboard
-        .JustDown(this.keys.E) ||
 
       Phaser.Input.Keyboard
-        .JustDown(this.keys.ENTER) ||
+        .JustDown(
+          this.keys.E
+        )
+
+      ||
 
       Phaser.Input.Keyboard
-        .JustDown(this.keys.SPACE)
+        .JustDown(
+          this.keys.ENTER
+        )
+
+      ||
+
+      Phaser.Input.Keyboard
+        .JustDown(
+          this.keys.SPACE
+        )
+
     ) {
 
       this.interact();
@@ -773,38 +1050,73 @@ export default class Map01Scene
   }
 
 
-  updateDirection(vx, vy) {
+  updateDirection(
+    vx,
+    vy
+  ) {
 
-    if (!this.hasMageSprites) {
+    if (
+      !this.hasMageSprites
+    ) {
+
       return;
     }
 
 
-    if (Math.abs(vx) >
-        Math.abs(vy)) {
+    if (
+      Math.abs(vx) >
+      Math.abs(vy)
+    ) {
 
       this.player
-        .setTexture("mage_side")
-        .setFlipX(vx < 0);
+        .setTexture(
+          "mage_side"
+        )
+        .setFlipX(
+          vx < 0
+        );
 
-    } else if (vy < 0) {
+    }
+
+    else if (
+      vy < 0
+    ) {
 
       this.player
-        .setTexture("mage_back")
-        .setFlipX(false);
+        .setTexture(
+          "mage_back"
+        )
+        .setFlipX(
+          false
+        );
 
-    } else if (vy > 0) {
+    }
+
+    else if (
+      vy > 0
+    ) {
 
       this.player
-        .setTexture("mage_front")
-        .setFlipX(false);
+        .setTexture(
+          "mage_front"
+        )
+        .setFlipX(
+          false
+        );
     }
   }
 
 
+  /*
+  ====================================================
+  INTRO
+  ====================================================
+  */
+
   async playIntro() {
 
-    this.inputLocked = true;
+    this.inputLocked =
+      true;
 
 
     await GameUI.say([
@@ -813,28 +1125,42 @@ export default class Map01Scene
 
       "루미: 큰일이야! 언어 수정이 산산조각 나면서 책 속 세계로 떨어진 것 같아.",
 
-      "여기는 교실인 것 같은데… 출입문이 봉인되어 있어.",
+      "여기는 교실인 것 같은데… 출입문이 마법으로 봉인되어 있어.",
 
-      "루미: 이곳에 흩어진 세 개의 '말의 조각'을 찾아야 해.",
+      "루미: 이곳에 흩어진 세 개의 '말의 조각'을 찾아야 문을 열 수 있을 것 같아.",
 
-      "주변의 물건을 조사해 보자."
+      "먼저 주변을 조사해 보자."
     ]);
 
 
-    this.state.introDone = true;
+    this.state.introDone =
+      true;
 
-    this.state.phase = "p1";
+
+    this.state.phase =
+      "p1";
+
 
     this.save();
+
 
     this.updateHUD();
   }
 
 
+  /*
+  ====================================================
+  INTERACTION
+  ====================================================
+  */
+
   nearestObject() {
 
-    let nearest = null;
-    let best = 70;
+    let nearest =
+      null;
+
+    let bestDistance =
+      80;
 
 
     for (
@@ -853,13 +1179,19 @@ export default class Map01Scene
         );
 
 
-      if (distance < best) {
+      if (
+        distance <
+        bestDistance
+      ) {
 
-        best = distance;
+        bestDistance =
+          distance;
 
-        nearest = object;
+        nearest =
+          object;
       }
     }
+
 
     return nearest;
   }
@@ -867,8 +1199,14 @@ export default class Map01Scene
 
   async interact() {
 
+    if (this.inputLocked) {
+      return;
+    }
+
+
     const object =
       this.nearestObject();
+
 
     if (!object) {
 
@@ -880,7 +1218,9 @@ export default class Map01Scene
     }
 
 
-    this.inputLocked = true;
+    this.inputLocked =
+      true;
+
 
     this.player.body.setVelocity(
       0,
@@ -894,23 +1234,29 @@ export default class Map01Scene
         object
       );
 
-    } finally {
+    }
 
-      this.inputLocked = false;
+    finally {
+
+      this.inputLocked =
+        false;
     }
   }
 
 
-  async handleObject(object) {
+  async handleObject(
+    object
+  ) {
 
     /*
-      Puzzle 1이 활성화되어 있다면
-      실제 맵 오브젝트가 정답이 된다.
+      ------------------------------
+      P1 물건 찾기
+      ------------------------------
     */
 
     if (
       this.state.phase ===
-        "p1_active"
+      "p1_active"
     ) {
 
       if (
@@ -921,17 +1267,23 @@ export default class Map01Scene
         await this.solveP1();
 
         return;
+      }
 
-      } else if (
+
+      if (
         object.id !==
         "blackboard"
       ) {
 
-        this.wrong("p1");
+        this.wrong(
+          "p1"
+        );
+
 
         await GameUI.say(
           "아무 일도 일어나지 않았다."
         );
+
 
         return;
       }
@@ -939,7 +1291,9 @@ export default class Map01Scene
 
 
     /*
-      Final Puzzle
+      ------------------------------
+      FINAL
+      ------------------------------
     */
 
     if (
@@ -955,7 +1309,15 @@ export default class Map01Scene
     }
 
 
-    switch (object.id) {
+    /*
+      ------------------------------
+      일반 조사
+      ------------------------------
+    */
+
+    switch (
+      object.id
+    ) {
 
       case "blackboard":
 
@@ -980,18 +1342,18 @@ export default class Map01Scene
         break;
 
 
+      case "locker_b":
+
+        await this.middleLocker();
+
+        break;
+
+
       case "locker_c":
 
         await GameUI.say(
           "텅 비어 있다."
         );
-
-        break;
-
-
-      case "locker_b":
-
-        await this.middleLocker();
 
         break;
 
@@ -1005,6 +1367,10 @@ export default class Map01Scene
 
       default:
 
+        /*
+          목표 책상
+        */
+
         if (
           object.targetDesk
         ) {
@@ -1015,9 +1381,15 @@ export default class Map01Scene
         }
 
 
+        /*
+          상자 퍼즐
+        */
+
         if (
-          object.tag === "box" &&
-          this.state.phase === "box"
+          object.tag ===
+          "box" &&
+          this.state.phase ===
+          "box"
         ) {
 
           await this.boxPuzzle(
@@ -1035,6 +1407,12 @@ export default class Map01Scene
   }
 
 
+  /*
+  ====================================================
+  PUZZLE 1
+  ====================================================
+  */
+
   async blackboard() {
 
     if (
@@ -1043,25 +1421,30 @@ export default class Map01Scene
     ) {
 
       await GameUI.say(
-        "칠판의 글씨는 이미 사라졌다."
+        "칠판의 영어 글씨는 이미 사라졌다."
       );
 
       return;
     }
 
 
-    this.state.p1Started = true;
+    this.state.p1Started =
+      true;
+
+
     this.state.phase =
       "p1_active";
 
+
     this.state.questionsShown++;
+
 
     this.save();
 
 
     await GameUI.english(
 
-      "칠판의 영어 단어가 가리키는 물건을 교실에서 찾아 조사해 보자.",
+      "칠판에 영어 단어가 떠올랐다. 이 단어가 가리키는 물건을 교실에서 찾아 조사해 보자.",
 
       this.state
         .p1Target
@@ -1075,13 +1458,22 @@ export default class Map01Scene
 
   async solveP1() {
 
-    this.correct("p1");
+    this.correct(
+      "p1"
+    );
 
-    this.state.p1Solved = true;
 
-    this.state.shards = 1;
+    this.state.p1Solved =
+      true;
 
-    this.state.phase = "p2";
+
+    this.state.shards =
+      1;
+
+
+    this.state.phase =
+      "p2";
+
 
     this.save();
 
@@ -1092,11 +1484,12 @@ export default class Map01Scene
 
       "첫 번째 말의 조각을 발견했다.",
 
-      "교실 뒤쪽에서 무거운 책상이 움직이는 소리가 들린다."
+      "교실 뒤쪽에서 빛이 번쩍였다."
     ]);
 
 
     this.state.questionsShown++;
+
 
     this.save();
 
@@ -1113,12 +1506,17 @@ export default class Map01Scene
   }
 
 
+  /*
+  ====================================================
+  PUZZLE 2
+  ====================================================
+  */
+
   async pushHeavyDesk() {
 
     if (
       this.state.phase !==
-        "p2" &&
-      this.state.pushSteps < 2
+      "p2"
     ) {
 
       await GameUI.say(
@@ -1130,11 +1528,12 @@ export default class Map01Scene
 
 
     if (
-      this.state.pushSteps >= 2
+      this.state.pushSteps >=
+      2
     ) {
 
       await GameUI.say(
-        "책상을 충분히 옮겼다."
+        "통로는 이미 충분히 열려 있다."
       );
 
       return;
@@ -1144,35 +1543,22 @@ export default class Map01Scene
     this.state.pushSteps++;
 
 
-    this.pushDesk.y += 32;
-
-    this.pushDesk.visual.y += 32;
-
-
-    if (
-      this.pushDesk.visual.body
-    ) {
-
-      this.pushDesk.visual.body
-        .updateFromGameObject();
-    }
-
-
     this.save();
 
 
     if (
-      this.state.pushSteps === 2
+      this.state.pushSteps ===
+      1
     ) {
 
       await GameUI.say(
-        "통로가 열렸다!"
+        "책상을 조금 밀었다."
       );
 
     } else {
 
       await GameUI.say(
-        "책상이 한 칸 밀렸다."
+        "책상을 밀어 통로를 만들었다!"
       );
     }
   }
@@ -1181,11 +1567,12 @@ export default class Map01Scene
   async targetDesk() {
 
     if (
-      this.state.phase !== "p2"
+      this.state.phase !==
+      "p2"
     ) {
 
       await GameUI.say(
-        "붉은 공책이 놓여 있다."
+        "책상 위에 낡은 공책이 놓여 있다."
       );
 
       return;
@@ -1193,22 +1580,34 @@ export default class Map01Scene
 
 
     if (
-      this.state.pushSteps < 2
+      this.state.pushSteps <
+      2
     ) {
 
       await GameUI.say(
-        "앞의 무거운 책상이 길을 막고 있다."
+        "앞에 있는 무거운 책상 때문에 가까이 갈 수 없다."
       );
 
       return;
     }
 
 
-    this.correct("p2");
+    this.correct(
+      "p2"
+    );
 
-    this.state.p2Solved = true;
-    this.state.lockerKey = true;
-    this.state.phase = "locker";
+
+    this.state.p2Solved =
+      true;
+
+
+    this.state.lockerKey =
+      true;
+
+
+    this.state.phase =
+      "locker";
+
 
     this.save();
 
@@ -1225,6 +1624,12 @@ export default class Map01Scene
   }
 
 
+  /*
+  ====================================================
+  PUZZLE 3
+  ====================================================
+  */
+
   async middleLocker() {
 
     if (
@@ -1240,7 +1645,9 @@ export default class Map01Scene
     }
 
 
-    if (!this.state.lockerKey) {
+    if (
+      !this.state.lockerKey
+    ) {
 
       await GameUI.say(
         "잠겨 있다."
@@ -1251,6 +1658,7 @@ export default class Map01Scene
 
 
     this.state.questionsShown++;
+
 
     this.save();
 
@@ -1266,13 +1674,22 @@ export default class Map01Scene
     }
 
 
-    this.correct("p3");
+    this.correct(
+      "p3"
+    );
 
-    this.state.p3Solved = true;
 
-    this.state.shards = 2;
+    this.state.p3Solved =
+      true;
 
-    this.state.phase = "box";
+
+    this.state.shards =
+      2;
+
+
+    this.state.phase =
+      "box";
+
 
     this.save();
 
@@ -1282,31 +1699,24 @@ export default class Map01Scene
     );
 
 
-    const colorNames = {
-
-      red: "red",
-      blue: "blue",
-      old: "old"
-    };
+    const color =
+      this.state
+        .boxTargetColor;
 
 
     const clue =
-      `The key is behind the ${
-        colorNames[
-          this.state
-            .boxTargetColor
-        ]
-      } box.`;
+      `The key is behind the ${color} box.`;
 
 
     this.state.questionsShown++;
+
 
     this.save();
 
 
     await GameUI.english(
 
-      "상자 뒤에 무언가 숨겨져 있다. 문장을 읽고 알맞은 상자를 조사해 보자.",
+      "상자 뒤 어딘가에 비밀 장치가 숨겨져 있다. 문장을 읽고 알맞은 상자를 조사해 보자.",
 
       clue
     );
@@ -1316,44 +1726,66 @@ export default class Map01Scene
   }
 
 
-  async boxPuzzle(object) {
+  /*
+  ====================================================
+  PUZZLE 4
+  ====================================================
+  */
+
+  async boxPuzzle(
+    object
+  ) {
 
     if (
       object.color !==
       this.state.boxTargetColor
     ) {
 
-      this.wrong("p4");
+      this.wrong(
+        "p4"
+      );
+
 
       await GameUI.say(
         "상자 뒤에는 아무것도 없다."
       );
 
+
       return;
     }
 
 
-    this.correct("p4");
+    this.correct(
+      "p4"
+    );
 
-    this.state.p4Solved = true;
 
-    this.state.shards = 3;
+    this.state.p4Solved =
+      true;
+
+
+    this.state.shards =
+      3;
+
 
     this.state.phase =
       "final_ready";
+
 
     this.save();
 
 
     await GameUI.say([
 
-      "상자 뒤에서 작은 버튼을 발견했다.",
+      "상자 뒤에서 작은 마법 버튼을 발견했다.",
 
       "딸깍!",
 
-      "교실의 시계가 빠르게 돌아가더니 마지막 말의 조각이 나타났다.",
+      "교실의 시계가 빠르게 돌아가기 시작한다.",
 
-      "세 개의 말의 조각을 모두 찾았다!"
+      "마지막 말의 조각이 나타났다.",
+
+      "세 개의 말의 조각을 모두 모았다!"
     ]);
 
 
@@ -1361,17 +1793,28 @@ export default class Map01Scene
   }
 
 
+  /*
+  ====================================================
+  EXIT / FINAL
+  ====================================================
+  */
+
   async exitDoor() {
 
     /*
-      P1 target이 door인 경우
+      P1 정답이 door인 경우
     */
 
     if (
+
       this.state.phase ===
-        "p1_active" &&
+      "p1_active"
+
+      &&
+
       this.state.p1Target ===
-        "door"
+      "door"
+
     ) {
 
       await this.solveP1();
@@ -1403,17 +1846,19 @@ export default class Map01Scene
 
 
     await GameUI.say(
-      "푸른 힘이 문을 단단히 봉인하고 있다."
+      "푸른 마법이 문을 단단히 봉인하고 있다."
     );
   }
 
 
   async startFinal() {
 
-    this.state.phase = "final";
-    this.state.finalStep = 0;
+    this.state.phase =
+      "final";
 
-    this.save();
+
+    this.state.finalStep =
+      0;
 
 
     this.finalSequence = [
@@ -1426,19 +1871,23 @@ export default class Map01Scene
     ];
 
 
-    await GameUI.say(
+    this.save();
 
+
+    await GameUI.say(
       "루미: 마지막으로 지금까지 발견한 말을 순서대로 다시 떠올려 봐!"
     );
 
 
     await GameUI.english(
 
-      "아래 세 단서를 순서대로 기억하고, 교실에서 해당 물건을 조사하자.",
+      "아래 세 가지 영어 단서를 기억하고, 교실에서 해당 물건을 순서대로 조사하자.",
 
       `${this.state.p1Target.toUpperCase()}
-→ Open the box.
-→ ${this.p2Sentence}`
+
+Open the box.
+
+${this.p2Sentence}`
     );
 
 
@@ -1450,7 +1899,9 @@ export default class Map01Scene
     object
   ) {
 
-    if (!this.finalSequence) {
+    if (
+      !this.finalSequence
+    ) {
 
       this.finalSequence = [
 
@@ -1470,14 +1921,19 @@ export default class Map01Scene
 
 
     if (
-      object.tag !== expected
+      object.tag !==
+      expected
     ) {
 
-      this.wrong("final");
+      this.wrong(
+        "final"
+      );
+
 
       await GameUI.say(
-        "문양이 잠깐 흔들렸다. 지금까지 맞힌 것은 그대로 유지된다."
+        "문양이 잠깐 흔들렸다. 지금까지 맞힌 순서는 그대로 유지된다."
       );
+
 
       return;
     }
@@ -1485,24 +1941,27 @@ export default class Map01Scene
 
     this.state.finalStep++;
 
+
     this.save();
 
 
     await GameUI.say(
-
-      `문양 ${
-        this.state.finalStep
-      } / 3이 빛났다.`
+      `기억의 문양 ${this.state.finalStep} / 3이 빛났다.`
     );
 
 
     if (
-      this.state.finalStep >= 3
+      this.state.finalStep >=
+      3
     ) {
 
-      this.state.finalSolved = true;
+      this.state.finalSolved =
+        true;
 
-      this.state.phase = "exit";
+
+      this.state.phase =
+        "exit";
+
 
       this.save();
 
@@ -1511,9 +1970,9 @@ export default class Map01Scene
 
         "세 개의 문양이 모두 빛난다.",
 
-        "교실의 봉인이 완전히 풀렸다!",
+        "교실을 감싸고 있던 봉인이 무너지기 시작한다.",
 
-        "출구로 나가자."
+        "출구가 열렸다!"
       ]);
     }
 
@@ -1522,25 +1981,44 @@ export default class Map01Scene
   }
 
 
+  /*
+  ====================================================
+  CLEAR
+  ====================================================
+  */
+
   async completeMap() {
 
-    if (this.state.completed) {
+    if (
+      this.state.completed
+    ) {
+
       return;
     }
 
 
-    this.state.completed = true;
+    this.state.completed =
+      true;
+
 
     this.save();
 
 
     const seconds =
-      Math.round(
-        (
-          Date.now() -
-          this.state
-            .sessionStartedAt
-        ) / 1000
+      Math.max(
+
+        1,
+
+        Math.round(
+
+          (
+            Date.now() -
+            this.state
+              .sessionStartedAt
+          )
+
+          / 1000
+        )
       );
 
 
@@ -1562,16 +2040,20 @@ export default class Map01Scene
         seconds,
 
       questionsShown:
-        this.state.questionsShown,
+        this.state
+          .questionsShown,
 
       firstTryCorrect:
-        this.state.firstTryCorrect,
+        this.state
+          .firstTryCorrect,
 
       wrongAttempts:
-        this.state.wrongAttempts,
+        this.state
+          .wrongAttempts,
 
       hintsUsed:
-        this.state.hintsUsed,
+        this.state
+          .hintsUsed,
 
       completedAt:
         new Date()
@@ -1579,18 +2061,19 @@ export default class Map01Scene
     });
 
 
-    this.inputLocked = true;
+    this.inputLocked =
+      true;
 
 
     await GameUI.say([
 
       "교실 문 너머에서 눈부신 빛이 쏟아진다.",
 
-      "루미: 해냈어! 그런데 수정은 모두 열두 조각이야.",
+      "루미: 해냈어! 첫 번째 언어 수정이 원래의 빛을 되찾았어.",
 
-      "캐릭터: 그럼 전부 되찾으면 되는 거지?",
+      "하지만 아직 열한 개의 세계가 남아 있어.",
 
-      "루미: 응. 우리의 모험은 이제 시작이야!"
+      "우리의 모험은 이제 시작이야!"
     ]);
 
 
@@ -1602,54 +2085,91 @@ export default class Map01Scene
       seconds,
 
       firstTry:
-        this.state.firstTryCorrect,
+        this.state
+          .firstTryCorrect,
 
       wrong:
-        this.state.wrongAttempts
+        this.state
+          .wrongAttempts
     });
   }
 
 
-  correct(id) {
+  /*
+  ====================================================
+  RECORD
+  ====================================================
+  */
+
+  correct(
+    id
+  ) {
 
     if (
-      !this.state.mistakes[id]
+      !this.state
+        .mistakes[id]
     ) {
 
-      this.state.firstTryCorrect++;
+      this.state
+        .firstTryCorrect++;
     }
   }
 
 
-  wrong(id) {
+  wrong(
+    id
+  ) {
 
-    this.state.wrongAttempts++;
+    this.state
+      .wrongAttempts++;
 
-    this.state.mistakes[id] =
-      (this.state.mistakes[id] || 0) +
-      1;
+
+    this.state
+      .mistakes[id] =
+      (
+        this.state
+          .mistakes[id]
+        || 0
+      ) + 1;
+
 
     this.save();
   }
 
+
+  /*
+  ====================================================
+  SAVE
+  ====================================================
+  */
 
   save() {
 
     window.WISDOM_MAP_STATE =
       this.state;
 
+
     saveMapProgress(
+
       this.profile.name,
+
       this.state
     );
+
 
     this.updateHUD();
   }
 
 
+  /*
+  ====================================================
+  HUD
+  ====================================================
+  */
+
   updateHUD() {
 
-    const shardText = [
+    const shards = [
 
       this.state.shards >= 1
         ? "◆"
@@ -1666,10 +2186,12 @@ export default class Map01Scene
     ].join(" ");
 
 
-    document.querySelector(
-      "#hud-shards"
-    ).textContent =
-      shardText;
+    document
+      .querySelector(
+        "#hud-shards"
+      )
+      .textContent =
+        shards;
 
 
     let objective =
@@ -1699,7 +2221,7 @@ export default class Map01Scene
       case "p2":
 
         objective =
-          "책상을 밀고 영어 단서가 가리키는 곳을 찾아보자.";
+          "영어 문장을 읽고 책상 주변을 조사해 보자.";
 
         break;
 
@@ -1715,7 +2237,7 @@ export default class Map01Scene
       case "box":
 
         objective =
-          "영어 단서를 읽고 올바른 상자를 찾아보자.";
+          "영어 단서를 읽고 알맞은 상자를 찾아보자.";
 
         break;
 
@@ -1742,12 +2264,20 @@ export default class Map01Scene
           "봉인이 풀렸다. 출구로 나가자!";
 
         break;
+
+
+      default:
+
+        objective =
+          "교실을 탐험해 보자.";
     }
 
 
-    document.querySelector(
-      "#hud-objective"
-    ).textContent =
-      objective;
+    document
+      .querySelector(
+        "#hud-objective"
+      )
+      .textContent =
+        objective;
   }
 }
