@@ -1,4 +1,4 @@
-name: Deploy Wisdom Maze
+name: Deploy Vite to GitHub Pages
 
 on:
   push:
@@ -13,7 +13,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: github-pages
   cancel-in-progress: true
 
 jobs:
@@ -21,16 +21,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v6
 
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-         node-version: 22
+          node-version: 22
 
       - name: Install
-        run: npm ci
+        run: npm install
 
       - name: Build
         run: npm run build
@@ -44,12 +44,12 @@ jobs:
           path: ./dist
 
   deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
-    runs-on: ubuntu-latest
-    needs: build
 
     steps:
       - name: Deploy
