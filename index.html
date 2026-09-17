@@ -2,146 +2,243 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
+
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0, user-scalable=no"
   />
+
+  <meta
+    name="theme-color"
+    content="#0d1830"
+  />
+
   <title>지혜의 미로 탐험대</title>
 </head>
 
 <body>
 
-<div id="title-screen">
+  <!-- =========================
+       타이틀 화면
+  ========================== -->
+  <div id="title-screen">
 
-  <div class="title-bg"></div>
+    <div class="title-bg"></div>
 
-  <div class="title-menu">
-    <button id="start-btn" class="main-button selected">
-      ▶ 게임 시작
-    </button>
+    <div class="title-menu">
 
-    <button id="continue-btn" class="main-button">
-      이어하기
-    </button>
+      <button
+        id="start-btn"
+        class="main-button selected"
+        type="button"
+      >
+        ▶ 게임 시작
+      </button>
 
-    <button
-      class="main-button"
-      onclick="location.href='/admin.html'"
+      <button
+        id="continue-btn"
+        class="main-button"
+        type="button"
+      >
+        이어하기
+      </button>
+
+      <button
+        id="admin-btn"
+        class="main-button"
+        type="button"
+        onclick="location.href='./admin.html'"
+      >
+        교사용 설정
+      </button>
+
+      <button
+        id="music-btn"
+        class="main-button"
+        type="button"
+      >
+        음악 켜기
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================
+       MAP01 게임 화면
+  ========================== -->
+  <div
+    id="game-screen"
+    class="hidden"
+  >
+
+    <div id="game-hud">
+
+      <div class="hud-student">
+        <strong id="hud-name"></strong>
+        <span> · 잠겨버린 교실</span>
+      </div>
+
+      <div class="hud-shards">
+        말의 조각
+        <strong id="hud-shards">
+          ◇ ◇ ◇
+        </strong>
+      </div>
+
+      <div id="hud-objective">
+        주변을 조사해 보자.
+      </div>
+
+    </div>
+
+
+    <!-- Phaser 게임이 들어가는 영역 -->
+    <div id="phaser-root"></div>
+
+
+    <div id="control-help">
+      이동: WASD / 방향키
+      &nbsp;·&nbsp;
+      조사: SPACE / ENTER / E
+    </div>
+
+  </div>
+
+
+  <!-- =========================
+       학생 이름 / 캐릭터 선택
+  ========================== -->
+  <div
+    id="setup-modal"
+    class="overlay hidden"
+  >
+
+    <div class="panel setup-panel">
+
+      <h2>모험가 등록</h2>
+
+      <p>
+        모험에서 사용할 이름을 입력해 주세요.
+      </p>
+
+      <input
+        id="student-name"
+        type="text"
+        maxlength="12"
+        placeholder="이름"
+        autocomplete="off"
+      />
+
+
+      <h3>캐릭터 선택</h3>
+
+      <div class="character-select">
+
+        <!-- 남자 캐릭터 -->
+        <button
+          class="character-card selected"
+          data-gender="male"
+          type="button"
+        >
+
+          <div
+            class="character-preview male"
+          ></div>
+
+          <strong>
+            파란 로브 마법사
+          </strong>
+
+        </button>
+
+
+        <!-- 여자 캐릭터 -->
+        <button
+          class="character-card"
+          data-gender="female"
+          type="button"
+        >
+
+          <div
+            class="character-preview female"
+          ></div>
+
+          <strong>
+            초록 로브 마법사
+          </strong>
+
+        </button>
+
+      </div>
+
+
+      <button
+        id="begin-btn"
+        class="big-gold"
+        type="button"
+      >
+        모험 시작
+      </button>
+
+      <button
+        id="setup-cancel"
+        class="text-button"
+        type="button"
+      >
+        돌아가기
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================
+       공용 대화창 / 영어 문제창
+  ========================== -->
+  <div
+    id="modal"
+    class="overlay hidden"
+  >
+
+    <div
+      id="modal-panel"
+      class="panel"
     >
-      교사용 설정
-    </button>
 
-    <button id="music-btn" class="main-button">
-      음악 켜기
-    </button>
-  </div>
-
-</div>
-
-
-<div id="game-screen" class="hidden">
-
-  <div id="game-hud">
-
-    <div>
-      <strong id="hud-name"></strong>
-      <span> · 잠겨버린 교실</span>
-    </div>
-
-    <div>
-      말의 조각
-      <strong id="hud-shards">◇ ◇ ◇</strong>
-    </div>
-
-    <div id="hud-objective">
-      주변을 조사해 보자.
-    </div>
-
-  </div>
-
-  <div id="phaser-root"></div>
-
-  <div id="control-help">
-    이동 WASD / 방향키 · 조사 SPACE / ENTER / E
-  </div>
-
-</div>
-
-
-<!-- 학생 설정 -->
-<div id="setup-modal" class="overlay hidden">
-
-  <div class="panel setup-panel">
-
-    <h2>모험가 등록</h2>
-
-    <p>
-      모험에서 사용할 이름을 입력해 주세요.
-    </p>
-
-    <input
-      id="student-name"
-      maxlength="12"
-      placeholder="이름"
-      autocomplete="off"
-    />
-
-    <h3>캐릭터 선택</h3>
-
-    <div class="character-select">
-
-      <button class="character-card selected"
-              data-gender="male">
-
-        <div class="character-preview male"></div>
-
-        <strong>파란 로브 마법사</strong>
-
-      </button>
-
-
-      <button class="character-card"
-              data-gender="female">
-
-        <div class="character-preview female"></div>
-
-        <strong>초록 로브 마법사</strong>
-
-      </button>
+      <div id="modal-body"></div>
 
     </div>
 
-    <button id="begin-btn" class="big-gold">
-      모험 시작
-    </button>
-
-    <button id="setup-cancel" class="text-button">
-      돌아가기
-    </button>
-
   </div>
 
-</div>
+
+  <!-- =========================
+       메인 테마 음악
+
+       public/assets/theme.mp3
+       →
+       GitHub Pages 배포 시
+       /wisdom-maze-prototype/assets/theme.mp3
+       로 Vite가 처리
+  ========================== -->
+  <audio
+    id="bgm"
+    src="/assets/theme.mp3"
+    loop
+    preload="auto"
+  ></audio>
 
 
-<!-- 게임 대화 / 문제 -->
-<div id="modal" class="overlay hidden">
-
-  <div id="modal-panel" class="panel">
-    <div id="modal-body"></div>
-  </div>
-
-</div>
-
-
-<audio
-  id="bgm"
-  src="/assets/theme.mp3"
-  loop
-  preload="auto"
-></audio>
-
-<script type="module" src="/src/main.js"></script>
+  <!-- =========================
+       Vite Entry
+  ========================== -->
+  <script
+    type="module"
+    src="/src/main.js"
+  ></script>
 
 </body>
 </html>
