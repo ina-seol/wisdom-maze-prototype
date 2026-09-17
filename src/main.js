@@ -264,11 +264,12 @@ async function prepareCharacterSprites(
   gender
 ) {
 
-  const url =
-    gender === "female"
-      ? "/assets/female.png"
-      : "/assets/male.png";
+  const base = import.meta.env.BASE_URL;
 
+const url =
+  gender === "female"
+    ? `${base}assets/female.png`
+    : `${base}assets/male.png`;
 
   try {
 
