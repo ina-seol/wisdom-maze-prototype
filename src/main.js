@@ -3,6 +3,41 @@ import "./style.css";
 
 import Map01Scene from "./game/Map01Scene.js";
 
+const base = import.meta.env.BASE_URL;
+
+const titleBg = document.querySelector(".title-bg");
+const bgm = document.querySelector("#bgm");
+const musicBtn = document.querySelector("#music-btn");
+
+if (titleBg) {
+  titleBg.style.backgroundImage =
+    `url("${base}assets/title.png")`;
+}
+
+if (bgm) {
+  bgm.src =
+    `${base}assets/theme.mp3`;
+
+  bgm.volume = 0.45;
+}
+
+if (musicBtn && bgm) {
+  musicBtn.textContent = "음악 켜기";
+
+  musicBtn.addEventListener("click", async () => {
+    if (bgm.paused) {
+      try {
+        await bgm.play();
+        musicBtn.textContent = "음악 끄기";
+      } catch (error) {
+        console.error("음악 재생 실패:", error);
+      }
+    } else {
+      bgm.pause();
+      musicBtn.textContent = "음악 켜기";
+    }
+  });
+}
 import {
   saveProfile,
   getProfile,
