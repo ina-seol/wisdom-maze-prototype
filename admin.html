@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+  <title>지혜의 미로 탐험대 - 교사용</title>
+</head>
+
+<body class="admin-body">
+
+<div id="admin-login" class="admin-center">
+
+  <div class="panel admin-login-panel">
+
+    <h1>교사용 설정</h1>
+
+    <p>PIN을 입력하세요.</p>
+
+    <input
+      id="admin-pin"
+      type="password"
+      inputmode="numeric"
+      maxlength="8"
+    />
+
+    <button id="admin-login-btn" class="big-gold">
+      들어가기
+    </button>
+
+    <a href="/" class="admin-link">
+      게임으로 돌아가기
+    </a>
+
+  </div>
+
+</div>
+
+
+<div id="admin-app" class="admin-app hidden">
+
+  <header class="admin-header">
+
+    <div>
+      <h1>MAP 01 · 잠겨버린 교실</h1>
+      <p>
+        영어 콘텐츠 관리
+      </p>
+    </div>
+
+    <a href="/" class="main-button">
+      게임 화면
+    </a>
+
+  </header>
+
+
+  <main class="admin-main">
+
+    <section class="panel">
+
+      <h2>TXT 파일 업로드</h2>
+
+      <input
+        id="txt-upload"
+        type="file"
+        accept=".txt,text/plain"
+      />
+
+      <p class="small">
+        UTF-8 TXT · 단어/표현 각각 최대 20개
+      </p>
+
+      <button id="sample-download">
+        샘플 TXT 받기
+      </button>
+
+    </section>
+
+
+    <section class="admin-editor">
+
+      <div class="panel">
+
+        <h2>
+          주요 단어
+          <span id="word-count">0 / 20</span>
+        </h2>
+
+        <textarea
+          id="words-editor"
+          placeholder="한 줄에 한 단어"
+        ></textarea>
+
+      </div>
+
+
+      <div class="panel">
+
+        <h2>
+          주요 표현
+          <span id="expression-count">0 / 20</span>
+        </h2>
+
+        <textarea
+          id="expressions-editor"
+          placeholder="한 줄에 한 표현"
+        ></textarea>
+
+      </div>
+
+    </section>
+
+
+    <section class="panel">
+
+      <h2>현재 콘텐츠 미리보기</h2>
+
+      <div id="content-preview"></div>
+
+      <button id="save-content" class="big-gold">
+        저장 및 게시
+      </button>
+
+    </section>
+
+  </main>
+
+</div>
+
+<script type="module" src="/src/admin.js"></script>
+
+</body>
+</html>
