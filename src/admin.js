@@ -9,21 +9,48 @@ import {
 } from "./data.js";
 
 
-const login =
+const base =
+  import.meta.env.BASE_URL;
+
+
+/* =========================================================
+   DOM
+========================================================= */
+
+const loginScreen =
   document.querySelector(
     "#admin-login"
   );
 
-const app =
+const adminApp =
   document.querySelector(
     "#admin-app"
   );
 
-const pin =
+const pinInput =
   document.querySelector(
-    "#admin-pin"
+    "#teacher-pin"
   );
 
+const loginButton =
+  document.querySelector(
+    "#teacher-login"
+  );
+
+const backTitle =
+  document.querySelector(
+    "#back-title"
+  );
+
+const adminHome =
+  document.querySelector(
+    "#admin-home"
+  );
+
+const txtUpload =
+  document.querySelector(
+    "#txt-upload"
+  );
 
 const wordsEditor =
   document.querySelector(
@@ -35,131 +62,411 @@ const expressionsEditor =
     "#expressions-editor"
   );
 
+const wordCount =
+  document.querySelector(
+    "#word-count"
+  );
 
-document
-  .querySelector(
-    "#admin-login-btn"
-  )
-  .onclick = () => {
+const expressionCount =
+  document.querySelector(
+    "#expression-count"
+  );
+
+const saveButton =
+  document.querySelector(
+    "#save-content"
+  );
+
+const downloadButton =
+  document.querySelector(
+    "#download-txt"
+  );
+
+const status =
+  document.querySelector(
+    "#save-status"
+  );
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+loginButton.addEventListener(
+  "click",
+  login
+);
+
+
+pinInput.addEventListener(
+  "keydown",
+  event => {
 
     if (
-      pin.value !==
-      getTeacherPin()
+      event.key ===
+      "Enter"
     ) {
 
-      alert(
-        "PIN 번호가 올바르지 않습니다."
-      );
+      login();
 
-      return;
     }
+  }
+);
 
 
-    login.classList.add(
-      "hidden"
+function login() {
+
+  const entered =
+    pinInput.value.trim();
+
+
+  const correct =
+    getTeacherPin();
+
+
+  if (
+    entered !==
+    correct
+  ) {
+
+    alert(
+      "PIN이 올바르지 않습니다."
     );
 
-    app.classList.remove(
-      "hidden"
-    );
-
-    loadCurrent();
-  };
+    return;
+  }
 
 
-document
-  .querySelector(
-    "#txt-upload"
-  )
-  .onchange = async event => {
+  loginScreen.classList.add(
+    "hidden"
+  );
+
+
+  adminApp.classList.remove(
+    "hidden"
+  );
+
+
+  loadCurrentContent();
+}
+
+
+/* =========================================================
+   RETURN GAME
+========================================================= */
+
+function goHome() {
+
+  window.location.href =
+    `${base}index.html`;
+
+}
+
+
+backTitle.addEventListener(
+  "click",
+  goHome
+);
+
+
+adminHome.addEventListener(
+  "click",
+  goHome
+);
+
+
+/* =========================================================
+   LOAD
+========================================================= */
+
+function loadCurrentContent() {
+
+  const data =
+    getUnit1Content();
+
+
+  wordsEditor.value =
+    data.words.join("\n");
+
+
+  expressionsEditor.value =
+    data.expressions.join("\n");
+
+
+  updateCounts();
+}
+
+
+/* =========================================================
+   TXT UPLOAD
+========================================================= */
+
+txtUpload.addEventListener(
+  "change",
+  async event => {
 
     const file =
       event.target.files?.[0];
 
-    if (!file) return;
+
+    if (!file) {
+      return;
+    }
 
 
-    const text =
-      await file.text();
+    try {
 
-    const parsed =
-      parseTxt(text);
-
-
-    wordsEditor.value =
-      parsed.words.join("\n");
-
-    expressionsEditor.value =
-      parsed.expressions.join("\n");
-
-    updatePreview();
-  };
+      const text =
+        await file.text();
 
 
-document
-  .querySelector(
-    "#save-content"
-  )
-  .onclick = () => {
+      const parsed =
+        parseTxt(text);
+
+
+      if (
+        parsed.words.length === 0 &&
+        parsed.expressions.length === 0
+      ) {
+
+        alert(
+          "TXT 문서에서 [WORDS] 또는 [EXPRESSIONS] 내용을 찾지 못했습니다."
+        );
+
+        return;
+      }
+
+
+      wordsEditor.value =
+        parsed.words.join("\n");
+
+
+      expressionsEditor.value =
+        parsed.expressions.join("\n");
+
+
+      updateCounts();
+
+
+      status.textContent =
+        "TXT 문서를 불러왔습니다. 아래의 'MAP 01 문제 저장'을 눌러 적용하세요.";
+
+    }
+
+    catch (error) {
+
+      console.error(error);
+
+
+      alert(
+        "TXT 파일을 읽지 못했습니다."
+      );
+    }
+  }
+);
+
+
+/* =========================================================
+   EDITOR
+========================================================= */
+
+wordsEditor.addEventListener(
+  "input",
+  updateCounts
+);
+
+
+expressionsEditor.addEventListener(
+  "input",
+  updateCounts
+);
+
+
+function linesFrom(
+  textarea
+) {
+
+  return textarea.value
+
+    .split(/\r?\n/)
+
+    .map(
+      line =>
+        line.trim()
+    )
+
+    .filter(Boolean);
+}
+
+
+function updateCounts() {
+
+  const words =
+    linesFrom(
+      wordsEditor
+    );
+
+
+  const expressions =
+    linesFrom(
+      expressionsEditor
+    );
+
+
+  wordCount.textContent =
+    words.length;
+
+
+  expressionCount.textContent =
+    expressions.length;
+
+
+  wordCount.style.color =
+    words.length > 20
+      ? "#ff7777"
+      : "";
+
+
+  expressionCount.style.color =
+    expressions.length > 20
+      ? "#ff7777"
+      : "";
+}
+
+
+/* =========================================================
+   SAVE
+========================================================= */
+
+saveButton.addEventListener(
+  "click",
+  () => {
 
     const words =
-      cleanLines(
-        wordsEditor.value
+      linesFrom(
+        wordsEditor
       );
 
+
     const expressions =
-      cleanLines(
-        expressionsEditor.value
+      linesFrom(
+        expressionsEditor
       );
 
 
     if (
-      words.length > 20 ||
-      expressions.length > 20
+      words.length === 0
     ) {
 
       alert(
-        "단어와 표현은 각각 최대 20개까지 입력할 수 있습니다."
+        "영어 단어를 하나 이상 입력하세요."
       );
 
       return;
     }
 
 
-    saveUnit1Content({
+    if (
+      expressions.length === 0
+    ) {
 
-      words,
-      expressions,
+      alert(
+        "영어 표현을 하나 이상 입력하세요."
+      );
 
-      updatedAt:
-        new Date()
-          .toISOString()
-    });
+      return;
+    }
 
 
-    updatePreview();
+    if (
+      words.length > 20
+    ) {
+
+      alert(
+        "단어는 최대 20개까지 가능합니다."
+      );
+
+      return;
+    }
+
+
+    if (
+      expressions.length > 20
+    ) {
+
+      alert(
+        "표현은 최대 20개까지 가능합니다."
+      );
+
+      return;
+    }
+
+
+    const data = {
+
+      words:
+        [...new Set(words)],
+
+      expressions:
+        [...new Set(expressions)]
+
+    };
+
+
+    saveUnit1Content(
+      data
+    );
+
+
+    status.textContent =
+      `저장 완료: 단어 ${data.words.length}개 / 표현 ${data.expressions.length}개`;
+
 
     alert(
-      "MAP01 학습 내용을 저장했습니다."
+      "MAP 01 문제가 저장되었습니다."
     );
-  };
+  }
+);
 
 
-document
-  .querySelector(
-    "#sample-download"
-  )
-  .onclick = () => {
+/* =========================================================
+   DOWNLOAD TXT
+========================================================= */
+
+downloadButton.addEventListener(
+  "click",
+  () => {
+
+    const data = {
+
+      words:
+        linesFrom(
+          wordsEditor
+        ).slice(
+          0,
+          20
+        ),
+
+      expressions:
+        linesFrom(
+          expressionsEditor
+        ).slice(
+          0,
+          20
+        )
+
+    };
+
+
+    const text =
+      serializeTxt(
+        data
+      );
+
 
     const blob =
       new Blob(
-
-        [
-          serializeTxt(
-            getUnit1Content()
-          )
-        ],
-
+        [text],
         {
           type:
             "text/plain;charset=utf-8"
@@ -174,12 +481,18 @@ document
 
 
     const a =
-      document.createElement("a");
+      document.createElement(
+        "a"
+      );
 
-    a.href = url;
+
+    a.href =
+      url;
+
 
     a.download =
-      "unit01_sample.txt";
+      "map01-english.txt";
+
 
     a.click();
 
@@ -187,130 +500,5 @@ document
     URL.revokeObjectURL(
       url
     );
-  };
-
-
-wordsEditor.oninput =
-  updatePreview;
-
-expressionsEditor.oninput =
-  updatePreview;
-
-
-function loadCurrent() {
-
-  const content =
-    getUnit1Content();
-
-  wordsEditor.value =
-    content.words.join("\n");
-
-  expressionsEditor.value =
-    content.expressions.join("\n");
-
-  updatePreview();
-}
-
-
-function cleanLines(text) {
-
-  return [
-    ...new Set(
-
-      text
-        .split(/\r?\n/)
-        .map(v => v.trim())
-        .filter(Boolean)
-
-    )
-  ];
-}
-
-
-function updatePreview() {
-
-  const words =
-    cleanLines(
-      wordsEditor.value
-    );
-
-  const expressions =
-    cleanLines(
-      expressionsEditor.value
-    );
-
-
-  document.querySelector(
-    "#word-count"
-  ).textContent =
-    `${words.length} / 20`;
-
-
-  document.querySelector(
-    "#expression-count"
-  ).textContent =
-    `${expressions.length} / 20`;
-
-
-  const preview =
-    document.querySelector(
-      "#content-preview"
-    );
-
-
-  preview.innerHTML = "";
-
-
-  const wordTitle =
-    document.createElement("h3");
-
-  wordTitle.textContent =
-    "단어";
-
-
-  const wordLine =
-    document.createElement("p");
-
-  wordLine.textContent =
-    words.join(" · ");
-
-
-  const expressionTitle =
-    document.createElement("h3");
-
-  expressionTitle.textContent =
-    "표현";
-
-
-  const expressionList =
-    document.createElement("div");
-
-
-  expressions.forEach(
-    expression => {
-
-      const p =
-        document.createElement("p");
-
-      p.className =
-        "english-preview";
-
-      p.textContent =
-        expression;
-
-      expressionList.appendChild(
-        p
-      );
-    }
-  );
-
-
-  preview.append(
-
-    wordTitle,
-    wordLine,
-
-    expressionTitle,
-    expressionList
-  );
-}
+  }
+);
