@@ -1,136 +1,504 @@
-<!doctype html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  />
-  <title>지혜의 미로 탐험대 - 교사용</title>
-</head>
+import "./style.css";
 
-<body class="admin-body">
-
-<div id="admin-login" class="admin-center">
-
-  <div class="panel admin-login-panel">
-
-    <h1>교사용 설정</h1>
-
-    <p>PIN을 입력하세요.</p>
-
-    <input
-      id="admin-pin"
-      type="password"
-      inputmode="numeric"
-      maxlength="8"
-    />
-
-    <button id="admin-login-btn" class="big-gold">
-      들어가기
-    </button>
-
-    <a href="./index.html" class="admin-link">
-  게임으로 돌아가기
-   </a>
-
-  </div>
-
-</div>
+import {
+  getTeacherPin,
+  getUnit1Content,
+  saveUnit1Content,
+  parseTxt,
+  serializeTxt
+} from "./data.js";
 
 
-<div id="admin-app" class="admin-app hidden">
-
-  <header class="admin-header">
-
-    <div>
-      <h1>MAP 01 · 잠겨버린 교실</h1>
-      <p>
-        영어 콘텐츠 관리
-      </p>
-    </div>
-
-    <a href="./index.html" class="main-button">
-  게임 화면
-   </a>
-
-  </header>
+const base =
+  import.meta.env.BASE_URL;
 
 
-  <main class="admin-main">
+/* =========================================================
+   DOM
+========================================================= */
 
-    <section class="panel">
+const loginScreen =
+  document.querySelector(
+    "#admin-login"
+  );
 
-      <h2>TXT 파일 업로드</h2>
+const adminApp =
+  document.querySelector(
+    "#admin-app"
+  );
 
-      <input
-        id="txt-upload"
-        type="file"
-        accept=".txt,text/plain"
-      />
+const pinInput =
+  document.querySelector(
+    "#teacher-pin"
+  );
 
-      <p class="small">
-        UTF-8 TXT · 단어/표현 각각 최대 20개
-      </p>
+const loginButton =
+  document.querySelector(
+    "#teacher-login"
+  );
 
-      <button id="sample-download">
-        샘플 TXT 받기
-      </button>
+const backTitle =
+  document.querySelector(
+    "#back-title"
+  );
 
-    </section>
+const adminHome =
+  document.querySelector(
+    "#admin-home"
+  );
+
+const txtUpload =
+  document.querySelector(
+    "#txt-upload"
+  );
+
+const wordsEditor =
+  document.querySelector(
+    "#words-editor"
+  );
+
+const expressionsEditor =
+  document.querySelector(
+    "#expressions-editor"
+  );
+
+const wordCount =
+  document.querySelector(
+    "#word-count"
+  );
+
+const expressionCount =
+  document.querySelector(
+    "#expression-count"
+  );
+
+const saveButton =
+  document.querySelector(
+    "#save-content"
+  );
+
+const downloadButton =
+  document.querySelector(
+    "#download-txt"
+  );
+
+const status =
+  document.querySelector(
+    "#save-status"
+  );
 
 
-    <section class="admin-editor">
+/* =========================================================
+   LOGIN
+========================================================= */
 
-      <div class="panel">
-
-        <h2>
-          주요 단어
-          <span id="word-count">0 / 20</span>
-        </h2>
-
-        <textarea
-          id="words-editor"
-          placeholder="한 줄에 한 단어"
-        ></textarea>
-
-      </div>
+loginButton.addEventListener(
+  "click",
+  login
+);
 
 
-      <div class="panel">
+pinInput.addEventListener(
+  "keydown",
+  event => {
 
-        <h2>
-          주요 표현
-          <span id="expression-count">0 / 20</span>
-        </h2>
+    if (
+      event.key ===
+      "Enter"
+    ) {
 
-        <textarea
-          id="expressions-editor"
-          placeholder="한 줄에 한 표현"
-        ></textarea>
+      login();
 
-      </div>
-
-    </section>
+    }
+  }
+);
 
 
-    <section class="panel">
+function login() {
 
-      <h2>현재 콘텐츠 미리보기</h2>
+  const entered =
+    pinInput.value.trim();
 
-      <div id="content-preview"></div>
 
-      <button id="save-content" class="big-gold">
-        저장 및 게시
-      </button>
+  const correct =
+    getTeacherPin();
 
-    </section>
 
-  </main>
+  if (
+    entered !==
+    correct
+  ) {
 
-</div>
+    alert(
+      "PIN이 올바르지 않습니다."
+    );
 
-<script type="module" src="/src/admin.js"></script>
+    return;
+  }
 
-</body>
-</html>
+
+  loginScreen.classList.add(
+    "hidden"
+  );
+
+
+  adminApp.classList.remove(
+    "hidden"
+  );
+
+
+  loadCurrentContent();
+}
+
+
+/* =========================================================
+   RETURN GAME
+========================================================= */
+
+function goHome() {
+
+  window.location.href =
+    `${base}index.html`;
+
+}
+
+
+backTitle.addEventListener(
+  "click",
+  goHome
+);
+
+
+adminHome.addEventListener(
+  "click",
+  goHome
+);
+
+
+/* =========================================================
+   LOAD
+========================================================= */
+
+function loadCurrentContent() {
+
+  const data =
+    getUnit1Content();
+
+
+  wordsEditor.value =
+    data.words.join("\n");
+
+
+  expressionsEditor.value =
+    data.expressions.join("\n");
+
+
+  updateCounts();
+}
+
+
+/* =========================================================
+   TXT UPLOAD
+========================================================= */
+
+txtUpload.addEventListener(
+  "change",
+  async event => {
+
+    const file =
+      event.target.files?.[0];
+
+
+    if (!file) {
+      return;
+    }
+
+
+    try {
+
+      const text =
+        await file.text();
+
+
+      const parsed =
+        parseTxt(text);
+
+
+      if (
+        parsed.words.length === 0 &&
+        parsed.expressions.length === 0
+      ) {
+
+        alert(
+          "TXT 문서에서 [WORDS] 또는 [EXPRESSIONS] 내용을 찾지 못했습니다."
+        );
+
+        return;
+      }
+
+
+      wordsEditor.value =
+        parsed.words.join("\n");
+
+
+      expressionsEditor.value =
+        parsed.expressions.join("\n");
+
+
+      updateCounts();
+
+
+      status.textContent =
+        "TXT 문서를 불러왔습니다. 아래의 'MAP 01 문제 저장'을 눌러 적용하세요.";
+
+    }
+
+    catch (error) {
+
+      console.error(error);
+
+
+      alert(
+        "TXT 파일을 읽지 못했습니다."
+      );
+    }
+  }
+);
+
+
+/* =========================================================
+   EDITOR
+========================================================= */
+
+wordsEditor.addEventListener(
+  "input",
+  updateCounts
+);
+
+
+expressionsEditor.addEventListener(
+  "input",
+  updateCounts
+);
+
+
+function linesFrom(
+  textarea
+) {
+
+  return textarea.value
+
+    .split(/\r?\n/)
+
+    .map(
+      line =>
+        line.trim()
+    )
+
+    .filter(Boolean);
+}
+
+
+function updateCounts() {
+
+  const words =
+    linesFrom(
+      wordsEditor
+    );
+
+
+  const expressions =
+    linesFrom(
+      expressionsEditor
+    );
+
+
+  wordCount.textContent =
+    words.length;
+
+
+  expressionCount.textContent =
+    expressions.length;
+
+
+  wordCount.style.color =
+    words.length > 20
+      ? "#ff7777"
+      : "";
+
+
+  expressionCount.style.color =
+    expressions.length > 20
+      ? "#ff7777"
+      : "";
+}
+
+
+/* =========================================================
+   SAVE
+========================================================= */
+
+saveButton.addEventListener(
+  "click",
+  () => {
+
+    const words =
+      linesFrom(
+        wordsEditor
+      );
+
+
+    const expressions =
+      linesFrom(
+        expressionsEditor
+      );
+
+
+    if (
+      words.length === 0
+    ) {
+
+      alert(
+        "영어 단어를 하나 이상 입력하세요."
+      );
+
+      return;
+    }
+
+
+    if (
+      expressions.length === 0
+    ) {
+
+      alert(
+        "영어 표현을 하나 이상 입력하세요."
+      );
+
+      return;
+    }
+
+
+    if (
+      words.length > 20
+    ) {
+
+      alert(
+        "단어는 최대 20개까지 가능합니다."
+      );
+
+      return;
+    }
+
+
+    if (
+      expressions.length > 20
+    ) {
+
+      alert(
+        "표현은 최대 20개까지 가능합니다."
+      );
+
+      return;
+    }
+
+
+    const data = {
+
+      words:
+        [...new Set(words)],
+
+      expressions:
+        [...new Set(expressions)]
+
+    };
+
+
+    saveUnit1Content(
+      data
+    );
+
+
+    status.textContent =
+      `저장 완료: 단어 ${data.words.length}개 / 표현 ${data.expressions.length}개`;
+
+
+    alert(
+      "MAP 01 문제가 저장되었습니다."
+    );
+  }
+);
+
+
+/* =========================================================
+   DOWNLOAD TXT
+========================================================= */
+
+downloadButton.addEventListener(
+  "click",
+  () => {
+
+    const data = {
+
+      words:
+        linesFrom(
+          wordsEditor
+        ).slice(
+          0,
+          20
+        ),
+
+      expressions:
+        linesFrom(
+          expressionsEditor
+        ).slice(
+          0,
+          20
+        )
+
+    };
+
+
+    const text =
+      serializeTxt(
+        data
+      );
+
+
+    const blob =
+      new Blob(
+        [text],
+        {
+          type:
+            "text/plain;charset=utf-8"
+        }
+      );
+
+
+    const url =
+      URL.createObjectURL(
+        blob
+      );
+
+
+    const a =
+      document.createElement(
+        "a"
+      );
+
+
+    a.href =
+      url;
+
+
+    a.download =
+      "map01-english.txt";
+
+
+    a.click();
+
+
+    URL.revokeObjectURL(
+      url
+    );
+  }
+);
