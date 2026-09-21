@@ -10,17 +10,18 @@ import {
 } from "../data.js";
 
 
-export default class Map01Scene
-  extends Phaser.Scene {
+export default class Map01Scene extends Phaser.Scene {
 
   constructor() {
 
-    super(
-      "MAP01"
-    );
+    super("MAP01");
 
   }
 
+
+  /* =====================================================
+     PRELOAD
+  ====================================================== */
 
   preload() {
 
@@ -28,20 +29,25 @@ export default class Map01Scene
       import.meta.env.BASE_URL;
 
 
+    /*
+      MAP01
+    */
+
     this.load.image(
       "map01",
       `${base}assets/maps/map01.png`
     );
 
 
+    /*
+      main.js에서 잘라 넘겨준 캐릭터 방향 이미지
+    */
+
     const sprites =
-      window.WISDOM_PROFILE
-        ?.spriteUrls;
+      window.WISDOM_PROFILE?.spriteUrls;
 
 
-    if (
-      sprites?.front
-    ) {
+    if (sprites?.front) {
 
       this.load.image(
         "mage_front",
@@ -51,9 +57,7 @@ export default class Map01Scene
     }
 
 
-    if (
-      sprites?.back
-    ) {
+    if (sprites?.back) {
 
       this.load.image(
         "mage_back",
@@ -63,9 +67,31 @@ export default class Map01Scene
     }
 
 
-    if (
-      sprites?.side
-    ) {
+    if (sprites?.left) {
+
+      this.load.image(
+        "mage_left",
+        sprites.left
+      );
+
+    }
+
+
+    if (sprites?.right) {
+
+      this.load.image(
+        "mage_right",
+        sprites.right
+      );
+
+    }
+
+
+    /*
+      이전 버전 호환
+    */
+
+    if (sprites?.side) {
 
       this.load.image(
         "mage_side",
@@ -76,6 +102,10 @@ export default class Map01Scene
 
   }
 
+
+  /* =====================================================
+     CREATE
+  ====================================================== */
 
   create() {
 
@@ -92,7 +122,7 @@ export default class Map01Scene
 
 
     /*
-      이전 저장데이터 호환
+      오래된 저장 데이터와 호환
     */
 
     this.state.mistakes ||=
@@ -123,6 +153,21 @@ export default class Map01Scene
       Date.now();
 
 
+    /*
+      예전 저장 데이터가 intro에 멈춰있는 경우
+    */
+
+    if (
+      this.state.introDone &&
+      this.state.phase === "intro"
+    ) {
+
+      this.state.phase =
+        "p1";
+
+    }
+
+
     this.inputLocked =
       true;
 
@@ -134,6 +179,10 @@ export default class Map01Scene
     this.obstacles =
       [];
 
+
+    /* =====================================================
+       문제 데이터 준비
+    ====================================================== */
 
     if (
       !this.state.p1Target
@@ -157,6 +206,10 @@ export default class Map01Scene
     }
 
 
+    /*
+      책상 아래 관련 문장
+    */
+
     this.p2Sentence =
       findExpression(
         this.content.expressions,
@@ -164,6 +217,10 @@ export default class Map01Scene
         "Look under the desk."
       );
 
+
+    /*
+      상자 관련 문장
+    */
 
     this.p3Sentence =
       findExpression(
@@ -173,9 +230,9 @@ export default class Map01Scene
       );
 
 
-    /*
-      MAP
-    */
+    /* =====================================================
+       MAP
+    ====================================================== */
 
     this.add.image(
       384,
@@ -199,19 +256,39 @@ export default class Map01Scene
     );
 
 
+    /*
+      충돌 / 조사
+    */
+
     this.createCollisionAreas();
 
     this.createInteractables();
 
+
+    /*
+      플레이어
+    */
+
     this.createPlayer();
 
+
+    /*
+      입력
+    */
+
     this.createInput();
+
 
     this.updateHUD();
 
 
+    /*
+      오프닝
+    */
+
     this.time.delayedCall(
       300,
+
       async () => {
 
         if (
@@ -237,6 +314,10 @@ export default class Map01Scene
   ====================================================== */
 
   createCollisionAreas() {
+
+    /*
+      외벽
+    */
 
     this.addObstacle(
       384,
@@ -271,7 +352,7 @@ export default class Map01Scene
 
 
     /*
-      앞쪽 교탁
+      교탁
     */
 
     this.addObstacle(
@@ -352,7 +433,7 @@ export default class Map01Scene
 
 
     /*
-      우측 가구
+      오른쪽 가구
     */
 
     this.addObstacle(
@@ -403,6 +484,10 @@ export default class Map01Scene
 
   createInteractables() {
 
+    /*
+      칠판
+    */
+
     this.addInteractable({
 
       id:
@@ -415,13 +500,17 @@ export default class Map01Scene
         390,
 
       y:
-        110,
+        105,
 
       tag:
         "blackboard"
 
     });
 
+
+    /*
+      시계
+    */
 
     this.addInteractable({
 
@@ -443,6 +532,10 @@ export default class Map01Scene
     });
 
 
+    /*
+      창문
+    */
+
     this.addInteractable({
 
       id:
@@ -462,6 +555,10 @@ export default class Map01Scene
 
     });
 
+
+    /*
+      출구
+    */
 
     this.addInteractable({
 
@@ -483,55 +580,101 @@ export default class Map01Scene
     });
 
 
+    /*
+      책상
+    */
+
     const desks = [
 
       {
-        id: "desk_01",
-        x: 210,
-        y: 250
+        id:
+          "desk_01",
+
+        x:
+          210,
+
+        y:
+          250
       },
 
       {
-        id: "desk_02",
-        x: 335,
-        y: 250
+        id:
+          "desk_02",
+
+        x:
+          335,
+
+        y:
+          250
       },
 
       {
-        id: "desk_03",
-        x: 460,
-        y: 250
+        id:
+          "desk_03",
+
+        x:
+          460,
+
+        y:
+          250
       },
 
       {
-        id: "desk_04",
-        x: 585,
-        y: 250
+        id:
+          "desk_04",
+
+        x:
+          585,
+
+        y:
+          250
       },
 
       {
-        id: "desk_05",
-        x: 210,
-        y: 345
+        id:
+          "desk_05",
+
+        x:
+          210,
+
+        y:
+          345
       },
 
       {
-        id: "desk_06",
-        x: 335,
-        y: 345,
-        targetDesk: true
+        id:
+          "desk_06",
+
+        x:
+          335,
+
+        y:
+          345,
+
+        targetDesk:
+          true
       },
 
       {
-        id: "desk_07",
-        x: 460,
-        y: 345
+        id:
+          "desk_07",
+
+        x:
+          460,
+
+        y:
+          345
       },
 
       {
-        id: "desk_08",
-        x: 585,
-        y: 345
+        id:
+          "desk_08",
+
+        x:
+          585,
+
+        y:
+          345
       }
 
     ];
@@ -546,7 +689,9 @@ export default class Map01Scene
             desk.id,
 
           label:
-            "책상",
+            desk.targetDesk
+              ? "빛나는 책상"
+              : "책상",
 
           x:
             desk.x,
@@ -568,6 +713,10 @@ export default class Map01Scene
     );
 
 
+    /*
+      책
+    */
+
     this.addInteractable({
 
       id:
@@ -587,6 +736,10 @@ export default class Map01Scene
 
     });
 
+
+    /*
+      가방
+    */
 
     this.addInteractable({
 
@@ -608,6 +761,10 @@ export default class Map01Scene
     });
 
 
+    /*
+      의자
+    */
+
     this.addInteractable({
 
       id:
@@ -627,6 +784,10 @@ export default class Map01Scene
 
     });
 
+
+    /*
+      사물함
+    */
 
     this.addInteractable({
 
@@ -687,6 +848,10 @@ export default class Map01Scene
 
     });
 
+
+    /*
+      상자
+    */
 
     this.addInteractable({
 
@@ -757,6 +922,10 @@ export default class Map01Scene
     });
 
 
+    /*
+      밀 수 있는 책상
+    */
+
     this.addInteractable({
 
       id:
@@ -796,19 +965,52 @@ export default class Map01Scene
 
   createPlayer() {
 
-    const hasFront =
+    this.hasDirectionalSprites =
       this.textures.exists(
         "mage_front"
+      )
+      &&
+      this.textures.exists(
+        "mage_back"
       );
 
 
     if (
-      !hasFront
+      this.hasDirectionalSprites
     ) {
 
+      this.player =
+        this.physics.add.image(
+          385,
+          400,
+          "mage_front"
+        );
+
+
       /*
-        절대로 캐릭터가 사라지지 않도록
-        임시 마법사 표시
+        비율 유지
+      */
+
+      const targetHeight =
+        76;
+
+
+      const ratio =
+        this.player.width /
+        this.player.height;
+
+
+      this.player.setDisplaySize(
+        targetHeight * ratio,
+        targetHeight
+      );
+
+    }
+
+    else {
+
+      /*
+        캐릭터 로딩 실패 시
       */
 
       this.player =
@@ -825,31 +1027,6 @@ export default class Map01Scene
         this.player
       );
 
-
-      this.hasDirectionalSprites =
-        false;
-
-    }
-
-    else {
-
-      this.player =
-        this.physics.add.image(
-          385,
-          400,
-          "mage_front"
-        );
-
-
-      this.player.setDisplaySize(
-        48,
-        64
-      );
-
-
-      this.hasDirectionalSprites =
-        true;
-
     }
 
 
@@ -857,6 +1034,10 @@ export default class Map01Scene
       100
     );
 
+
+    /*
+      발 쪽만 충돌
+    */
 
     this.player.body.setSize(
       22,
@@ -885,7 +1066,7 @@ export default class Map01Scene
 
 
   /* =====================================================
-     INPUT / MOVEMENT
+     INPUT
   ====================================================== */
 
   createInput() {
@@ -898,28 +1079,44 @@ export default class Map01Scene
     this.keys =
       this.input.keyboard.addKeys({
 
-        up: "W",
-        down: "S",
-        left: "A",
-        right: "D",
+        up:
+          "W",
 
-        interact: "E",
+        down:
+          "S",
 
-        enter: "ENTER",
+        left:
+          "A",
 
-        space: "SPACE"
+        right:
+          "D",
+
+        interact:
+          "E",
+
+        enter:
+          "ENTER",
+
+        space:
+          "SPACE"
 
       });
 
   }
 
 
+  /* =====================================================
+     UPDATE
+  ====================================================== */
+
   update() {
 
     if (
       !this.player?.body
     ) {
+
       return;
+
     }
 
 
@@ -931,6 +1128,7 @@ export default class Map01Scene
         0,
         0
       );
+
 
       return;
 
@@ -944,9 +1142,14 @@ export default class Map01Scene
     let vx =
       0;
 
+
     let vy =
       0;
 
+
+    /*
+      좌우
+    */
 
     if (
       this.cursors.left.isDown ||
@@ -969,6 +1172,10 @@ export default class Map01Scene
     }
 
 
+    /*
+      상하
+    */
+
     if (
       this.cursors.up.isDown ||
       this.keys.up.isDown
@@ -990,13 +1197,18 @@ export default class Map01Scene
     }
 
 
+    /*
+      대각선 속도 보정
+    */
+
     if (
-      vx &&
-      vy
+      vx !== 0 &&
+      vy !== 0
     ) {
 
       vx *=
         0.707;
+
 
       vy *=
         0.707;
@@ -1015,6 +1227,10 @@ export default class Map01Scene
       vy
     );
 
+
+    /*
+      조사키
+    */
 
     if (
 
@@ -1046,6 +1262,10 @@ export default class Map01Scene
   }
 
 
+  /* =====================================================
+     DIRECTION
+  ====================================================== */
+
   updateDirection(
     vx,
     vy
@@ -1054,29 +1274,110 @@ export default class Map01Scene
     if (
       !this.hasDirectionalSprites
     ) {
+
       return;
+
     }
 
+
+    /*
+      좌우
+    */
 
     if (
       Math.abs(vx) >
       Math.abs(vy)
     ) {
 
-      this.player.setTexture(
-        "mage_side"
-      );
-
-
-      this.player.setFlipX(
+      if (
         vx < 0
-      );
+      ) {
+
+        if (
+          this.textures.exists(
+            "mage_left"
+          )
+        ) {
+
+          this.player.setTexture(
+            "mage_left"
+          );
+
+
+          this.player.setFlipX(
+            false
+          );
+
+        }
+
+        else if (
+          this.textures.exists(
+            "mage_side"
+          )
+        ) {
+
+          this.player.setTexture(
+            "mage_side"
+          );
+
+
+          this.player.setFlipX(
+            true
+          );
+
+        }
+
+      }
+
+      else if (
+        vx > 0
+      ) {
+
+        if (
+          this.textures.exists(
+            "mage_right"
+          )
+        ) {
+
+          this.player.setTexture(
+            "mage_right"
+          );
+
+
+          this.player.setFlipX(
+            false
+          );
+
+        }
+
+        else if (
+          this.textures.exists(
+            "mage_side"
+          )
+        ) {
+
+          this.player.setTexture(
+            "mage_side"
+          );
+
+
+          this.player.setFlipX(
+            false
+          );
+
+        }
+
+      }
 
 
       return;
 
     }
 
+
+    /*
+      위
+    */
 
     if (
       vy < 0
@@ -1086,11 +1387,17 @@ export default class Map01Scene
         "mage_back"
       );
 
+
       this.player.setFlipX(
         false
       );
 
     }
+
+
+    /*
+      아래
+    */
 
     else if (
       vy > 0
@@ -1099,6 +1406,7 @@ export default class Map01Scene
       this.player.setTexture(
         "mage_front"
       );
+
 
       this.player.setFlipX(
         false
@@ -1117,15 +1425,15 @@ export default class Map01Scene
 
     await GameUI.say([
 
-      "…일어나 봐.",
+      "…눈을 떠 보니 낯선 교실이었다.",
 
-      "루미: 큰일이야! 언어 수정이 산산조각 나면서 책 속 세계로 떨어진 것 같아.",
+      "루미: 드디어 정신이 들었구나!",
 
-      "여기는 교실인 것 같은데… 출입문이 마법으로 봉인되어 있어.",
+      "루미: 언어 수정이 산산조각 나면서 우리도 책 속 세계로 떨어진 것 같아.",
 
-      "이곳에 흩어진 세 개의 말의 조각을 찾아야 해.",
+      "루미: 이 교실에는 세 개의 말의 조각이 숨겨져 있어.",
 
-      "먼저 주변을 조사해 보자."
+      "루미: 먼저 칠판을 조사해 봐!"
 
     ]);
 
@@ -1144,7 +1452,7 @@ export default class Map01Scene
 
 
   /* =====================================================
-     INTERACTION
+     NEAREST
   ====================================================== */
 
   nearestObject() {
@@ -1153,8 +1461,12 @@ export default class Map01Scene
       null;
 
 
-    let distanceLimit =
-      85;
+    /*
+      이전 85보다 넓힘
+    */
+
+    let bestDistance =
+      115;
 
 
     for (
@@ -1164,19 +1476,22 @@ export default class Map01Scene
 
       const distance =
         Phaser.Math.Distance.Between(
+
           this.player.x,
           this.player.y,
+
           object.x,
           object.y
+
         );
 
 
       if (
         distance <
-        distanceLimit
+        bestDistance
       ) {
 
-        distanceLimit =
+        bestDistance =
           distance;
 
 
@@ -1193,12 +1508,18 @@ export default class Map01Scene
   }
 
 
+  /* =====================================================
+     INTERACT
+  ====================================================== */
+
   async interact() {
 
     if (
       this.inputLocked
     ) {
+
       return;
+
     }
 
 
@@ -1214,9 +1535,7 @@ export default class Map01Scene
         true;
 
 
-      await GameUI.say(
-        "주변에는 특별한 것이 없다."
-      );
+      await this.phaseHint();
 
 
       this.inputLocked =
@@ -1238,20 +1557,35 @@ export default class Map01Scene
     );
 
 
-    await this.handleObject(
-      object
-    );
+    try {
 
+      await this.handleObject(
+        object
+      );
 
-    this.inputLocked =
-      false;
+    }
+
+    finally {
+
+      this.inputLocked =
+        false;
+
+    }
 
   }
 
 
+  /* =====================================================
+     OBJECT HANDLER
+  ====================================================== */
+
   async handleObject(
     object
   ) {
+
+    /*
+      P1 실제 물건 찾기
+    */
 
     if (
       this.state.phase ===
@@ -1264,6 +1598,7 @@ export default class Map01Scene
       ) {
 
         await this.solveP1();
+
 
         return;
 
@@ -1281,7 +1616,7 @@ export default class Map01Scene
 
 
         await GameUI.say(
-          "아무 일도 일어나지 않았다."
+          "루미: 칠판에 나온 영어 단어가 이 물건을 뜻하는지 다시 생각해 봐."
         );
 
 
@@ -1292,6 +1627,10 @@ export default class Map01Scene
     }
 
 
+    /*
+      최종 기억 퍼즐
+    */
+
     if (
       this.state.phase ===
       "final"
@@ -1301,10 +1640,15 @@ export default class Map01Scene
         object
       );
 
+
       return;
 
     }
 
+
+    /*
+      칠판
+    */
 
     if (
       object.id ===
@@ -1313,10 +1657,15 @@ export default class Map01Scene
 
       await this.blackboard();
 
+
       return;
 
     }
 
+
+    /*
+      밀 수 있는 책상
+    */
 
     if (
       object.id ===
@@ -1325,16 +1674,54 @@ export default class Map01Scene
 
       await this.pushHeavyDesk();
 
+
       return;
 
     }
 
+
+    /*
+      목표 책상
+    */
 
     if (
       object.targetDesk
     ) {
 
       await this.targetDesk();
+
+
+      return;
+
+    }
+
+
+    /*
+      사물함
+    */
+
+    if (
+      object.id ===
+      "locker_a"
+    ) {
+
+      if (
+        this.state.phase ===
+        "locker"
+      ) {
+
+        await GameUI.say(
+          "루미: 이 사물함에는 열쇠가 맞지 않는 것 같아."
+        );
+
+      }
+
+      else {
+
+        await this.phaseHint();
+
+      }
+
 
       return;
 
@@ -1348,19 +1735,6 @@ export default class Map01Scene
 
       await this.middleLocker();
 
-      return;
-
-    }
-
-
-    if (
-      object.tag === "box" &&
-      this.state.phase === "box"
-    ) {
-
-      await this.boxPuzzle(
-        object
-      );
 
       return;
 
@@ -1369,19 +1743,185 @@ export default class Map01Scene
 
     if (
       object.id ===
-      "exit"
+      "locker_c"
     ) {
 
-      await this.exitDoor();
+      if (
+        this.state.phase ===
+        "locker"
+      ) {
+
+        await GameUI.say(
+          "루미: 여기도 아니야. 다른 사물함을 확인해 보자."
+        );
+
+      }
+
+      else {
+
+        await this.phaseHint();
+
+      }
+
 
       return;
 
     }
 
 
-    await GameUI.say(
-      `${object.label}을(를) 살펴봤지만 특별한 것은 없다.`
-    );
+    /*
+      상자
+    */
+
+    if (
+      object.tag ===
+      "box"
+    ) {
+
+      if (
+        this.state.phase ===
+        "box"
+      ) {
+
+        await this.boxPuzzle(
+          object
+        );
+
+      }
+
+      else {
+
+        await this.phaseHint();
+
+      }
+
+
+      return;
+
+    }
+
+
+    /*
+      출구
+    */
+
+    if (
+      object.id ===
+      "exit"
+    ) {
+
+      await this.exitDoor();
+
+
+      return;
+
+    }
+
+
+    /*
+      그 외
+    */
+
+    await this.phaseHint();
+
+  }
+
+
+  /* =====================================================
+     PHASE HINT
+  ====================================================== */
+
+  async phaseHint() {
+
+    this.state.hintsUsed++;
+
+
+    this.save();
+
+
+    switch (
+      this.state.phase
+    ) {
+
+      case "p1":
+
+        await GameUI.say(
+          "루미: 먼저 칠판을 조사해 봐."
+        );
+
+        break;
+
+
+      case "p1_active":
+
+        await GameUI.say(
+          "루미: 칠판에 나온 영어 단어가 어떤 물건인지 생각해 봐."
+        );
+
+        break;
+
+
+      case "p2":
+
+        await GameUI.say(
+          "루미: 영어 문장에서 desk가 나왔지? 무거운 책상을 찾아봐."
+        );
+
+        break;
+
+
+      case "locker":
+
+        await GameUI.say(
+          "루미: 책상 아래에서 얻은 열쇠가 맞는 사물함을 찾아보자."
+        );
+
+        break;
+
+
+      case "box":
+
+        await GameUI.say(
+          "루미: 영어 문장에 나온 상자의 색을 잘 확인해 봐."
+        );
+
+        break;
+
+
+      case "final_ready":
+
+        await GameUI.say(
+          "루미: 세 조각을 다 모았어! 이제 봉인된 문으로 가자."
+        );
+
+        break;
+
+
+      case "final":
+
+        await GameUI.say(
+          "루미: 지금까지 만났던 물건들을 순서대로 다시 조사해야 해."
+        );
+
+        break;
+
+
+      case "exit":
+
+        await GameUI.say(
+          "루미: 봉인이 풀렸어! 출구를 조사해!"
+        );
+
+        break;
+
+
+      default:
+
+        await GameUI.say(
+          "루미: 교실을 조금 더 살펴보자."
+        );
+
+    }
 
   }
 
@@ -1392,42 +1932,83 @@ export default class Map01Scene
 
   async blackboard() {
 
+    /*
+      처음 칠판
+    */
+
     if (
-      this.state.phase !==
+      this.state.phase ===
       "p1"
     ) {
 
-      await GameUI.say(
-        "칠판에는 희미한 마법의 흔적만 남아 있다."
+      this.state.phase =
+        "p1_active";
+
+
+      this.state.questionsShown++;
+
+
+      this.save();
+
+
+      await GameUI.say([
+
+        "루미: 봐! 칠판에서 마법 글씨가 나타났어.",
+
+        "루미: 저 영어 단어가 뜻하는 물건을 교실에서 찾아 조사해 봐."
+
+      ]);
+
+
+      await GameUI.english(
+
+        "이 단어가 가리키는 물건을 찾아 조사하세요.",
+
+        this.state.p1Target
+          .toUpperCase()
+
       );
+
 
       return;
 
     }
 
 
-    this.state.phase =
-      "p1_active";
+    /*
+      다시 확인
+    */
+
+    if (
+      this.state.phase ===
+      "p1_active"
+    ) {
+
+      await GameUI.english(
+
+        "칠판에는 아직 같은 단어가 떠 있다.",
+
+        this.state.p1Target
+          .toUpperCase()
+
+      );
 
 
-    this.state.questionsShown++;
+      return;
+
+    }
 
 
-    this.save();
-
-
-    await GameUI.english(
-
-      "영어 단어가 가리키는 물건을 교실에서 찾아 조사하세요.",
-
-      this.state
-        .p1Target
-        .toUpperCase()
-
+    await GameUI.say(
+      "루미: 칠판의 마법 글씨는 이미 사라졌어."
     );
 
   }
 
+
+  /* =====================================================
+     P1 SOLVE + CHOICE QUIZ
+  ====================================================== */
 
   async solveP1() {
 
@@ -1444,24 +2025,130 @@ export default class Map01Scene
       1;
 
 
+    this.save();
+
+
+    await GameUI.say([
+
+      "루미: 맞았어!",
+
+      "루미: 첫 번째 말의 조각을 찾았어!"
+
+    ]);
+
+
+    /*
+      다음 객관식 문제
+    */
+
+    const correctSentence =
+      this.p2Sentence;
+
+
+    const pool =
+      this.content.expressions
+        .filter(
+          item =>
+            item !==
+            correctSentence
+        );
+
+
+    const options =
+      buildQuizOptions(
+        correctSentence,
+        pool
+      );
+
+
+    let solved =
+      false;
+
+
+    let firstTry =
+      true;
+
+
+    while (
+      !solved
+    ) {
+
+      this.state.questionsShown++;
+
+
+      const answer =
+        await GameUI.choice(
+
+          "책상 아래를 살펴보라는 뜻의 영어 문장을 고르세요.",
+
+          options,
+
+          options.indexOf(
+            correctSentence
+          )
+
+        );
+
+
+      if (
+        answer
+      ) {
+
+        if (
+          firstTry
+        ) {
+
+          this.correct(
+            "p2_choice"
+          );
+
+        }
+
+
+        solved =
+          true;
+
+      }
+
+      else {
+
+        firstTry =
+          false;
+
+
+        this.wrong(
+          "p2_choice"
+        );
+
+
+        await GameUI.say(
+          "루미: desk와 위치 표현을 잘 살펴봐."
+        );
+
+      }
+
+    }
+
+
     this.state.phase =
       "p2";
-
-
-    this.state.questionsShown++;
 
 
     this.save();
 
 
-    await GameUI.say(
-      "첫 번째 말의 조각을 발견했다!"
-    );
+    await GameUI.say([
+
+      "루미: 좋아! 이제 그 문장을 실제로 따라 해보자.",
+
+      "루미: 무거운 책상을 찾아 두 번 밀어봐."
+
+    ]);
 
 
     await GameUI.english(
 
-      "문장을 읽고 알맞은 장소를 찾아보세요.",
+      "이 문장을 기억하세요.",
 
       this.p2Sentence
 
@@ -1471,7 +2158,7 @@ export default class Map01Scene
 
 
   /* =====================================================
-     PUZZLE 2
+     PUZZLE 2 - PUSH DESK
   ====================================================== */
 
   async pushHeavyDesk() {
@@ -1481,9 +2168,23 @@ export default class Map01Scene
       "p2"
     ) {
 
+      await this.phaseHint();
+
+
+      return;
+
+    }
+
+
+    if (
+      this.state.pushSteps >=
+      2
+    ) {
+
       await GameUI.say(
-        "무거운 책상이다."
+        "루미: 책상은 이미 충분히 움직였어. 이제 빛나는 책상을 조사해 봐."
       );
+
 
       return;
 
@@ -1493,41 +2194,38 @@ export default class Map01Scene
     this.state.pushSteps++;
 
 
-    if (
-      this.state.pushSteps >
-      2
-    ) {
-
-      this.state.pushSteps =
-        2;
-
-    }
-
-
     this.save();
 
 
     if (
-      this.state.pushSteps <
-      2
+      this.state.pushSteps ===
+      1
     ) {
 
       await GameUI.say(
-        "책상을 조금 밀었다."
+        "무거운 책상을 힘껏 밀었다. 조금 움직였다."
       );
 
     }
 
     else {
 
-      await GameUI.say(
-        "책상을 밀어 통로를 열었다!"
-      );
+      await GameUI.say([
+
+        "책상을 한 번 더 밀었다.",
+
+        "루미: 좋아! 뒤쪽으로 갈 수 있게 됐어."
+
+      ]);
 
     }
 
   }
 
+
+  /* =====================================================
+     TARGET DESK
+  ====================================================== */
 
   async targetDesk() {
 
@@ -1536,9 +2234,8 @@ export default class Map01Scene
       "p2"
     ) {
 
-      await GameUI.say(
-        "평범한 책상이다."
-      );
+      await this.phaseHint();
+
 
       return;
 
@@ -1551,8 +2248,9 @@ export default class Map01Scene
     ) {
 
       await GameUI.say(
-        "무거운 책상이 길을 막고 있다."
+        "루미: 앞의 무거운 책상을 먼저 움직여야 가까이 갈 수 있어."
       );
+
 
       return;
 
@@ -1564,11 +2262,11 @@ export default class Map01Scene
     );
 
 
-    this.state.lockerKey =
+    this.state.p2Solved =
       true;
 
 
-    this.state.p2Solved =
+    this.state.lockerKey =
       true;
 
 
@@ -1579,15 +2277,19 @@ export default class Map01Scene
     this.save();
 
 
-    await GameUI.say(
-      "책상 아래에서 사물함 열쇠를 발견했다!"
-    );
+    await GameUI.say([
+
+      "책상 아래에서 작은 열쇠를 발견했다.",
+
+      "루미: 사물함 열쇠 같아! 교실 뒤쪽 사물함을 확인해 봐."
+
+    ]);
 
   }
 
 
   /* =====================================================
-     LOCKER
+     LOCKER + WORD ORDER
   ====================================================== */
 
   async middleLocker() {
@@ -1597,9 +2299,8 @@ export default class Map01Scene
       "locker"
     ) {
 
-      await GameUI.say(
-        "낡은 사물함이다."
-      );
+      await this.phaseHint();
+
 
       return;
 
@@ -1611,8 +2312,9 @@ export default class Map01Scene
     ) {
 
       await GameUI.say(
-        "잠겨 있다."
+        "사물함은 잠겨 있다."
       );
+
 
       return;
 
@@ -1623,6 +2325,11 @@ export default class Map01Scene
 
 
     this.save();
+
+
+    await GameUI.say(
+      "루미: 사물함 안쪽에 흩어진 영어 단어들이 보여!"
+    );
 
 
     const success =
@@ -1634,7 +2341,9 @@ export default class Map01Scene
     if (
       !success
     ) {
+
       return;
+
     }
 
 
@@ -1643,16 +2352,36 @@ export default class Map01Scene
     );
 
 
-    this.state.shards =
-      2;
-
-
     this.state.p3Solved =
       true;
 
 
+    this.state.shards =
+      2;
+
+
     this.state.phase =
       "box";
+
+
+    this.save();
+
+
+    await GameUI.say([
+
+      "두 번째 말의 조각을 발견했다!",
+
+      "루미: 이제 상자들 쪽에서 마지막 마력이 느껴져."
+
+    ]);
+
+
+    /*
+      색상 단서
+    */
+
+    const clue =
+      `The key is behind the ${this.state.boxTargetColor} box.`;
 
 
     this.state.questionsShown++;
@@ -1661,16 +2390,11 @@ export default class Map01Scene
     this.save();
 
 
-    await GameUI.say(
-      "두 번째 말의 조각을 발견했다!"
-    );
-
-
     await GameUI.english(
 
       "문장을 읽고 알맞은 상자를 조사하세요.",
 
-      `The key is behind the ${this.state.boxTargetColor} box.`
+      clue
 
     );
 
@@ -1678,7 +2402,7 @@ export default class Map01Scene
 
 
   /* =====================================================
-     BOX
+     BOX PUZZLE
   ====================================================== */
 
   async boxPuzzle(
@@ -1696,7 +2420,7 @@ export default class Map01Scene
 
 
       await GameUI.say(
-        "이 상자 뒤에는 아무것도 없다."
+        "루미: 이 상자는 아닌 것 같아. 문장 속 색을 다시 확인해 봐."
       );
 
 
@@ -1710,12 +2434,12 @@ export default class Map01Scene
     );
 
 
-    this.state.shards =
-      3;
-
-
     this.state.p4Solved =
       true;
+
+
+    this.state.shards =
+      3;
 
 
     this.state.phase =
@@ -1727,11 +2451,11 @@ export default class Map01Scene
 
     await GameUI.say([
 
-      "세 번째 말의 조각을 발견했다!",
+      "상자 뒤에서 마지막 말의 조각이 나타났다!",
 
-      "세 개의 조각을 모두 모았다.",
+      "루미: 세 개를 다 모았어!",
 
-      "봉인된 출구를 조사해 보자."
+      "루미: 이제 봉인된 문을 조사해 봐."
 
     ]);
 
@@ -1739,24 +2463,34 @@ export default class Map01Scene
 
 
   /* =====================================================
-     FINAL
+     EXIT
   ====================================================== */
 
   async exitDoor() {
 
+    /*
+      P1 정답이 door인 경우
+    */
+
     if (
       this.state.phase ===
-      "p1_active" &&
+      "p1_active"
+      &&
       this.state.p1Target ===
       "door"
     ) {
 
       await this.solveP1();
 
+
       return;
 
     }
 
+
+    /*
+      최종 퍼즐 시작
+    */
 
     if (
       this.state.phase ===
@@ -1765,10 +2499,15 @@ export default class Map01Scene
 
       await this.startFinal();
 
+
       return;
 
     }
 
+
+    /*
+      탈출
+    */
 
     if (
       this.state.phase ===
@@ -1777,17 +2516,20 @@ export default class Map01Scene
 
       await this.completeMap();
 
+
       return;
 
     }
 
 
-    await GameUI.say(
-      "푸른 마법이 문을 봉인하고 있다."
-    );
+    await this.phaseHint();
 
   }
 
+
+  /* =====================================================
+     FINAL
+  ====================================================== */
 
   async startFinal() {
 
@@ -1813,9 +2555,18 @@ export default class Map01Scene
     this.save();
 
 
+    await GameUI.say([
+
+      "루미: 문에 세 개의 빈 문양이 나타났어.",
+
+      "루미: 지금까지 배운 단서를 순서대로 떠올려야 해!"
+
+    ]);
+
+
     await GameUI.english(
 
-      "세 개의 단서를 기억하고 해당 물건을 순서대로 조사하세요.",
+      "아래 단서를 기억하고 해당 물건들을 순서대로 조사하세요.",
 
       `${this.state.p1Target.toUpperCase()}
 
@@ -1832,15 +2583,21 @@ ${this.p2Sentence}`
     object
   ) {
 
-    this.finalSequence ||= [
+    if (
+      !this.finalSequence
+    ) {
 
-      this.state.p1Target,
+      this.finalSequence = [
 
-      "box",
+        this.state.p1Target,
 
-      "desk"
+        "box",
 
-    ];
+        "desk"
+
+      ];
+
+    }
 
 
     const expected =
@@ -1860,7 +2617,7 @@ ${this.p2Sentence}`
 
 
       await GameUI.say(
-        "순서가 맞지 않는다."
+        "루미: 순서가 아닌 것 같아. 지금까지 맞힌 문양은 유지되니까 다시 생각해 봐!"
       );
 
 
@@ -1876,7 +2633,7 @@ ${this.p2Sentence}`
 
 
     await GameUI.say(
-      `기억의 문양 ${this.state.finalStep} / 3`
+      `기억의 문양 ${this.state.finalStep} / 3이 빛났다.`
     );
 
 
@@ -1885,20 +2642,26 @@ ${this.p2Sentence}`
       3
     ) {
 
-      this.state.phase =
-        "exit";
-
-
       this.state.finalSolved =
         true;
+
+
+      this.state.phase =
+        "exit";
 
 
       this.save();
 
 
-      await GameUI.say(
-        "봉인이 풀렸다! 출구를 조사하자."
-      );
+      await GameUI.say([
+
+        "세 개의 문양이 모두 빛났다!",
+
+        "루미: 봉인이 풀렸어!",
+
+        "루미: 출구를 조사하면 이 교실에서 나갈 수 있어."
+
+      ]);
 
     }
 
@@ -1906,7 +2669,7 @@ ${this.p2Sentence}`
 
 
   /* =====================================================
-     CLEAR
+     COMPLETE
   ====================================================== */
 
   async completeMap() {
@@ -1914,7 +2677,9 @@ ${this.p2Sentence}`
     if (
       this.state.completed
     ) {
+
       return;
+
     }
 
 
@@ -1927,7 +2692,9 @@ ${this.p2Sentence}`
 
     const seconds =
       Math.max(
+
         1,
+
         Math.round(
           (
             Date.now() -
@@ -1935,6 +2702,7 @@ ${this.p2Sentence}`
           )
           / 1000
         )
+
       );
 
 
@@ -1968,18 +2736,25 @@ ${this.p2Sentence}`
         this.state.hintsUsed,
 
       completedAt:
-        new Date().toISOString()
+        new Date()
+          .toISOString()
 
     });
 
 
+    this.inputLocked =
+      true;
+
+
     await GameUI.say([
 
-      "교실의 봉인이 완전히 사라졌다.",
+      "봉인된 교실 문이 천천히 열렸다.",
 
-      "루미: 첫 번째 언어 수정을 되찾았어!",
+      "루미: 해냈어! 첫 번째 언어 수정이 다시 빛나기 시작했어!",
 
-      "하지만 아직 열한 개의 세계가 남아 있어."
+      "나: 아직 더 많은 조각이 남아 있는 거지?",
+
+      "루미: 응! 다음 세계로 가자!"
 
     ]);
 
@@ -2001,6 +2776,10 @@ ${this.p2Sentence}`
 
   }
 
+
+  /* =====================================================
+     SCORE
+  ====================================================== */
 
   correct(
     id
@@ -2036,6 +2815,10 @@ ${this.p2Sentence}`
   }
 
 
+  /* =====================================================
+     SAVE
+  ====================================================== */
+
   save() {
 
     window.WISDOM_MAP_STATE =
@@ -2053,19 +2836,23 @@ ${this.p2Sentence}`
   }
 
 
+  /* =====================================================
+     HUD
+  ====================================================== */
+
   updateHUD() {
 
-    const shard =
+    const shardElement =
       document.querySelector(
         "#hud-shards"
       );
 
 
     if (
-      shard
+      shardElement
     ) {
 
-      shard.textContent = [
+      shardElement.textContent = [
 
         this.state.shards >= 1
           ? "◆"
@@ -2079,46 +2866,50 @@ ${this.p2Sentence}`
           ? "◆"
           : "◇"
 
-      ].join(" ");
+      ].join(
+        " "
+      );
 
     }
 
 
-    const objective =
+    const objectiveElement =
       document.querySelector(
         "#hud-objective"
       );
 
 
     if (
-      !objective
+      !objectiveElement
     ) {
+
       return;
+
     }
 
 
-    const messages = {
+    const objectives = {
 
       intro:
-        "주변을 조사해 보자.",
+        "주변을 살펴보자.",
 
       p1:
         "칠판을 조사해 보자.",
 
       p1_active:
-        "영어 단어가 가리키는 물건을 찾자.",
+        "영어 단어가 뜻하는 물건을 찾아보자.",
 
       p2:
-        "영어 문장을 읽고 책상을 조사하자.",
+        "무거운 책상을 찾아 두 번 밀자.",
 
       locker:
-        "열쇠에 맞는 사물함을 찾아보자.",
+        "열쇠에 맞는 사물함을 찾자.",
 
       box:
-        "영어 단서에 맞는 상자를 찾자.",
+        "영어 단서에 맞는 상자를 조사하자.",
 
       final_ready:
-        "출구를 조사해 보자.",
+        "봉인된 출구를 조사하자.",
 
       final:
         `기억의 문양 ${this.state.finalStep} / 3`,
@@ -2129,13 +2920,169 @@ ${this.p2Sentence}`
     };
 
 
-    objective.textContent =
-      messages[
+    objectiveElement.textContent =
+      objectives[
         this.state.phase
       ]
       ||
       "교실을 탐험해 보자.";
 
   }
+
+}
+
+
+/* =====================================================
+   QUIZ OPTION BUILDER
+===================================================== */
+
+function buildQuizOptions(
+  correct,
+  pool
+) {
+
+  const unique =
+    [...new Set(pool)]
+      .filter(Boolean)
+      .filter(
+        item =>
+          item !== correct
+      );
+
+
+  /*
+    랜덤 섞기
+  */
+
+  const shuffled =
+    [...unique];
+
+
+  for (
+    let i =
+      shuffled.length - 1;
+
+    i > 0;
+
+    i--
+  ) {
+
+    const j =
+      Math.floor(
+        Math.random() *
+        (i + 1)
+      );
+
+
+    [
+      shuffled[i],
+      shuffled[j]
+    ] =
+    [
+      shuffled[j],
+      shuffled[i]
+    ];
+
+  }
+
+
+  const options = [
+
+    correct,
+
+    ...shuffled.slice(
+      0,
+      3
+    )
+
+  ];
+
+
+  /*
+    교사가 표현을 4개 미만으로 넣었을 때
+    객관식이 깨지지 않도록 보충
+  */
+
+  const fallbacks = [
+
+    "Open the door.",
+
+    "Look at the window.",
+
+    "The book is on the desk.",
+
+    "Close the box.",
+
+    "Where is the key?"
+
+  ];
+
+
+  for (
+    const fallback of
+    fallbacks
+  ) {
+
+    if (
+      options.length >=
+      4
+    ) {
+
+      break;
+
+    }
+
+
+    if (
+      !options.includes(
+        fallback
+      )
+    ) {
+
+      options.push(
+        fallback
+      );
+
+    }
+
+  }
+
+
+  /*
+    최종 4개 섞기
+  */
+
+  for (
+    let i =
+      options.length - 1;
+
+    i > 0;
+
+    i--
+  ) {
+
+    const j =
+      Math.floor(
+        Math.random() *
+        (i + 1)
+      );
+
+
+    [
+      options[i],
+      options[j]
+    ] =
+    [
+      options[j],
+      options[i]
+    ];
+
+  }
+
+
+  return options.slice(
+    0,
+    4
+  );
 
 }
