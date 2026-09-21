@@ -2,17 +2,62 @@ import Phaser from "phaser";
 
 import "./style.css";
 
-import Map01Scene
-  from "./game/Map01Scene.js";
-
 import {
+
   saveProfile,
+
   getProfile,
-  newMapState,
-  loadMapProgress,
-  clearMapProgress,
+
+  clearAllProgress,
+
+  getCurrentMap,
+
   shuffle
+
 } from "./data.js";
+
+
+/* =====================================================
+   AUTOMATIC SCENE DISCOVERY
+
+   Map01Scene.js
+   Map02Scene.js
+   Map03Scene.js
+   ...
+
+   파일이 존재하면 자동 등록.
+===================================================== */
+
+const sceneModules =
+  import.meta.glob(
+    "./game/Map*Scene.js",
+    {
+      eager: true
+    }
+  );
+
+
+const GAME_SCENES =
+  Object.entries(
+    sceneModules
+  )
+
+    .sort(
+      (
+        [pathA],
+        [pathB]
+      ) =>
+        pathA.localeCompare(
+          pathB
+        )
+    )
+
+    .map(
+      ([, module]) =>
+        module.default
+    )
+
+    .filter(Boolean);
 
 
 /* =====================================================
@@ -28,55 +73,89 @@ const base =
 ===================================================== */
 
 const titleScreen =
-  document.querySelector("#title-screen");
+  document.querySelector(
+    "#title-screen"
+  );
 
 const titleBg =
-  document.querySelector(".title-bg");
+  document.querySelector(
+    ".title-bg"
+  );
 
 const gameScreen =
-  document.querySelector("#game-screen");
+  document.querySelector(
+    "#game-screen"
+  );
 
 const setupModal =
-  document.querySelector("#setup-modal");
+  document.querySelector(
+    "#setup-modal"
+  );
 
 const modal =
-  document.querySelector("#modal");
+  document.querySelector(
+    "#modal"
+  );
 
 const modalBody =
-  document.querySelector("#modal-body");
+  document.querySelector(
+    "#modal-body"
+  );
 
 const startBtn =
-  document.querySelector("#start-btn");
+  document.querySelector(
+    "#start-btn"
+  );
 
 const continueBtn =
-  document.querySelector("#continue-btn");
+  document.querySelector(
+    "#continue-btn"
+  );
 
 const adminBtn =
-  document.querySelector("#admin-btn");
+  document.querySelector(
+    "#admin-btn"
+  );
 
 const musicBtn =
-  document.querySelector("#music-btn");
+  document.querySelector(
+    "#music-btn"
+  );
 
 const beginBtn =
-  document.querySelector("#begin-btn");
+  document.querySelector(
+    "#begin-btn"
+  );
 
 const cancelBtn =
-  document.querySelector("#setup-cancel");
+  document.querySelector(
+    "#setup-cancel"
+  );
 
 const studentNameInput =
-  document.querySelector("#student-name");
+  document.querySelector(
+    "#student-name"
+  );
 
 const hudName =
-  document.querySelector("#hud-name");
+  document.querySelector(
+    "#hud-name"
+  );
 
 const bgm =
-  document.querySelector("#bgm");
+  document.querySelector(
+    "#bgm"
+  );
 
 const malePreview =
-  document.querySelector("#male-preview");
+  document.querySelector(
+    "#male-preview"
+  );
 
 const femalePreview =
-  document.querySelector("#female-preview");
+  document.querySelector(
+    "#female-preview"
+  );
 
 
 /* =====================================================
@@ -116,17 +195,6 @@ if (malePreview) {
   malePreview.src =
     ASSETS.malePortrait;
 
-
-  malePreview.onerror =
-    () => {
-
-      console.error(
-        "남자 초상화 로딩 실패:",
-        ASSETS.malePortrait
-      );
-
-    };
-
 }
 
 
@@ -134,17 +202,6 @@ if (femalePreview) {
 
   femalePreview.src =
     ASSETS.femalePortrait;
-
-
-  femalePreview.onerror =
-    () => {
-
-      console.error(
-        "여자 초상화 로딩 실패:",
-        ASSETS.femalePortrait
-      );
-
-    };
 
 }
 
@@ -179,15 +236,17 @@ musicBtn?.addEventListener(
 
         await bgm.play();
 
+
         musicBtn.textContent =
           "음악 끄기";
 
       }
 
-      catch (error) {
+      catch (
+        error
+      ) {
 
         console.error(
-          "음악 재생 실패:",
           error
         );
 
@@ -198,6 +257,7 @@ musicBtn?.addEventListener(
     else {
 
       bgm.pause();
+
 
       musicBtn.textContent =
         "음악 켜기";
@@ -230,13 +290,10 @@ characterCards.forEach(
       () => {
 
         characterCards.forEach(
-          item => {
-
+          item =>
             item.classList.remove(
               "selected"
-            );
-
-          }
+            )
         );
 
 
@@ -271,15 +328,21 @@ startBtn?.addEventListener(
       card => {
 
         card.classList.toggle(
+
           "selected",
-          card.dataset.gender === "male"
+
+          card.dataset.gender ===
+            "male"
+
         );
 
       }
     );
 
 
-    if (studentNameInput) {
+    if (
+      studentNameInput
+    ) {
 
       studentNameInput.value =
         "";
@@ -287,17 +350,17 @@ startBtn?.addEventListener(
     }
 
 
-    setupModal?.classList.remove(
-      "hidden"
-    );
+    setupModal
+      ?.classList
+      .remove(
+        "hidden"
+      );
 
 
     setTimeout(
-      () => {
-
-        studentNameInput?.focus();
-
-      },
+      () =>
+        studentNameInput
+          ?.focus(),
       50
     );
 
@@ -309,9 +372,11 @@ cancelBtn?.addEventListener(
   "click",
   () => {
 
-    setupModal?.classList.add(
-      "hidden"
-    );
+    setupModal
+      ?.classList
+      .add(
+        "hidden"
+      );
 
   }
 );
@@ -333,7 +398,6 @@ beginBtn?.addEventListener(
         "이름을 입력해 주세요."
       );
 
-      studentNameInput?.focus();
 
       return;
 
@@ -345,7 +409,10 @@ beginBtn?.addEventListener(
       name,
 
       gender:
-        selectedGender
+        selectedGender,
+
+      currentMap:
+        "MAP01"
 
     };
 
@@ -355,19 +422,21 @@ beginBtn?.addEventListener(
     );
 
 
-    clearMapProgress(
+    clearAllProgress(
       name
     );
 
 
-    setupModal?.classList.add(
-      "hidden"
-    );
+    setupModal
+      ?.classList
+      .add(
+        "hidden"
+      );
 
 
     await launchGame(
       profile,
-      false
+      "MAP01"
     );
 
   }
@@ -379,10 +448,12 @@ studentNameInput?.addEventListener(
   event => {
 
     if (
-      event.key === "Enter"
+      event.key ===
+      "Enter"
     ) {
 
       event.preventDefault();
+
 
       beginBtn?.click();
 
@@ -404,11 +475,14 @@ continueBtn?.addEventListener(
       getProfile();
 
 
-    if (!profile?.name) {
+    if (
+      !profile?.name
+    ) {
 
       alert(
-        "저장된 모험 기록이 없습니다."
+        "저장된 기록이 없습니다."
       );
+
 
       return;
 
@@ -416,8 +490,15 @@ continueBtn?.addEventListener(
 
 
     await launchGame(
+
       profile,
-      true
+
+      profile.currentMap
+      ||
+      getCurrentMap()
+      ||
+      "MAP01"
+
     );
 
   }
@@ -440,7 +521,7 @@ adminBtn?.addEventListener(
 
 
 /* =====================================================
-   PHASER
+   GAME
 ===================================================== */
 
 let phaserGame =
@@ -449,14 +530,17 @@ let phaserGame =
 
 async function launchGame(
   profile,
-  continueGame
+  startMapId
 ) {
 
-  if (phaserGame) {
+  if (
+    phaserGame
+  ) {
 
     phaserGame.destroy(
       true
     );
+
 
     phaserGame =
       null;
@@ -470,28 +554,6 @@ async function launchGame(
     );
 
 
-  let state =
-    null;
-
-
-  if (continueGame) {
-
-    state =
-      loadMapProgress(
-        profile.name
-      );
-
-  }
-
-
-  if (!state) {
-
-    state =
-      newMapState();
-
-  }
-
-
   window.WISDOM_PROFILE = {
 
     ...profile,
@@ -499,31 +561,55 @@ async function launchGame(
     spriteUrls,
 
     portraitUrl:
-      profile.gender === "female"
+      profile.gender ===
+      "female"
+
         ? ASSETS.femalePortrait
+
         : ASSETS.malePortrait
 
   };
 
 
-  window.WISDOM_MAP_STATE =
-    state;
+  window.WISDOM_START_MAP =
+    startMapId;
 
 
-  titleScreen?.classList.add(
-    "hidden"
-  );
+  titleScreen
+    ?.classList
+    .add(
+      "hidden"
+    );
 
 
-  gameScreen?.classList.remove(
-    "hidden"
-  );
+  gameScreen
+    ?.classList
+    .remove(
+      "hidden"
+    );
 
 
-  if (hudName) {
+  if (
+    hudName
+  ) {
 
     hudName.textContent =
       profile.name;
+
+  }
+
+
+  if (
+    GAME_SCENES.length ===
+    0
+  ) {
+
+    alert(
+      "등록된 맵 Scene이 없습니다."
+    );
+
+
+    return;
 
   }
 
@@ -570,26 +656,146 @@ async function launchGame(
 
       },
 
-      scene: [
-        Map01Scene
-      ]
+      /*
+        자동으로 발견된 모든 맵
+      */
+
+      scene:
+        GAME_SCENES
 
     });
+
+
+  /*
+    Phaser 준비 후 저장된 맵으로 이동.
+  */
+
+  phaserGame.events.once(
+    Phaser.Core.Events.READY,
+    () => {
+
+      const manager =
+        phaserGame.scene;
+
+
+      if (
+        manager.keys[
+          startMapId
+        ]
+      ) {
+
+        manager.start(
+          startMapId
+        );
+
+      }
+
+      else {
+
+        console.warn(
+          `${startMapId} Scene이 아직 없습니다. MAP01으로 시작합니다.`
+        );
+
+
+        if (
+          manager.keys.MAP01
+        ) {
+
+          manager.start(
+            "MAP01"
+          );
+
+        }
+
+      }
+
+    }
+  );
 
 }
 
 
 /* =====================================================
-   CHARACTER SPRITE
+   EXPOSE GAME CONTROL
+
+   어떤 Scene에서도 사용 가능.
+
+   WisdomGame.startMap("MAP02")
+===================================================== */
+
+window.WisdomGame = {
+
+
+  startMap(
+    mapId
+  ) {
+
+    if (
+      !phaserGame
+    ) {
+      return false;
+    }
+
+
+    if (
+      !phaserGame.scene.keys[
+        mapId
+      ]
+    ) {
+
+      console.warn(
+        `${mapId} Scene이 존재하지 않습니다.`
+      );
+
+
+      return false;
+
+    }
+
+
+    phaserGame.scene.start(
+      mapId
+    );
+
+
+    return true;
+
+  },
+
+
+  hasMap(
+    mapId
+  ) {
+
+    return Boolean(
+
+      phaserGame
+        ?.scene
+        ?.keys?.[
+          mapId
+        ]
+
+    );
+
+  }
+
+};
+
+
+/* =====================================================
+   SPRITE
 ===================================================== */
 
 async function prepareCharacterSprites(
   gender
 ) {
 
-  const imageUrl =
-    gender === "female"
+  const url =
+    gender ===
+    "female"
+
       ? ASSETS.femaleSprite
+
       : ASSETS.maleSprite;
 
 
@@ -597,7 +803,7 @@ async function prepareCharacterSprites(
 
     const image =
       await loadImage(
-        imageUrl
+        url
       );
 
 
@@ -653,10 +859,12 @@ async function prepareCharacterSprites(
 
   }
 
-  catch (error) {
+  catch (
+    error
+  ) {
 
     console.error(
-      "캐릭터 스프라이트 로딩 실패:",
+      "캐릭터 이미지 로딩 실패:",
       error
     );
 
@@ -683,15 +891,19 @@ function loadImage(
 
 
       image.onload =
-        () => resolve(image);
+        () =>
+          resolve(
+            image
+          );
 
 
       image.onerror =
-        () => reject(
-          new Error(
-            `이미지 로딩 실패: ${src}`
-          )
-        );
+        () =>
+          reject(
+            new Error(
+              `이미지 로딩 실패: ${src}`
+            )
+          );
 
 
       image.src =
@@ -720,6 +932,7 @@ function cropCharacter(
   canvas.width =
     sw;
 
+
   canvas.height =
     sh;
 
@@ -735,6 +948,7 @@ function cropCharacter(
 
 
   context.drawImage(
+
     image,
 
     sx,
@@ -746,6 +960,7 @@ function cropCharacter(
     0,
     sw,
     sh
+
   );
 
 
@@ -762,31 +977,14 @@ function cropCharacter(
 
 function getPlayerPortrait() {
 
-  /*
-    launchGame에서 저장한 URL을
-    가장 먼저 사용
-  */
-
-  if (
+  return (
     window.WISDOM_PROFILE
       ?.portraitUrl
-  ) {
 
-    return window.WISDOM_PROFILE
-      .portraitUrl;
+    ||
 
-  }
-
-
-  const gender =
-    window.WISDOM_PROFILE
-      ?.gender
-      || "male";
-
-
-  return gender === "female"
-    ? ASSETS.femalePortrait
-    : ASSETS.malePortrait;
+    ASSETS.malePortrait
+  );
 
 }
 
@@ -800,9 +998,439 @@ function getLumiPortrait() {
 
 function getPlayerName() {
 
-  return window.WISDOM_PROFILE
-    ?.name
-    || "모험가";
+  return (
+    window.WISDOM_PROFILE
+      ?.name
+
+    ||
+
+    "모험가"
+  );
+
+}
+
+
+/* =====================================================
+   QUIZ ENGINE
+===================================================== */
+
+window.QuizEngine = {
+
+
+  wordToKorean(
+    words,
+    used = []
+  ) {
+
+    const target =
+      pickUnused(
+        usablePairs(
+          words
+        ),
+        used
+      );
+
+
+    if (!target) {
+      return null;
+    }
+
+
+    const options =
+      buildOptions(
+
+        target.korean,
+
+        usablePairs(
+          words
+        ).map(
+          item =>
+            item.korean
+        )
+
+      );
+
+
+    return {
+
+      type:
+        "wordToKorean",
+
+      itemKey:
+        target.english,
+
+      question:
+        `"${target.english}"의 뜻은 무엇일까요?`,
+
+      options,
+
+      correctIndex:
+        options.indexOf(
+          target.korean
+        )
+
+    };
+
+  },
+
+
+  koreanToWord(
+    words,
+    used = []
+  ) {
+
+    const pool =
+      usablePairs(
+        words
+      );
+
+
+    const target =
+      pickUnused(
+        pool,
+        used
+      );
+
+
+    if (!target) {
+      return null;
+    }
+
+
+    const options =
+      buildOptions(
+
+        target.english,
+
+        pool.map(
+          item =>
+            item.english
+        )
+
+      );
+
+
+    return {
+
+      type:
+        "koreanToWord",
+
+      itemKey:
+        target.english,
+
+      question:
+        `"${target.korean}"에 해당하는 영어 단어는 무엇일까요?`,
+
+      options,
+
+      correctIndex:
+        options.indexOf(
+          target.english
+        )
+
+    };
+
+  },
+
+
+  expressionToKorean(
+    expressions,
+    used = []
+  ) {
+
+    const pool =
+      usablePairs(
+        expressions
+      );
+
+
+    const target =
+      pickUnused(
+        pool,
+        used
+      );
+
+
+    if (!target) {
+      return null;
+    }
+
+
+    const options =
+      buildOptions(
+
+        target.korean,
+
+        pool.map(
+          item =>
+            item.korean
+        )
+
+      );
+
+
+    return {
+
+      type:
+        "expressionToKorean",
+
+      itemKey:
+        target.english,
+
+      question:
+        `"${target.english}"의 뜻은 무엇일까요?`,
+
+      options,
+
+      correctIndex:
+        options.indexOf(
+          target.korean
+        )
+
+    };
+
+  },
+
+
+  koreanToExpression(
+    expressions,
+    used = []
+  ) {
+
+    const pool =
+      usablePairs(
+        expressions
+      );
+
+
+    const target =
+      pickUnused(
+        pool,
+        used
+      );
+
+
+    if (!target) {
+      return null;
+    }
+
+
+    const options =
+      buildOptions(
+
+        target.english,
+
+        pool.map(
+          item =>
+            item.english
+        )
+
+      );
+
+
+    return {
+
+      type:
+        "koreanToExpression",
+
+      itemKey:
+        target.english,
+
+      question:
+        `"${target.korean}"에 해당하는 영어 표현은 무엇일까요?`,
+
+      options,
+
+      correctIndex:
+        options.indexOf(
+          target.english
+        )
+
+    };
+
+  },
+
+
+  pickExpression(
+    expressions,
+    used = []
+  ) {
+
+    return pickUnused(
+
+      usablePairs(
+        expressions
+      ),
+
+      used
+
+    );
+
+  },
+
+
+  randomReview(
+    content,
+    usedWords = [],
+    usedExpressions = []
+  ) {
+
+    const makers =
+      [];
+
+
+    if (
+      usablePairs(
+        content.words
+      ).length
+    ) {
+
+      makers.push(
+        () =>
+          this.wordToKorean(
+            content.words,
+            usedWords
+          )
+      );
+
+
+      makers.push(
+        () =>
+          this.koreanToWord(
+            content.words,
+            usedWords
+          )
+      );
+
+    }
+
+
+    if (
+      usablePairs(
+        content.expressions
+      ).length
+    ) {
+
+      makers.push(
+        () =>
+          this.expressionToKorean(
+            content.expressions,
+            usedExpressions
+          )
+      );
+
+
+      makers.push(
+        () =>
+          this.koreanToExpression(
+            content.expressions,
+            usedExpressions
+          )
+      );
+
+    }
+
+
+    if (!makers.length) {
+
+      return null;
+
+    }
+
+
+    return shuffle(
+      makers
+    )[0]();
+
+  }
+
+};
+
+
+function usablePairs(
+  items
+) {
+
+  return (
+    Array.isArray(
+      items
+    )
+      ? items
+      : []
+  ).filter(
+    item =>
+      item?.english
+      &&
+      item?.korean
+  );
+
+}
+
+
+function pickUnused(
+  items,
+  used
+) {
+
+  if (!items.length) {
+
+    return null;
+
+  }
+
+
+  const available =
+    items.filter(
+      item =>
+        !used.includes(
+          item.english
+        )
+    );
+
+
+  return shuffle(
+
+    available.length
+      ? available
+      : items
+
+  )[0];
+
+}
+
+
+function buildOptions(
+  correct,
+  pool
+) {
+
+  const unique =
+    [...new Set(
+      pool.filter(Boolean)
+    )];
+
+
+  const wrong =
+    shuffle(
+
+      unique.filter(
+        item =>
+          item !==
+          correct
+      )
+
+    );
+
+
+  return shuffle(
+    [
+      correct,
+      ...wrong.slice(
+        0,
+        3
+      )
+    ]
+  );
 
 }
 
@@ -819,13 +1447,16 @@ window.GameUI = {
   ) {
 
     const list =
-      Array.isArray(messages)
+      Array.isArray(
+        messages
+      )
         ? messages
         : [messages];
 
 
     for (
-      const message of list
+      const message of
+      list
     ) {
 
       await showDialogue(
@@ -833,74 +1464,6 @@ window.GameUI = {
       );
 
     }
-
-  },
-
-
-  async english(
-    description,
-    englishText
-  ) {
-
-    return new Promise(
-      resolve => {
-
-        openModal();
-
-
-        modalBody.innerHTML = `
-
-          <div class="question-layout">
-
-            <div class="question-icon">
-              ABC
-            </div>
-
-            <div class="question-content">
-
-              <p class="dialogue-text">
-                ${escapeHtml(description)}
-              </p>
-
-              <div class="english-box">
-                ${escapeHtml(englishText)}
-              </div>
-
-              <button
-                id="english-ok"
-                class="big-gold"
-                type="button"
-              >
-                확인
-              </button>
-
-            </div>
-
-          </div>
-
-        `;
-
-
-        document
-          .querySelector(
-            "#english-ok"
-          )
-          ?.addEventListener(
-            "click",
-            () => {
-
-              closeModal();
-
-              resolve(true);
-
-            },
-            {
-              once: true
-            }
-          );
-
-      }
-    );
 
   },
 
@@ -914,11 +1477,11 @@ window.GameUI = {
     return new Promise(
       resolve => {
 
-        openModal();
-
-
-        let selectedIndex =
+        let selected =
           -1;
+
+
+        openModal();
 
 
         modalBody.innerHTML = `
@@ -948,7 +1511,7 @@ window.GameUI = {
         `;
 
 
-        const optionArea =
+        const area =
           document.querySelector(
             "#quiz-options"
           );
@@ -975,8 +1538,10 @@ window.GameUI = {
             button.type =
               "button";
 
+
             button.className =
               "quiz-option";
+
 
             button.textContent =
               option;
@@ -986,7 +1551,7 @@ window.GameUI = {
               "click",
               () => {
 
-                selectedIndex =
+                selected =
                   index;
 
 
@@ -995,23 +1560,16 @@ window.GameUI = {
                     ".quiz-option"
                   )
                   .forEach(
-                    element => {
-
-                      element
-                        .classList
-                        .remove(
-                          "selected"
-                        );
-
-                    }
+                    item =>
+                      item.classList.remove(
+                        "selected"
+                      )
                   );
 
 
-                button
-                  .classList
-                  .add(
-                    "selected"
-                  );
+                button.classList.add(
+                  "selected"
+                );
 
 
                 submit.disabled =
@@ -1021,10 +1579,9 @@ window.GameUI = {
             );
 
 
-            optionArea
-              .appendChild(
-                button
-              );
+            area.appendChild(
+              button
+            );
 
           }
         );
@@ -1035,7 +1592,8 @@ window.GameUI = {
           () => {
 
             if (
-              selectedIndex < 0
+              selected <
+              0
             ) {
 
               return;
@@ -1043,15 +1601,12 @@ window.GameUI = {
             }
 
 
-            const correct =
-              selectedIndex ===
-              correctIndex;
-
-
             closeModal();
 
+
             resolve(
-              correct
+              selected ===
+              correctIndex
             );
 
           },
@@ -1074,7 +1629,7 @@ window.GameUI = {
       resolve => {
 
         const words =
-          sentence
+          String(sentence)
             .trim()
             .split(/\s+/);
 
@@ -1149,7 +1704,7 @@ window.GameUI = {
           );
 
 
-        function updateAnswer() {
+        function render() {
 
           answerArea.textContent =
             selected
@@ -1158,7 +1713,8 @@ window.GameUI = {
                   item.word
               )
               .join(" ")
-              || " ";
+            ||
+            " ";
 
         }
 
@@ -1175,8 +1731,10 @@ window.GameUI = {
             button.type =
               "button";
 
+
             button.className =
               "token";
+
 
             button.textContent =
               word;
@@ -1208,16 +1766,15 @@ window.GameUI = {
                 });
 
 
-                updateAnswer();
+                render();
 
               }
             );
 
 
-            tokenArea
-              .appendChild(
-                button
-              );
+            tokenArea.appendChild(
+              button
+            );
 
           }
         );
@@ -1232,12 +1789,9 @@ window.GameUI = {
             () => {
 
               selected.forEach(
-                item => {
-
+                item =>
                   item.button.disabled =
-                    false;
-
-                }
+                    false
               );
 
 
@@ -1245,7 +1799,7 @@ window.GameUI = {
                 [];
 
 
-              updateAnswer();
+              render();
 
             }
           );
@@ -1259,7 +1813,7 @@ window.GameUI = {
             "click",
             () => {
 
-              const answer =
+              const result =
                 selected
                   .map(
                     item =>
@@ -1270,7 +1824,7 @@ window.GameUI = {
 
               if (
                 normalizeSentence(
-                  answer
+                  result
                 )
                 ===
                 normalizeSentence(
@@ -1280,7 +1834,10 @@ window.GameUI = {
 
                 closeModal();
 
-                resolve(true);
+
+                resolve(
+                  true
+                );
 
               }
 
@@ -1313,17 +1870,18 @@ window.GameUI = {
         modalBody.innerHTML = `
 
           <h2 class="clear-title">
-            MAP 01 CLEAR!
+            ${escapeHtml(result.mapId ?? "MAP")} CLEAR!
           </h2>
 
           <p class="dialogue-text result-message">
-            ${escapeHtml(result.name)}의 첫 번째 모험 완료!
+            ${escapeHtml(result.name)}의 모험 완료!
           </p>
 
           <div class="result-box">
 
             <div>
               <span>플레이 시간</span>
+
               <strong>
                 ${formatTime(result.seconds)}
               </strong>
@@ -1331,6 +1889,7 @@ window.GameUI = {
 
             <div>
               <span>첫 시도 정답</span>
+
               <strong>
                 ${result.firstTry}
               </strong>
@@ -1338,6 +1897,7 @@ window.GameUI = {
 
             <div>
               <span>오답 횟수</span>
+
               <strong>
                 ${result.wrong}
               </strong>
@@ -1345,6 +1905,7 @@ window.GameUI = {
 
             <div>
               <span>말의 조각</span>
+
               <strong>
                 ◆ ◆ ◆
               </strong>
@@ -1374,11 +1935,14 @@ window.GameUI = {
               closeModal();
 
 
-              if (phaserGame) {
+              if (
+                phaserGame
+              ) {
 
                 phaserGame.destroy(
                   true
                 );
+
 
                 phaserGame =
                   null;
@@ -1386,17 +1950,23 @@ window.GameUI = {
               }
 
 
-              gameScreen?.classList.add(
-                "hidden"
+              gameScreen
+                ?.classList
+                .add(
+                  "hidden"
+                );
+
+
+              titleScreen
+                ?.classList
+                .remove(
+                  "hidden"
+                );
+
+
+              resolve(
+                true
               );
-
-
-              titleScreen?.classList.remove(
-                "hidden"
-              );
-
-
-              resolve(true);
 
             },
             {
@@ -1413,7 +1983,7 @@ window.GameUI = {
 
 
 /* =====================================================
-   DIALOGUE
+   DIALOG
 ===================================================== */
 
 function showDialogue(
@@ -1440,10 +2010,6 @@ function showDialogue(
         null;
 
 
-      /*
-        루미
-      */
-
       if (
         text.startsWith(
           "루미:"
@@ -1465,16 +2031,6 @@ function showDialogue(
           );
 
       }
-
-
-      /*
-        플레이어
-
-        나:
-        플레이어:
-        학생:
-        전부 지원
-      */
 
       else if (
         text.startsWith("나:")
@@ -1510,13 +2066,8 @@ function showDialogue(
       }
 
 
-      /*
-        시스템 메시지
-      */
-
-      const portraitHTML =
+      const portraitHtml =
         portrait
-
           ? `
             <div class="dialogue-portrait-box">
 
@@ -1524,18 +2075,10 @@ function showDialogue(
                 class="dialogue-portrait"
                 src="${portrait}"
                 alt="${escapeHtml(speaker)}"
-                onerror="
-                  console.error(
-                    'Portrait load failed:',
-                    this.src
-                  );
-                  this.style.display='none';
-                "
               />
 
             </div>
           `
-
           : `
             <div class="dialogue-system-box">
 
@@ -1551,19 +2094,17 @@ function showDialogue(
 
         <div class="dialogue-layout">
 
-          ${portraitHTML}
+          ${portraitHtml}
 
           <div class="dialogue-content">
 
             ${
               speaker
-
                 ? `
                   <div class="dialogue-speaker">
                     ${escapeHtml(speaker)}
                   </div>
                 `
-
                 : ""
             }
 
@@ -1596,7 +2137,10 @@ function showDialogue(
 
             closeModal();
 
-            resolve(true);
+
+            resolve(
+              true
+            );
 
           },
           {
@@ -1628,9 +2172,11 @@ document.addEventListener(
 
 
     if (
-      event.key !== "Enter"
+      event.key !==
+        "Enter"
       &&
-      event.code !== "Space"
+      event.code !==
+        "Space"
     ) {
 
       return;
@@ -1639,9 +2185,11 @@ document.addEventListener(
 
 
     if (
-      modal?.classList.contains(
-        "hidden"
-      )
+      modal
+        ?.classList
+        .contains(
+          "hidden"
+        )
     ) {
 
       return;
@@ -1656,8 +2204,6 @@ document.addEventListener(
 
       "#dialog-next",
 
-      "#english-ok",
-
       "#quiz-submit",
 
       "#sentence-submit",
@@ -1668,7 +2214,8 @@ document.addEventListener(
 
 
     for (
-      const selector of selectors
+      const selector of
+      selectors
     ) {
 
       const button =
@@ -1678,11 +2225,13 @@ document.addEventListener(
 
 
       if (
-        button &&
+        button
+        &&
         !button.disabled
       ) {
 
         button.click();
+
 
         return;
 
@@ -1700,24 +2249,28 @@ document.addEventListener(
 
 function openModal() {
 
-  modal?.classList.remove(
-    "hidden"
-  );
+  modal
+    ?.classList
+    .remove(
+      "hidden"
+    );
 
 }
 
 
 function closeModal() {
 
-  modal?.classList.add(
-    "hidden"
-  );
+  modal
+    ?.classList
+    .add(
+      "hidden"
+    );
 
 }
 
 
 /* =====================================================
-   UTILS
+   HELPERS
 ===================================================== */
 
 function escapeHtml(
@@ -1727,22 +2280,27 @@ function escapeHtml(
   return String(
     value ?? ""
   )
+
     .replaceAll(
       "&",
       "&amp;"
     )
+
     .replaceAll(
       "<",
       "&lt;"
     )
+
     .replaceAll(
       ">",
       "&gt;"
     )
+
     .replaceAll(
       '"',
       "&quot;"
     )
+
     .replaceAll(
       "'",
       "&#039;"
@@ -1758,11 +2316,14 @@ function normalizeSentence(
   return String(
     value ?? ""
   )
+
     .trim()
+
     .replace(
       /\s+/g,
       " "
     )
+
     .toLowerCase();
 
 }
@@ -1772,22 +2333,18 @@ function formatTime(
   seconds
 ) {
 
-  const safeSeconds =
-    Number(seconds) || 0;
+  const value =
+    Number(
+      seconds
+    )
+    ||
+    0;
 
 
-  const minutes =
-    Math.floor(
-      safeSeconds / 60
-    );
-
-
-  const remain =
-    Math.floor(
-      safeSeconds % 60
-    );
-
-
-  return `${minutes}분 ${remain}초`;
+  return (
+    `${Math.floor(value / 60)}분 `
+    +
+    `${Math.floor(value % 60)}초`
+  );
 
 }
