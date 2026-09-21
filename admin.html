@@ -1,504 +1,296 @@
-import "./style.css";
-
-import {
-  getTeacherPin,
-  getUnit1Content,
-  saveUnit1Content,
-  parseTxt,
-  serializeTxt
-} from "./data.js";
-
-
-const base =
-  import.meta.env.BASE_URL;
-
-
-/* =========================================================
-   DOM
-========================================================= */
+<!doctype html>
 
-const loginScreen =
-  document.querySelector(
-    "#admin-login"
-  );
+<html lang="ko">
 
-const adminApp =
-  document.querySelector(
-    "#admin-app"
-  );
+<head>
 
-const pinInput =
-  document.querySelector(
-    "#teacher-pin"
-  );
+  <meta charset="UTF-8" />
 
-const loginButton =
-  document.querySelector(
-    "#teacher-login"
-  );
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
 
-const backTitle =
-  document.querySelector(
-    "#back-title"
-  );
+  <meta
+    name="theme-color"
+    content="#081120"
+  />
 
-const adminHome =
-  document.querySelector(
-    "#admin-home"
-  );
+  <title>
+    지혜의 미로 탐험대 - 교사용 설정
+  </title>
 
-const txtUpload =
-  document.querySelector(
-    "#txt-upload"
-  );
 
-const wordsEditor =
-  document.querySelector(
-    "#words-editor"
-  );
+  <link
+    rel="stylesheet"
+    href="/src/style.css"
+  />
 
-const expressionsEditor =
-  document.querySelector(
-    "#expressions-editor"
-  );
+</head>
 
-const wordCount =
-  document.querySelector(
-    "#word-count"
-  );
 
-const expressionCount =
-  document.querySelector(
-    "#expression-count"
-  );
+<body class="admin-body">
 
-const saveButton =
-  document.querySelector(
-    "#save-content"
-  );
 
-const downloadButton =
-  document.querySelector(
-    "#download-txt"
-  );
+  <!-- =====================================================
+       LOGIN
+  ====================================================== -->
 
-const status =
-  document.querySelector(
-    "#save-status"
-  );
+  <div
+    id="admin-login"
+    class="admin-center"
+  >
 
+    <div
+      class="panel admin-login-panel"
+    >
 
-/* =========================================================
-   LOGIN
-========================================================= */
+      <h1>
+        교사용 설정
+      </h1>
 
-loginButton.addEventListener(
-  "click",
-  login
-);
+      <p>
+        교사용 PIN을 입력하세요.
+      </p>
 
 
-pinInput.addEventListener(
-  "keydown",
-  event => {
+      <input
+        id="teacher-pin"
+        type="password"
+        inputmode="numeric"
+        maxlength="8"
+        placeholder="PIN"
+      />
 
-    if (
-      event.key ===
-      "Enter"
-    ) {
 
-      login();
+      <button
+        id="teacher-login"
+        class="big-gold"
+        type="button"
+      >
+        접속
+      </button>
 
-    }
-  }
-);
 
+      <button
+        id="back-title"
+        class="text-button"
+        type="button"
+      >
+        게임으로 돌아가기
+      </button>
 
-function login() {
+    </div>
 
-  const entered =
-    pinInput.value.trim();
+  </div>
 
 
-  const correct =
-    getTeacherPin();
+  <!-- =====================================================
+       ADMIN APP
+  ====================================================== -->
 
+  <div
+    id="admin-app"
+    class="hidden"
+  >
 
-  if (
-    entered !==
-    correct
-  ) {
 
-    alert(
-      "PIN이 올바르지 않습니다."
-    );
+    <header
+      class="admin-header"
+    >
 
-    return;
-  }
+      <div>
 
+        <h1>
+          영어 문제 설정
+        </h1>
 
-  loginScreen.classList.add(
-    "hidden"
-  );
+        <p>
+          MAP 01 · 잠겨버린 교실
+        </p>
 
+      </div>
 
-  adminApp.classList.remove(
-    "hidden"
-  );
 
+      <button
+        id="admin-home"
+        class="main-button"
+        type="button"
+      >
+        게임으로 돌아가기
+      </button>
 
-  loadCurrentContent();
-}
+    </header>
 
 
-/* =========================================================
-   RETURN GAME
-========================================================= */
+    <main
+      class="admin-main"
+    >
 
-function goHome() {
 
-  window.location.href =
-    `${base}index.html`;
+      <!-- TXT -->
 
-}
+      <section
+        class="panel"
+      >
 
+        <h2>
+          TXT 문제 불러오기
+        </h2>
 
-backTitle.addEventListener(
-  "click",
-  goHome
-);
+        <p>
+          UTF-8 형식의 TXT 파일을 선택하세요.
+        </p>
 
 
-adminHome.addEventListener(
-  "click",
-  goHome
-);
+        <input
+          id="txt-upload"
+          class="admin-file"
+          type="file"
+          accept=".txt,text/plain"
+        />
 
 
-/* =========================================================
-   LOAD
-========================================================= */
+        <p class="small">
+          영어 단어 최대 20개 · 영어 표현 최대 20개
+        </p>
 
-function loadCurrentContent() {
+      </section>
 
-  const data =
-    getUnit1Content();
 
+      <!-- EDITOR -->
 
-  wordsEditor.value =
-    data.words.join("\n");
+      <section
+        class="admin-editor"
+      >
 
 
-  expressionsEditor.value =
-    data.expressions.join("\n");
+        <div class="panel">
 
+          <h2>
+            영어 단어
+          </h2>
 
-  updateCounts();
-}
+          <p>
+            <span id="word-count">
+              0
+            </span>
+            / 20
+          </p>
 
+          <textarea
+            id="words-editor"
+            placeholder="한 줄에 단어 하나씩 입력하세요."
+          ></textarea>
 
-/* =========================================================
-   TXT UPLOAD
-========================================================= */
+        </div>
 
-txtUpload.addEventListener(
-  "change",
-  async event => {
 
-    const file =
-      event.target.files?.[0];
+        <div class="panel">
 
+          <h2>
+            영어 표현
+          </h2>
 
-    if (!file) {
-      return;
-    }
+          <p>
+            <span id="expression-count">
+              0
+            </span>
+            / 20
+          </p>
 
+          <textarea
+            id="expressions-editor"
+            placeholder="한 줄에 문장 하나씩 입력하세요."
+          ></textarea>
 
-    try {
+        </div>
 
-      const text =
-        await file.text();
 
+      </section>
 
-      const parsed =
-        parseTxt(text);
 
+      <!-- SAVE -->
 
-      if (
-        parsed.words.length === 0 &&
-        parsed.expressions.length === 0
-      ) {
+      <section class="panel">
 
-        alert(
-          "TXT 문서에서 [WORDS] 또는 [EXPRESSIONS] 내용을 찾지 못했습니다."
-        );
+        <h2>
+          MAP 01 적용
+        </h2>
 
-        return;
-      }
 
+        <button
+          id="save-content"
+          class="big-gold"
+          type="button"
+        >
+          MAP 01 문제 저장
+        </button>
 
-      wordsEditor.value =
-        parsed.words.join("\n");
 
+        <button
+          id="download-txt"
+          class="main-button"
+          type="button"
+        >
+          현재 내용을 TXT로 저장
+        </button>
 
-      expressionsEditor.value =
-        parsed.expressions.join("\n");
 
+        <p
+          id="save-status"
+          class="english-preview"
+        ></p>
 
-      updateCounts();
+      </section>
 
 
-      status.textContent =
-        "TXT 문서를 불러왔습니다. 아래의 'MAP 01 문제 저장'을 눌러 적용하세요.";
+      <!-- FORMAT -->
 
-    }
+      <section class="panel">
 
-    catch (error) {
+        <h2>
+          TXT 작성 예시
+        </h2>
 
-      console.error(error);
 
+        <pre class="english-preview"># 지혜의 미로 탐험대
+# MAP 01
 
-      alert(
-        "TXT 파일을 읽지 못했습니다."
-      );
-    }
-  }
-);
+[WORDS]
+key
+door
+desk
+chair
+window
+clock
+book
+box
+bag
+map
+under
+behind
 
+[EXPRESSIONS]
+Where is the key?
+It is under the desk.
+Look under the desk.
+Open the box.
+I found the key.</pre>
 
-/* =========================================================
-   EDITOR
-========================================================= */
+      </section>
 
-wordsEditor.addEventListener(
-  "input",
-  updateCounts
-);
 
+    </main>
 
-expressionsEditor.addEventListener(
-  "input",
-  updateCounts
-);
+  </div>
 
 
-function linesFrom(
-  textarea
-) {
+  <script
+    type="module"
+    src="/src/admin.js"
+  ></script>
 
-  return textarea.value
+</body>
 
-    .split(/\r?\n/)
-
-    .map(
-      line =>
-        line.trim()
-    )
-
-    .filter(Boolean);
-}
-
-
-function updateCounts() {
-
-  const words =
-    linesFrom(
-      wordsEditor
-    );
-
-
-  const expressions =
-    linesFrom(
-      expressionsEditor
-    );
-
-
-  wordCount.textContent =
-    words.length;
-
-
-  expressionCount.textContent =
-    expressions.length;
-
-
-  wordCount.style.color =
-    words.length > 20
-      ? "#ff7777"
-      : "";
-
-
-  expressionCount.style.color =
-    expressions.length > 20
-      ? "#ff7777"
-      : "";
-}
-
-
-/* =========================================================
-   SAVE
-========================================================= */
-
-saveButton.addEventListener(
-  "click",
-  () => {
-
-    const words =
-      linesFrom(
-        wordsEditor
-      );
-
-
-    const expressions =
-      linesFrom(
-        expressionsEditor
-      );
-
-
-    if (
-      words.length === 0
-    ) {
-
-      alert(
-        "영어 단어를 하나 이상 입력하세요."
-      );
-
-      return;
-    }
-
-
-    if (
-      expressions.length === 0
-    ) {
-
-      alert(
-        "영어 표현을 하나 이상 입력하세요."
-      );
-
-      return;
-    }
-
-
-    if (
-      words.length > 20
-    ) {
-
-      alert(
-        "단어는 최대 20개까지 가능합니다."
-      );
-
-      return;
-    }
-
-
-    if (
-      expressions.length > 20
-    ) {
-
-      alert(
-        "표현은 최대 20개까지 가능합니다."
-      );
-
-      return;
-    }
-
-
-    const data = {
-
-      words:
-        [...new Set(words)],
-
-      expressions:
-        [...new Set(expressions)]
-
-    };
-
-
-    saveUnit1Content(
-      data
-    );
-
-
-    status.textContent =
-      `저장 완료: 단어 ${data.words.length}개 / 표현 ${data.expressions.length}개`;
-
-
-    alert(
-      "MAP 01 문제가 저장되었습니다."
-    );
-  }
-);
-
-
-/* =========================================================
-   DOWNLOAD TXT
-========================================================= */
-
-downloadButton.addEventListener(
-  "click",
-  () => {
-
-    const data = {
-
-      words:
-        linesFrom(
-          wordsEditor
-        ).slice(
-          0,
-          20
-        ),
-
-      expressions:
-        linesFrom(
-          expressionsEditor
-        ).slice(
-          0,
-          20
-        )
-
-    };
-
-
-    const text =
-      serializeTxt(
-        data
-      );
-
-
-    const blob =
-      new Blob(
-        [text],
-        {
-          type:
-            "text/plain;charset=utf-8"
-        }
-      );
-
-
-    const url =
-      URL.createObjectURL(
-        blob
-      );
-
-
-    const a =
-      document.createElement(
-        "a"
-      );
-
-
-    a.href =
-      url;
-
-
-    a.download =
-      "map01-english.txt";
-
-
-    a.click();
-
-
-    URL.revokeObjectURL(
-      url
-    );
-  }
-);
+</html>
