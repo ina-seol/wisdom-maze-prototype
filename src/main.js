@@ -15,6 +15,10 @@ import {
 } from "./data.js";
 
 
+/* =====================================================
+   BASE URL
+===================================================== */
+
 const base =
   import.meta.env.BASE_URL;
 
@@ -110,8 +114,12 @@ const femalePreview =
 
 
 /* =====================================================
-   ASSET URL
+   ASSETS
 ===================================================== */
+
+/*
+  타이틀
+*/
 
 if (titleBg) {
 
@@ -120,6 +128,18 @@ if (titleBg) {
 
 }
 
+
+/*
+  캐릭터 선택 화면
+
+  실제 캐릭터 시트:
+  4열 × 1행
+
+  1 = 정면
+  2 = 후면
+  3 = 측면
+  4 = 측면 변형
+*/
 
 if (malePreview) {
 
@@ -136,6 +156,10 @@ if (femalePreview) {
 
 }
 
+
+/*
+  음악
+*/
 
 if (bgm) {
 
@@ -185,6 +209,10 @@ if (
             error
           );
 
+
+          musicBtn.textContent =
+            "음악 켜기";
+
         }
 
       }
@@ -193,12 +221,15 @@ if (
 
         bgm.pause();
 
+
         musicBtn.textContent =
           "음악 켜기";
 
       }
+
     }
   );
+
 }
 
 
@@ -250,7 +281,7 @@ characterCards.forEach(
 
 
 /* =====================================================
-   START
+   GAME START BUTTON
 ===================================================== */
 
 startBtn?.addEventListener(
@@ -290,8 +321,11 @@ startBtn?.addEventListener(
 
 
     setTimeout(
-      () =>
-        studentNameInput?.focus(),
+      () => {
+
+        studentNameInput?.focus();
+
+      },
       50
     );
 
@@ -300,7 +334,7 @@ startBtn?.addEventListener(
 
 
 /* =====================================================
-   CANCEL
+   CANCEL SETUP
 ===================================================== */
 
 cancelBtn?.addEventListener(
@@ -316,7 +350,7 @@ cancelBtn?.addEventListener(
 
 
 /* =====================================================
-   BEGIN
+   BEGIN GAME
 ===================================================== */
 
 beginBtn?.addEventListener(
@@ -337,7 +371,9 @@ beginBtn?.addEventListener(
         "이름을 입력해 주세요."
       );
 
+
       studentNameInput?.focus();
+
 
       return;
 
@@ -378,6 +414,10 @@ beginBtn?.addEventListener(
 );
 
 
+/* =====================================================
+   ENTER KEY
+===================================================== */
+
 studentNameInput?.addEventListener(
   "keydown",
   event => {
@@ -414,6 +454,7 @@ continueBtn?.addEventListener(
       alert(
         "저장된 모험 기록이 없습니다."
       );
+
 
       return;
 
@@ -465,6 +506,7 @@ async function launchGame(
       true
     );
 
+
     phaserGame =
       null;
 
@@ -472,7 +514,8 @@ async function launchGame(
 
 
   /*
-    캐릭터 방향 이미지 생성
+    선택한 성별 캐릭터를
+    정면 / 후면 / 측면으로 잘라냄
   */
 
   const spriteUrls =
@@ -520,6 +563,10 @@ async function launchGame(
     state;
 
 
+  /*
+    화면 전환
+  */
+
   titleScreen?.classList.add(
     "hidden"
   );
@@ -540,6 +587,10 @@ async function launchGame(
   }
 
 
+  /*
+    Phaser 생성
+  */
+
   phaserGame =
     new Phaser.Game({
 
@@ -556,7 +607,7 @@ async function launchGame(
         "phaser-root",
 
       backgroundColor:
-        "#0a1322",
+        "#081120",
 
       pixelArt:
         true,
@@ -572,7 +623,10 @@ async function launchGame(
         arcade: {
 
           gravity: {
-            y: 0
+
+            y:
+              0
+
           },
 
           debug:
@@ -616,59 +670,91 @@ async function prepareCharacterSprites(
 
 
     /*
-      현재 에셋을 4열 × 4행 캐릭터시트로 사용.
-      첫 번째 행:
-      0 = 앞
-      1 = 뒤
-      2 = 옆
+      실제 업로드된 캐릭터 시트 구조:
+
+      ┌────┬────┬────┬────┐
+      │앞  │뒤  │옆  │옆2 │
+      └────┴────┴────┴────┘
+
+      = 4열 × 1행
     */
 
     const columns =
       4;
 
-    const rows =
-      4;
-
 
     const frameWidth =
       Math.floor(
-        image.width / columns
+        image.width /
+        columns
       );
 
+
+    /*
+      세로는 전체 높이를 사용해야 함
+    */
 
     const frameHeight =
-      Math.floor(
-        image.height / rows
-      );
+      image.height;
 
+
+    /*
+      정면
+    */
 
     const front =
       cropCharacter(
+
         image,
+
         0,
+
         0,
+
         frameWidth,
+
         frameHeight
+
       );
 
+
+    /*
+      후면
+    */
 
     const back =
       cropCharacter(
+
         image,
+
         frameWidth,
+
         0,
+
         frameWidth,
+
         frameHeight
+
       );
 
 
+    /*
+      오른쪽 측면
+    */
+
     const side =
       cropCharacter(
+
         image,
+
         frameWidth * 2,
+
         0,
+
         frameWidth,
+
         frameHeight
+
       );
 
 
@@ -690,6 +776,11 @@ async function prepareCharacterSprites(
     );
 
 
+    /*
+      최소한 캐릭터 파일 자체를
+      fallback으로 전달
+    */
+
     return {
 
       front:
@@ -704,8 +795,13 @@ async function prepareCharacterSprites(
     };
 
   }
+
 }
 
+
+/* =====================================================
+   LOAD IMAGE
+===================================================== */
 
 function loadImage(
   src
@@ -722,17 +818,25 @@ function loadImage(
 
 
       image.onload =
-        () =>
-          resolve(image);
+        () => {
+
+          resolve(
+            image
+          );
+
+        };
 
 
       image.onerror =
-        () =>
+        () => {
+
           reject(
             new Error(
               `이미지 로딩 실패: ${src}`
             )
           );
+
+        };
 
 
       image.src =
@@ -743,6 +847,10 @@ function loadImage(
 
 }
 
+
+/* =====================================================
+   CROP CHARACTER
+===================================================== */
 
 function cropCharacter(
   image,
@@ -760,6 +868,7 @@ function cropCharacter(
 
   canvas.width =
     sw;
+
 
   canvas.height =
     sh;
@@ -793,9 +902,13 @@ function cropCharacter(
 
 
   /*
-    배경 제거를 일부러 하지 않는다.
-    캐릭터까지 투명해지는 문제 방지.
+    중요:
+    현재는 배경색 제거를 하지 않는다.
+
+    이전에는 배경 제거 과정에서
+    캐릭터까지 사라질 수 있었음.
   */
+
 
   return canvas.toDataURL(
     "image/png"
@@ -811,6 +924,10 @@ function cropCharacter(
 window.GameUI = {
 
 
+  /*
+    일반 대화
+  */
+
   async say(
     messages
   ) {
@@ -819,7 +936,9 @@ window.GameUI = {
       Array.isArray(
         messages
       )
+
         ? messages
+
         : [messages];
 
 
@@ -836,6 +955,10 @@ window.GameUI = {
 
   },
 
+
+  /*
+    영어 단서
+  */
 
   async english(
     description,
@@ -879,7 +1002,10 @@ window.GameUI = {
 
               closeModal();
 
-              resolve(true);
+
+              resolve(
+                true
+              );
 
             }
           );
@@ -889,6 +1015,10 @@ window.GameUI = {
 
   },
 
+
+  /*
+    문장 순서 맞추기
+  */
 
   async wordOrder(
     sentence
@@ -965,7 +1095,7 @@ window.GameUI = {
           );
 
 
-        function update() {
+        function updateAnswer() {
 
           answerArea.textContent =
             selected
@@ -974,7 +1104,8 @@ window.GameUI = {
                   item.word
               )
               .join(" ")
-              || " ";
+              ||
+              " ";
 
         }
 
@@ -994,8 +1125,10 @@ window.GameUI = {
             button.type =
               "button";
 
+
             button.className =
               "token";
+
 
             button.textContent =
               word;
@@ -1008,7 +1141,9 @@ window.GameUI = {
                 if (
                   button.disabled
                 ) {
+
                   return;
+
                 }
 
 
@@ -1025,7 +1160,7 @@ window.GameUI = {
                 });
 
 
-                update();
+                updateAnswer();
 
               }
             );
@@ -1061,7 +1196,7 @@ window.GameUI = {
                 [];
 
 
-              update();
+              updateAnswer();
 
             }
           );
@@ -1096,7 +1231,10 @@ window.GameUI = {
 
                 closeModal();
 
-                resolve(true);
+
+                resolve(
+                  true
+                );
 
               }
 
@@ -1115,6 +1253,10 @@ window.GameUI = {
 
   },
 
+
+  /*
+    결과창
+  */
 
   async finish(
     result
@@ -1198,6 +1340,7 @@ window.GameUI = {
                   true
                 );
 
+
                 phaserGame =
                   null;
 
@@ -1214,7 +1357,9 @@ window.GameUI = {
               );
 
 
-              resolve(true);
+              resolve(
+                true
+              );
 
             }
           );
@@ -1228,7 +1373,7 @@ window.GameUI = {
 
 
 /* =====================================================
-   DIALOG HELPERS
+   DIALOG
 ===================================================== */
 
 function showDialogue(
@@ -1268,7 +1413,10 @@ function showDialogue(
 
             closeModal();
 
-            resolve(true);
+
+            resolve(
+              true
+            );
 
           }
         );
@@ -1308,22 +1456,27 @@ function escapeHtml(
   return String(
     value ?? ""
   )
+
     .replaceAll(
       "&",
       "&amp;"
     )
+
     .replaceAll(
       "<",
       "&lt;"
     )
+
     .replaceAll(
       ">",
       "&gt;"
     )
+
     .replaceAll(
       '"',
       "&quot;"
     )
+
     .replaceAll(
       "'",
       "&#039;"
@@ -1339,11 +1492,14 @@ function normalizeSentence(
   return String(
     value ?? ""
   )
+
     .trim()
+
     .replace(
       /\s+/g,
       " "
     )
+
     .toLowerCase();
 
 }
