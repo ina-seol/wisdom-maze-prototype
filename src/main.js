@@ -15,10 +15,6 @@ import {
 } from "./data.js";
 
 
-/* =====================================================
-   BASE URL
-===================================================== */
-
 const base =
   import.meta.env.BASE_URL;
 
@@ -117,10 +113,6 @@ const femalePreview =
    ASSETS
 ===================================================== */
 
-/*
-  타이틀
-*/
-
 if (titleBg) {
 
   titleBg.style.backgroundImage =
@@ -129,37 +121,21 @@ if (titleBg) {
 }
 
 
-/*
-  캐릭터 선택 화면
-
-  실제 캐릭터 시트:
-  4열 × 1행
-
-  1 = 정면
-  2 = 후면
-  3 = 측면
-  4 = 측면 변형
-*/
-
 if (malePreview) {
 
-  malePreview.style.backgroundImage =
-    `url("${base}assets/male.png")`;
+  malePreview.src =
+    `${base}assets/portraits/male_portrait.png`;
 
 }
 
 
 if (femalePreview) {
 
-  femalePreview.style.backgroundImage =
-    `url("${base}assets/female.png")`;
+  femalePreview.src =
+    `${base}assets/portraits/female_portrait.png`;
 
 }
 
-
-/*
-  음악
-*/
 
 if (bgm) {
 
@@ -187,6 +163,7 @@ if (
 
   musicBtn.addEventListener(
     "click",
+
     async () => {
 
       if (
@@ -205,13 +182,8 @@ if (
         catch (error) {
 
           console.error(
-            "음악 재생 실패:",
             error
           );
-
-
-          musicBtn.textContent =
-            "음악 켜기";
 
         }
 
@@ -220,7 +192,6 @@ if (
       else {
 
         bgm.pause();
-
 
         musicBtn.textContent =
           "음악 켜기";
@@ -252,6 +223,7 @@ characterCards.forEach(
 
     card.addEventListener(
       "click",
+
       () => {
 
         characterCards.forEach(
@@ -281,11 +253,12 @@ characterCards.forEach(
 
 
 /* =====================================================
-   GAME START BUTTON
+   START
 ===================================================== */
 
 startBtn?.addEventListener(
   "click",
+
   () => {
 
     selectedGender =
@@ -321,11 +294,8 @@ startBtn?.addEventListener(
 
 
     setTimeout(
-      () => {
-
-        studentNameInput?.focus();
-
-      },
+      () =>
+        studentNameInput?.focus(),
       50
     );
 
@@ -334,11 +304,12 @@ startBtn?.addEventListener(
 
 
 /* =====================================================
-   CANCEL SETUP
+   CANCEL
 ===================================================== */
 
 cancelBtn?.addEventListener(
   "click",
+
   () => {
 
     setupModal?.classList.add(
@@ -350,11 +321,12 @@ cancelBtn?.addEventListener(
 
 
 /* =====================================================
-   BEGIN GAME
+   BEGIN
 ===================================================== */
 
 beginBtn?.addEventListener(
   "click",
+
   async () => {
 
     const name =
@@ -370,10 +342,6 @@ beginBtn?.addEventListener(
       alert(
         "이름을 입력해 주세요."
       );
-
-
-      studentNameInput?.focus();
-
 
       return;
 
@@ -415,32 +383,12 @@ beginBtn?.addEventListener(
 
 
 /* =====================================================
-   ENTER KEY
-===================================================== */
-
-studentNameInput?.addEventListener(
-  "keydown",
-  event => {
-
-    if (
-      event.key ===
-      "Enter"
-    ) {
-
-      beginBtn?.click();
-
-    }
-
-  }
-);
-
-
-/* =====================================================
    CONTINUE
 ===================================================== */
 
 continueBtn?.addEventListener(
   "click",
+
   async () => {
 
     const profile =
@@ -454,7 +402,6 @@ continueBtn?.addEventListener(
       alert(
         "저장된 모험 기록이 없습니다."
       );
-
 
       return;
 
@@ -476,6 +423,7 @@ continueBtn?.addEventListener(
 
 adminBtn?.addEventListener(
   "click",
+
   () => {
 
     window.location.href =
@@ -506,17 +454,11 @@ async function launchGame(
       true
     );
 
-
     phaserGame =
       null;
 
   }
 
-
-  /*
-    선택한 성별 캐릭터를
-    정면 / 후면 / 측면으로 잘라냄
-  */
 
   const spriteUrls =
     await prepareCharacterSprites(
@@ -563,10 +505,6 @@ async function launchGame(
     state;
 
 
-  /*
-    화면 전환
-  */
-
   titleScreen?.classList.add(
     "hidden"
   );
@@ -586,10 +524,6 @@ async function launchGame(
 
   }
 
-
-  /*
-    Phaser 생성
-  */
 
   phaserGame =
     new Phaser.Game({
@@ -623,10 +557,7 @@ async function launchGame(
         arcade: {
 
           gravity: {
-
-            y:
-              0
-
+            y: 0
           },
 
           debug:
@@ -646,7 +577,7 @@ async function launchGame(
 
 
 /* =====================================================
-   CHARACTER SPRITES
+   4-DIRECTION SPRITE
 ===================================================== */
 
 async function prepareCharacterSprites(
@@ -670,99 +601,66 @@ async function prepareCharacterSprites(
 
 
     /*
-      실제 업로드된 캐릭터 시트 구조:
-
-      ┌────┬────┬────┬────┐
-      │앞  │뒤  │옆  │옆2 │
-      └────┴────┴────┴────┘
-
-      = 4열 × 1행
+      새 시트:
+      [앞][뒤][왼쪽][오른쪽]
     */
-
-    const columns =
-      4;
-
 
     const frameWidth =
       Math.floor(
-        image.width /
-        columns
+        image.width / 4
       );
 
-
-    /*
-      세로는 전체 높이를 사용해야 함
-    */
 
     const frameHeight =
       image.height;
 
 
-    /*
-      정면
-    */
-
-    const front =
-      cropCharacter(
-
-        image,
-
-        0,
-
-        0,
-
-        frameWidth,
-
-        frameHeight
-
-      );
-
-
-    /*
-      후면
-    */
-
-    const back =
-      cropCharacter(
-
-        image,
-
-        frameWidth,
-
-        0,
-
-        frameWidth,
-
-        frameHeight
-
-      );
-
-
-    /*
-      오른쪽 측면
-    */
-
-    const side =
-      cropCharacter(
-
-        image,
-
-        frameWidth * 2,
-
-        0,
-
-        frameWidth,
-
-        frameHeight
-
-      );
-
-
     return {
 
-      front,
-      back,
-      side
+      front:
+        cropCharacter(
+          image,
+          0,
+          0,
+          frameWidth,
+          frameHeight
+        ),
+
+      back:
+        cropCharacter(
+          image,
+          frameWidth,
+          0,
+          frameWidth,
+          frameHeight
+        ),
+
+      left:
+        cropCharacter(
+          image,
+          frameWidth * 2,
+          0,
+          frameWidth,
+          frameHeight
+        ),
+
+      right:
+        cropCharacter(
+          image,
+          frameWidth * 3,
+          0,
+          frameWidth,
+          frameHeight
+        ),
+
+      side:
+        cropCharacter(
+          image,
+          frameWidth * 3,
+          0,
+          frameWidth,
+          frameHeight
+        )
 
     };
 
@@ -776,21 +674,13 @@ async function prepareCharacterSprites(
     );
 
 
-    /*
-      최소한 캐릭터 파일 자체를
-      fallback으로 전달
-    */
-
     return {
 
-      front:
-        imageUrl,
-
-      back:
-        imageUrl,
-
-      side:
-        imageUrl
+      front: imageUrl,
+      back: imageUrl,
+      left: imageUrl,
+      right: imageUrl,
+      side: imageUrl
 
     };
 
@@ -798,10 +688,6 @@ async function prepareCharacterSprites(
 
 }
 
-
-/* =====================================================
-   LOAD IMAGE
-===================================================== */
 
 function loadImage(
   src
@@ -818,25 +704,19 @@ function loadImage(
 
 
       image.onload =
-        () => {
-
+        () =>
           resolve(
             image
           );
 
-        };
-
 
       image.onerror =
-        () => {
-
+        () =>
           reject(
             new Error(
               `이미지 로딩 실패: ${src}`
             )
           );
-
-        };
 
 
       image.src =
@@ -847,10 +727,6 @@ function loadImage(
 
 }
 
-
-/* =====================================================
-   CROP CHARACTER
-===================================================== */
 
 function cropCharacter(
   image,
@@ -868,7 +744,6 @@ function cropCharacter(
 
   canvas.width =
     sw;
-
 
   canvas.height =
     sh;
@@ -902,17 +777,42 @@ function cropCharacter(
 
 
   /*
-    중요:
-    현재는 배경색 제거를 하지 않는다.
-
-    이전에는 배경 제거 과정에서
-    캐릭터까지 사라질 수 있었음.
+    새 PNG가 이미 투명 배경이므로
+    별도 배경 제거 필요 없음.
   */
-
 
   return canvas.toDataURL(
     "image/png"
   );
+
+}
+
+
+/* =====================================================
+   PORTRAIT
+===================================================== */
+
+function getPlayerPortrait() {
+
+  const gender =
+    window.WISDOM_PROFILE?.gender
+    || "male";
+
+
+  return gender ===
+    "female"
+
+    ? `${base}assets/portraits/female_portrait.png`
+
+    : `${base}assets/portraits/male_portrait.png`;
+
+}
+
+
+function getPlayerName() {
+
+  return window.WISDOM_PROFILE?.name
+    || "모험가";
 
 }
 
@@ -924,10 +824,6 @@ function cropCharacter(
 window.GameUI = {
 
 
-  /*
-    일반 대화
-  */
-
   async say(
     messages
   ) {
@@ -936,9 +832,7 @@ window.GameUI = {
       Array.isArray(
         messages
       )
-
         ? messages
-
         : [messages];
 
 
@@ -955,10 +849,6 @@ window.GameUI = {
 
   },
 
-
-  /*
-    영어 단서
-  */
 
   async english(
     description,
@@ -998,14 +888,12 @@ window.GameUI = {
           )
           ?.addEventListener(
             "click",
+
             () => {
 
               closeModal();
 
-
-              resolve(
-                true
-              );
+              resolve(true);
 
             }
           );
@@ -1015,10 +903,6 @@ window.GameUI = {
 
   },
 
-
-  /*
-    문장 순서 맞추기
-  */
 
   async wordOrder(
     sentence
@@ -1111,10 +995,7 @@ window.GameUI = {
 
 
         mixed.forEach(
-          (
-            word,
-            index
-          ) => {
+          word => {
 
             const button =
               document.createElement(
@@ -1125,10 +1006,8 @@ window.GameUI = {
             button.type =
               "button";
 
-
             button.className =
               "token";
-
 
             button.textContent =
               word;
@@ -1136,6 +1015,7 @@ window.GameUI = {
 
             button.addEventListener(
               "click",
+
               () => {
 
                 if (
@@ -1154,7 +1034,6 @@ window.GameUI = {
                 selected.push({
 
                   word,
-                  index,
                   button
 
                 });
@@ -1180,6 +1059,7 @@ window.GameUI = {
           )
           ?.addEventListener(
             "click",
+
             () => {
 
               selected.forEach(
@@ -1208,6 +1088,7 @@ window.GameUI = {
           )
           ?.addEventListener(
             "click",
+
             () => {
 
               const answer =
@@ -1231,10 +1112,7 @@ window.GameUI = {
 
                 closeModal();
 
-
-                resolve(
-                  true
-                );
+                resolve(true);
 
               }
 
@@ -1254,10 +1132,6 @@ window.GameUI = {
   },
 
 
-  /*
-    결과창
-  */
-
   async finish(
     result
   ) {
@@ -1271,11 +1145,11 @@ window.GameUI = {
         modalBody.innerHTML = `
 
           <h2 class="clear-title">
-            MAP 01 CLEAR!
+            MAP CLEAR!
           </h2>
 
           <p class="dialogue-text">
-            ${escapeHtml(result.name)}의 첫 번째 모험 완료!
+            ${escapeHtml(result.name)}의 모험 완료!
           </p>
 
           <div class="result-box">
@@ -1327,6 +1201,7 @@ window.GameUI = {
           )
           ?.addEventListener(
             "click",
+
             () => {
 
               closeModal();
@@ -1339,7 +1214,6 @@ window.GameUI = {
                 phaserGame.destroy(
                   true
                 );
-
 
                 phaserGame =
                   null;
@@ -1357,9 +1231,7 @@ window.GameUI = {
               );
 
 
-              resolve(
-                true
-              );
+              resolve(true);
 
             }
           );
@@ -1373,11 +1245,11 @@ window.GameUI = {
 
 
 /* =====================================================
-   DIALOG
+   RPG DIALOG
 ===================================================== */
 
 function showDialogue(
-  text
+  rawText
 ) {
 
   return new Promise(
@@ -1386,19 +1258,102 @@ function showDialogue(
       openModal();
 
 
+      let text =
+        String(
+          rawText ?? ""
+        );
+
+
+      let speaker =
+        getPlayerName();
+
+
+      let portrait =
+        getPlayerPortrait();
+
+
+      /*
+        루미 대사는 아직 루미 초상화가 없으므로
+        초상화 없이 표시
+      */
+
+      if (
+        text.startsWith(
+          "루미:"
+        )
+      ) {
+
+        speaker =
+          "루미";
+
+
+        text =
+          text.replace(
+            /^루미:\s*/,
+            ""
+          );
+
+
+        portrait =
+          null;
+
+      }
+
+
+      const portraitHTML =
+        portrait
+
+        ? `
+
+          <div class="dialogue-portrait-box">
+
+            <img
+              class="dialogue-portrait"
+              src="${portrait}"
+              alt=""
+            />
+
+          </div>
+
+        `
+
+        : `
+
+          <div
+            class="dialogue-portrait-box"
+          ></div>
+
+        `;
+
+
       modalBody.innerHTML = `
 
-        <p class="dialogue-text">
-          ${escapeHtml(text)}
-        </p>
+        <div class="dialogue-layout">
 
-        <button
-          id="dialog-next"
-          class="big-gold"
-          type="button"
-        >
-          다음
-        </button>
+          ${portraitHTML}
+
+
+          <div class="dialogue-content">
+
+            <div class="dialogue-speaker">
+              ${escapeHtml(speaker)}
+            </div>
+
+            <p class="dialogue-text">
+              ${escapeHtml(text)}
+            </p>
+
+            <button
+              id="dialog-next"
+              class="big-gold"
+              type="button"
+            >
+              다음
+            </button>
+
+          </div>
+
+        </div>
 
       `;
 
@@ -1409,14 +1364,12 @@ function showDialogue(
         )
         ?.addEventListener(
           "click",
+
           () => {
 
             closeModal();
 
-
-            resolve(
-              true
-            );
+            resolve(true);
 
           }
         );
@@ -1426,6 +1379,10 @@ function showDialogue(
 
 }
 
+
+/* =====================================================
+   MODAL
+===================================================== */
 
 function openModal() {
 
