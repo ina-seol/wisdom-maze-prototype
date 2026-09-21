@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import { resolve } from "path";
+import { fileURLToPath, URL } from "node:url";
 
 export default defineConfig({
   base: "/wisdom-maze-prototype/",
@@ -7,8 +7,13 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        main: resolve(__dirname, "index.html"),
-        admin: resolve(__dirname, "admin.html")
+        main: fileURLToPath(
+          new URL("./index.html", import.meta.url)
+        ),
+
+        admin: fileURLToPath(
+          new URL("./admin.html", import.meta.url)
+        )
       }
     }
   }
