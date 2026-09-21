@@ -28,94 +28,80 @@ const base =
 ===================================================== */
 
 const titleScreen =
-  document.querySelector(
-    "#title-screen"
-  );
+  document.querySelector("#title-screen");
 
 const titleBg =
-  document.querySelector(
-    ".title-bg"
-  );
+  document.querySelector(".title-bg");
 
 const gameScreen =
-  document.querySelector(
-    "#game-screen"
-  );
+  document.querySelector("#game-screen");
 
 const setupModal =
-  document.querySelector(
-    "#setup-modal"
-  );
+  document.querySelector("#setup-modal");
 
 const modal =
-  document.querySelector(
-    "#modal"
-  );
+  document.querySelector("#modal");
 
 const modalBody =
-  document.querySelector(
-    "#modal-body"
-  );
+  document.querySelector("#modal-body");
 
 const startBtn =
-  document.querySelector(
-    "#start-btn"
-  );
+  document.querySelector("#start-btn");
 
 const continueBtn =
-  document.querySelector(
-    "#continue-btn"
-  );
+  document.querySelector("#continue-btn");
 
 const adminBtn =
-  document.querySelector(
-    "#admin-btn"
-  );
+  document.querySelector("#admin-btn");
 
 const musicBtn =
-  document.querySelector(
-    "#music-btn"
-  );
+  document.querySelector("#music-btn");
 
 const beginBtn =
-  document.querySelector(
-    "#begin-btn"
-  );
+  document.querySelector("#begin-btn");
 
 const cancelBtn =
-  document.querySelector(
-    "#setup-cancel"
-  );
+  document.querySelector("#setup-cancel");
 
 const studentNameInput =
-  document.querySelector(
-    "#student-name"
-  );
+  document.querySelector("#student-name");
 
 const hudName =
-  document.querySelector(
-    "#hud-name"
-  );
+  document.querySelector("#hud-name");
 
 const bgm =
-  document.querySelector(
-    "#bgm"
-  );
+  document.querySelector("#bgm");
 
 const malePreview =
-  document.querySelector(
-    "#male-preview"
-  );
+  document.querySelector("#male-preview");
 
 const femalePreview =
-  document.querySelector(
-    "#female-preview"
-  );
+  document.querySelector("#female-preview");
 
 
 /* =====================================================
-   ASSET PATHS
+   ASSETS
 ===================================================== */
+
+const ASSETS = {
+
+  malePortrait:
+    `${base}assets/portraits/male_portrait.png`,
+
+  femalePortrait:
+    `${base}assets/portraits/female_portrait.png`,
+
+  lumiPortrait:
+    `${base}assets/portraits/lumi_portrait.png`,
+
+  maleSprite:
+    `${base}assets/male.png`,
+
+  femaleSprite:
+    `${base}assets/female.png`
+
+};
+
 
 if (titleBg) {
 
@@ -128,7 +114,18 @@ if (titleBg) {
 if (malePreview) {
 
   malePreview.src =
-    `${base}assets/portraits/male_portrait.png`;
+    ASSETS.malePortrait;
+
+
+  malePreview.onerror =
+    () => {
+
+      console.error(
+        "남자 초상화 로딩 실패:",
+        ASSETS.malePortrait
+      );
+
+    };
 
 }
 
@@ -136,7 +133,18 @@ if (malePreview) {
 if (femalePreview) {
 
   femalePreview.src =
-    `${base}assets/portraits/female_portrait.png`;
+    ASSETS.femalePortrait;
+
+
+  femalePreview.onerror =
+    () => {
+
+      console.error(
+        "여자 초상화 로딩 실패:",
+        ASSETS.femalePortrait
+      );
+
+    };
 
 }
 
@@ -156,59 +164,48 @@ if (bgm) {
    MUSIC
 ===================================================== */
 
-if (
-  musicBtn &&
-  bgm
-) {
+musicBtn?.addEventListener(
+  "click",
+  async () => {
 
-  musicBtn.textContent =
-    "음악 켜기";
+    if (!bgm) {
+      return;
+    }
 
 
-  musicBtn.addEventListener(
-    "click",
-    async () => {
+    if (bgm.paused) {
 
-      if (
-        bgm.paused
-      ) {
+      try {
 
-        try {
+        await bgm.play();
 
-          await bgm.play();
-
-          musicBtn.textContent =
-            "음악 끄기";
-
-        }
-
-        catch (error) {
-
-          console.error(
-            "음악 재생 실패:",
-            error
-          );
-
-          musicBtn.textContent =
-            "음악 켜기";
-
-        }
+        musicBtn.textContent =
+          "음악 끄기";
 
       }
 
-      else {
+      catch (error) {
 
-        bgm.pause();
-
-        musicBtn.textContent =
-          "음악 켜기";
+        console.error(
+          "음악 재생 실패:",
+          error
+        );
 
       }
 
     }
-  );
 
-}
+    else {
+
+      bgm.pause();
+
+      musicBtn.textContent =
+        "음악 켜기";
+
+    }
+
+  }
+);
 
 
 /* =====================================================
@@ -259,7 +256,7 @@ characterCards.forEach(
 
 
 /* =====================================================
-   START BUTTON
+   NEW GAME
 ===================================================== */
 
 startBtn?.addEventListener(
@@ -275,17 +272,14 @@ startBtn?.addEventListener(
 
         card.classList.toggle(
           "selected",
-          card.dataset.gender ===
-            "male"
+          card.dataset.gender === "male"
         );
 
       }
     );
 
 
-    if (
-      studentNameInput
-    ) {
+    if (studentNameInput) {
 
       studentNameInput.value =
         "";
@@ -311,10 +305,6 @@ startBtn?.addEventListener(
 );
 
 
-/* =====================================================
-   CANCEL
-===================================================== */
-
 cancelBtn?.addEventListener(
   "click",
   () => {
@@ -327,10 +317,6 @@ cancelBtn?.addEventListener(
 );
 
 
-/* =====================================================
-   BEGIN GAME
-===================================================== */
-
 beginBtn?.addEventListener(
   "click",
   async () => {
@@ -341,9 +327,7 @@ beginBtn?.addEventListener(
         .trim();
 
 
-    if (
-      !name
-    ) {
+    if (!name) {
 
       alert(
         "이름을 입력해 주세요."
@@ -390,17 +374,12 @@ beginBtn?.addEventListener(
 );
 
 
-/* =====================================================
-   ENTER ON NAME INPUT
-===================================================== */
-
 studentNameInput?.addEventListener(
   "keydown",
   event => {
 
     if (
-      event.key ===
-      "Enter"
+      event.key === "Enter"
     ) {
 
       event.preventDefault();
@@ -425,9 +404,7 @@ continueBtn?.addEventListener(
       getProfile();
 
 
-    if (
-      !profile?.name
-    ) {
+    if (!profile?.name) {
 
       alert(
         "저장된 모험 기록이 없습니다."
@@ -463,7 +440,7 @@ adminBtn?.addEventListener(
 
 
 /* =====================================================
-   PHASER GAME
+   PHASER
 ===================================================== */
 
 let phaserGame =
@@ -475,9 +452,7 @@ async function launchGame(
   continueGame
 ) {
 
-  if (
-    phaserGame
-  ) {
+  if (phaserGame) {
 
     phaserGame.destroy(
       true
@@ -499,9 +474,7 @@ async function launchGame(
     null;
 
 
-  if (
-    continueGame
-  ) {
+  if (continueGame) {
 
     state =
       loadMapProgress(
@@ -511,9 +484,7 @@ async function launchGame(
   }
 
 
-  if (
-    !state
-  ) {
+  if (!state) {
 
     state =
       newMapState();
@@ -525,7 +496,12 @@ async function launchGame(
 
     ...profile,
 
-    spriteUrls
+    spriteUrls,
+
+    portraitUrl:
+      profile.gender === "female"
+        ? ASSETS.femalePortrait
+        : ASSETS.malePortrait
 
   };
 
@@ -544,9 +520,7 @@ async function launchGame(
   );
 
 
-  if (
-    hudName
-  ) {
+  if (hudName) {
 
     hudName.textContent =
       profile.name;
@@ -606,10 +580,7 @@ async function launchGame(
 
 
 /* =====================================================
-   CHARACTER SPRITE PREPARATION
-
-   새 PNG 시트:
-   [정면][후면][왼쪽][오른쪽]
+   CHARACTER SPRITE
 ===================================================== */
 
 async function prepareCharacterSprites(
@@ -618,10 +589,8 @@ async function prepareCharacterSprites(
 
   const imageUrl =
     gender === "female"
-
-      ? `${base}assets/female.png`
-
-      : `${base}assets/male.png`;
+      ? ASSETS.femaleSprite
+      : ASSETS.maleSprite;
 
 
   try {
@@ -642,59 +611,43 @@ async function prepareCharacterSprites(
       image.height;
 
 
-    const front =
-      cropCharacter(
-        image,
-        0,
-        0,
-        frameWidth,
-        frameHeight
-      );
-
-
-    const back =
-      cropCharacter(
-        image,
-        frameWidth,
-        0,
-        frameWidth,
-        frameHeight
-      );
-
-
-    const left =
-      cropCharacter(
-        image,
-        frameWidth * 2,
-        0,
-        frameWidth,
-        frameHeight
-      );
-
-
-    const right =
-      cropCharacter(
-        image,
-        frameWidth * 3,
-        0,
-        frameWidth,
-        frameHeight
-      );
-
-
     return {
 
-      front,
-      back,
-      left,
-      right,
+      front:
+        cropCharacter(
+          image,
+          0,
+          0,
+          frameWidth,
+          frameHeight
+        ),
 
-      /*
-        옛 MapScene 호환
-      */
+      back:
+        cropCharacter(
+          image,
+          frameWidth,
+          0,
+          frameWidth,
+          frameHeight
+        ),
 
-      side:
-        right
+      left:
+        cropCharacter(
+          image,
+          frameWidth * 2,
+          0,
+          frameWidth,
+          frameHeight
+        ),
+
+      right:
+        cropCharacter(
+          image,
+          frameWidth * 3,
+          0,
+          frameWidth,
+          frameHeight
+        )
 
     };
 
@@ -703,38 +656,17 @@ async function prepareCharacterSprites(
   catch (error) {
 
     console.error(
-      "캐릭터 이미지 준비 실패:",
+      "캐릭터 스프라이트 로딩 실패:",
       error
     );
 
 
-    return {
-
-      front:
-        imageUrl,
-
-      back:
-        imageUrl,
-
-      left:
-        imageUrl,
-
-      right:
-        imageUrl,
-
-      side:
-        imageUrl
-
-    };
+    return {};
 
   }
 
 }
 
-
-/* =====================================================
-   IMAGE LOADER
-===================================================== */
 
 function loadImage(
   src
@@ -751,25 +683,15 @@ function loadImage(
 
 
       image.onload =
-        () => {
-
-          resolve(
-            image
-          );
-
-        };
+        () => resolve(image);
 
 
       image.onerror =
-        () => {
-
-          reject(
-            new Error(
-              `이미지 로딩 실패: ${src}`
-            )
-          );
-
-        };
+        () => reject(
+          new Error(
+            `이미지 로딩 실패: ${src}`
+          )
+        );
 
 
       image.src =
@@ -780,13 +702,6 @@ function loadImage(
 
 }
 
-
-/* =====================================================
-   CROP SPRITE
-
-   새 캐릭터 PNG는 이미 투명 배경이므로
-   별도 배경제거를 하지 않는다.
-===================================================== */
 
 function cropCharacter(
   image,
@@ -820,7 +735,6 @@ function cropCharacter(
 
 
   context.drawImage(
-
     image,
 
     sx,
@@ -832,7 +746,6 @@ function cropCharacter(
     0,
     sw,
     sh
-
   );
 
 
@@ -849,30 +762,38 @@ function cropCharacter(
 
 function getPlayerPortrait() {
 
+  /*
+    launchGame에서 저장한 URL을
+    가장 먼저 사용
+  */
+
+  if (
+    window.WISDOM_PROFILE
+      ?.portraitUrl
+  ) {
+
+    return window.WISDOM_PROFILE
+      .portraitUrl;
+
+  }
+
+
   const gender =
     window.WISDOM_PROFILE
       ?.gender
       || "male";
 
 
-  if (
-    gender ===
-    "female"
-  ) {
-
-    return `${base}assets/portraits/female_portrait.png`;
-
-  }
-
-
-  return `${base}assets/portraits/male_portrait.png`;
+  return gender === "female"
+    ? ASSETS.femalePortrait
+    : ASSETS.malePortrait;
 
 }
 
 
 function getLumiPortrait() {
 
-  return `${base}assets/portraits/lumi_portrait.png`;
+  return ASSETS.lumiPortrait;
 
 }
 
@@ -893,27 +814,18 @@ function getPlayerName() {
 window.GameUI = {
 
 
-  /* -----------------------------------------------------
-     NORMAL DIALOG
-  ------------------------------------------------------ */
-
   async say(
     messages
   ) {
 
     const list =
-      Array.isArray(
-        messages
-      )
-
+      Array.isArray(messages)
         ? messages
-
         : [messages];
 
 
     for (
-      const message of
-      list
+      const message of list
     ) {
 
       await showDialogue(
@@ -924,10 +836,6 @@ window.GameUI = {
 
   },
 
-
-  /* -----------------------------------------------------
-     ENGLISH CLUE
-  ------------------------------------------------------ */
 
   async english(
     description,
@@ -983,14 +891,11 @@ window.GameUI = {
 
               closeModal();
 
-              resolve(
-                true
-              );
+              resolve(true);
 
             },
             {
-              once:
-                true
+              once: true
             }
           );
 
@@ -999,10 +904,6 @@ window.GameUI = {
 
   },
 
-
-  /* -----------------------------------------------------
-     MULTIPLE CHOICE
-  ------------------------------------------------------ */
 
   async choice(
     question,
@@ -1034,11 +935,6 @@ window.GameUI = {
             id="quiz-options"
             class="quiz-options"
           ></div>
-
-          <p
-            id="quiz-feedback"
-            class="quiz-feedback"
-          ></p>
 
           <button
             id="quiz-submit"
@@ -1079,10 +975,8 @@ window.GameUI = {
             button.type =
               "button";
 
-
             button.className =
               "quiz-option";
-
 
             button.textContent =
               option;
@@ -1103,17 +997,21 @@ window.GameUI = {
                   .forEach(
                     element => {
 
-                      element.classList.remove(
-                        "selected"
-                      );
+                      element
+                        .classList
+                        .remove(
+                          "selected"
+                        );
 
                     }
                   );
 
 
-                button.classList.add(
-                  "selected"
-                );
+                button
+                  .classList
+                  .add(
+                    "selected"
+                  );
 
 
                 submit.disabled =
@@ -1123,9 +1021,10 @@ window.GameUI = {
             );
 
 
-            optionArea.appendChild(
-              button
-            );
+            optionArea
+              .appendChild(
+                button
+              );
 
           }
         );
@@ -1136,8 +1035,7 @@ window.GameUI = {
           () => {
 
             if (
-              selectedIndex <
-              0
+              selectedIndex < 0
             ) {
 
               return;
@@ -1152,15 +1050,13 @@ window.GameUI = {
 
             closeModal();
 
-
             resolve(
               correct
             );
 
           },
           {
-            once:
-              true
+            once: true
           }
         );
 
@@ -1169,10 +1065,6 @@ window.GameUI = {
 
   },
 
-
-  /* -----------------------------------------------------
-     WORD ORDER
-  ------------------------------------------------------ */
 
   async wordOrder(
     sentence
@@ -1257,18 +1149,6 @@ window.GameUI = {
           );
 
 
-        const resetButton =
-          document.querySelector(
-            "#sentence-reset"
-          );
-
-
-        const submitButton =
-          document.querySelector(
-            "#sentence-submit"
-          );
-
-
         function updateAnswer() {
 
           answerArea.textContent =
@@ -1277,20 +1157,14 @@ window.GameUI = {
                 item =>
                   item.word
               )
-              .join(
-                " "
-              )
-              ||
-              " ";
+              .join(" ")
+              || " ";
 
         }
 
 
         mixed.forEach(
-          (
-            word,
-            index
-          ) => {
+          word => {
 
             const button =
               document.createElement(
@@ -1301,10 +1175,8 @@ window.GameUI = {
             button.type =
               "button";
 
-
             button.className =
               "token";
-
 
             button.textContent =
               word;
@@ -1330,7 +1202,7 @@ window.GameUI = {
                 selected.push({
 
                   word,
-                  index,
+
                   button
 
                 });
@@ -1342,15 +1214,19 @@ window.GameUI = {
             );
 
 
-            tokenArea.appendChild(
-              button
-            );
+            tokenArea
+              .appendChild(
+                button
+              );
 
           }
         );
 
 
-        resetButton
+        document
+          .querySelector(
+            "#sentence-reset"
+          )
           ?.addEventListener(
             "click",
             () => {
@@ -1375,7 +1251,10 @@ window.GameUI = {
           );
 
 
-        submitButton
+        document
+          .querySelector(
+            "#sentence-submit"
+          )
           ?.addEventListener(
             "click",
             () => {
@@ -1386,9 +1265,7 @@ window.GameUI = {
                     item =>
                       item.word
                   )
-                  .join(
-                    " "
-                  );
+                  .join(" ");
 
 
               if (
@@ -1403,9 +1280,7 @@ window.GameUI = {
 
                 closeModal();
 
-                resolve(
-                  true
-                );
+                resolve(true);
 
               }
 
@@ -1424,10 +1299,6 @@ window.GameUI = {
 
   },
 
-
-  /* -----------------------------------------------------
-     RESULT
-  ------------------------------------------------------ */
 
   async finish(
     result
@@ -1452,40 +1323,28 @@ window.GameUI = {
           <div class="result-box">
 
             <div>
-              <span>
-                플레이 시간
-              </span>
-
+              <span>플레이 시간</span>
               <strong>
                 ${formatTime(result.seconds)}
               </strong>
             </div>
 
             <div>
-              <span>
-                첫 시도 정답
-              </span>
-
+              <span>첫 시도 정답</span>
               <strong>
                 ${result.firstTry}
               </strong>
             </div>
 
             <div>
-              <span>
-                오답 횟수
-              </span>
-
+              <span>오답 횟수</span>
               <strong>
                 ${result.wrong}
               </strong>
             </div>
 
             <div>
-              <span>
-                말의 조각
-              </span>
-
+              <span>말의 조각</span>
               <strong>
                 ◆ ◆ ◆
               </strong>
@@ -1515,14 +1374,11 @@ window.GameUI = {
               closeModal();
 
 
-              if (
-                phaserGame
-              ) {
+              if (phaserGame) {
 
                 phaserGame.destroy(
                   true
                 );
-
 
                 phaserGame =
                   null;
@@ -1540,14 +1396,11 @@ window.GameUI = {
               );
 
 
-              resolve(
-                true
-              );
+              resolve(true);
 
             },
             {
-              once:
-                true
+              once: true
             }
           );
 
@@ -1560,7 +1413,7 @@ window.GameUI = {
 
 
 /* =====================================================
-   RPG DIALOGUE
+   DIALOGUE
 ===================================================== */
 
 function showDialogue(
@@ -1588,7 +1441,7 @@ function showDialogue(
 
 
       /*
-        LUMI
+        루미
       */
 
       if (
@@ -1615,17 +1468,20 @@ function showDialogue(
 
 
       /*
-        PLAYER
+        플레이어
+
+        나:
+        플레이어:
+        학생:
+        전부 지원
       */
 
       else if (
-        text.startsWith(
-          "나:"
-        )
+        text.startsWith("나:")
         ||
-        text.startsWith(
-          "플레이어:"
-        )
+        text.startsWith("플레이어:")
+        ||
+        text.startsWith("학생:")
       ) {
 
         speaker =
@@ -1645,34 +1501,42 @@ function showDialogue(
             .replace(
               /^플레이어:\s*/,
               ""
+            )
+            .replace(
+              /^학생:\s*/,
+              ""
             );
 
       }
 
 
       /*
-        SYSTEM MESSAGE
+        시스템 메시지
       */
 
       const portraitHTML =
         portrait
 
           ? `
-
             <div class="dialogue-portrait-box">
 
               <img
                 class="dialogue-portrait"
                 src="${portrait}"
                 alt="${escapeHtml(speaker)}"
+                onerror="
+                  console.error(
+                    'Portrait load failed:',
+                    this.src
+                  );
+                  this.style.display='none';
+                "
               />
 
             </div>
-
           `
 
           : `
-
             <div class="dialogue-system-box">
 
               <div class="dialogue-system-icon">
@@ -1680,7 +1544,6 @@ function showDialogue(
               </div>
 
             </div>
-
           `;
 
 
@@ -1733,15 +1596,11 @@ function showDialogue(
 
             closeModal();
 
-
-            resolve(
-              true
-            );
+            resolve(true);
 
           },
           {
-            once:
-              true
+            once: true
           }
         );
 
@@ -1752,10 +1611,7 @@ function showDialogue(
 
 
 /* =====================================================
-   ENTER / SPACE SUPPORT
-
-   대화창이나 문제창이 열려 있을 때:
-   Enter 또는 Space = 확인
+   ENTER / SPACE
 ===================================================== */
 
 document.addEventListener(
@@ -1772,11 +1628,9 @@ document.addEventListener(
 
 
     if (
-      event.key !==
-        "Enter"
+      event.key !== "Enter"
       &&
-      event.code !==
-        "Space"
+      event.code !== "Space"
     ) {
 
       return;
@@ -1794,12 +1648,6 @@ document.addEventListener(
 
     }
 
-
-    /*
-      사용자가 버튼 자체에 포커스하고
-      Space를 누른 경우 브라우저 기본 클릭과
-      중복되지 않도록 막는다.
-    */
 
     event.preventDefault();
 
@@ -1820,8 +1668,7 @@ document.addEventListener(
 
 
     for (
-      const selector of
-      selectors
+      const selector of selectors
     ) {
 
       const button =
@@ -1870,7 +1717,7 @@ function closeModal() {
 
 
 /* =====================================================
-   HELPERS
+   UTILS
 ===================================================== */
 
 function escapeHtml(
@@ -1880,27 +1727,22 @@ function escapeHtml(
   return String(
     value ?? ""
   )
-
     .replaceAll(
       "&",
       "&amp;"
     )
-
     .replaceAll(
       "<",
       "&lt;"
     )
-
     .replaceAll(
       ">",
       "&gt;"
     )
-
     .replaceAll(
       '"',
       "&quot;"
     )
-
     .replaceAll(
       "'",
       "&#039;"
@@ -1916,14 +1758,11 @@ function normalizeSentence(
   return String(
     value ?? ""
   )
-
     .trim()
-
     .replace(
       /\s+/g,
       " "
     )
-
     .toLowerCase();
 
 }
@@ -1934,11 +1773,7 @@ function formatTime(
 ) {
 
   const safeSeconds =
-    Number.isFinite(
-      Number(seconds)
-    )
-      ? Number(seconds)
-      : 0;
+    Number(seconds) || 0;
 
 
   const minutes =
