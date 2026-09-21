@@ -2,11 +2,9 @@ import Phaser from "phaser";
 
 import {
   getUnit1Content,
-  chooseObjectWord,
-  findExpression,
-  randomBoxColor,
   saveMapProgress,
-  saveRecord
+  saveRecord,
+  shuffle
 } from "../data.js";
 
 
@@ -29,19 +27,11 @@ export default class Map01Scene extends Phaser.Scene {
       import.meta.env.BASE_URL;
 
 
-    /*
-      MAP01
-    */
-
     this.load.image(
       "map01",
       `${base}assets/maps/map01.png`
     );
 
-
-    /*
-      main.js에서 잘라 넘겨준 캐릭터 방향 이미지
-    */
 
     const sprites =
       window.WISDOM_PROFILE?.spriteUrls;
@@ -86,20 +76,6 @@ export default class Map01Scene extends Phaser.Scene {
 
     }
 
-
-    /*
-      이전 버전 호환
-    */
-
-    if (sprites?.side) {
-
-      this.load.image(
-        "mage_side",
-        sprites.side
-      );
-
-    }
-
   }
 
 
@@ -121,118 +97,22 @@ export default class Map01Scene extends Phaser.Scene {
       getUnit1Content();
 
 
-    /*
-      오래된 저장 데이터와 호환
-    */
-
-    this.state.mistakes ||=
-      {};
-
-    this.state.shards ||=
-      0;
-
-    this.state.questionsShown ||=
-      0;
-
-    this.state.firstTryCorrect ||=
-      0;
-
-    this.state.wrongAttempts ||=
-      0;
-
-    this.state.hintsUsed ||=
-      0;
-
-    this.state.pushSteps ||=
-      0;
-
-    this.state.finalStep ||=
-      0;
-
-    this.state.sessionStartedAt ||=
-      Date.now();
-
-
-    /*
-      예전 저장 데이터가 intro에 멈춰있는 경우
-    */
-
-    if (
-      this.state.introDone &&
-      this.state.phase === "intro"
-    ) {
-
-      this.state.phase =
-        "p1";
-
-    }
+    this.prepareState();
 
 
     this.inputLocked =
       true;
 
 
-    this.interactables =
-      [];
-
-
     this.obstacles =
       [];
 
 
-    /* =====================================================
-       문제 데이터 준비
-    ====================================================== */
-
-    if (
-      !this.state.p1Target
-    ) {
-
-      this.state.p1Target =
-        chooseObjectWord(
-          this.content.words
-        );
-
-    }
+    this.interactables =
+      [];
 
 
-    if (
-      !this.state.boxTargetColor
-    ) {
-
-      this.state.boxTargetColor =
-        randomBoxColor();
-
-    }
-
-
-    /*
-      책상 아래 관련 문장
-    */
-
-    this.p2Sentence =
-      findExpression(
-        this.content.expressions,
-        /under.*desk|desk.*under/i,
-        "Look under the desk."
-      );
-
-
-    /*
-      상자 관련 문장
-    */
-
-    this.p3Sentence =
-      findExpression(
-        this.content.expressions,
-        /open.*box/i,
-        "Open the box."
-      );
-
-
-    /* =====================================================
-       MAP
-    ====================================================== */
+    /* MAP */
 
     this.add.image(
       384,
@@ -256,39 +136,21 @@ export default class Map01Scene extends Phaser.Scene {
     );
 
 
-    /*
-      충돌 / 조사
-    */
-
     this.createCollisionAreas();
 
     this.createInteractables();
 
-
-    /*
-      플레이어
-    */
+    this.createGuides();
 
     this.createPlayer();
 
-
-    /*
-      입력
-    */
-
     this.createInput();
-
 
     this.updateHUD();
 
 
-    /*
-      오프닝
-    */
-
     this.time.delayedCall(
-      300,
-
+      250,
       async () => {
 
         if (
@@ -310,44 +172,203 @@ export default class Map01Scene extends Phaser.Scene {
 
 
   /* =====================================================
+     STATE
+  ====================================================== */
+
+  prepareState() {
+
+    const validPhases = [
+
+      "blackboard",
+
+      "desk_quiz",
+
+      "desk_push",
+
+      "locker",
+
+      "chest",
+
+      "final",
+
+      "exit"
+
+    ];
+
+
+    this.state.introDone ??=
+      false;
+
+
+    if (
+      !validPhases.includes(
+        this.state.phase
+      )
+    ) {
+
+      this.state.phase =
+        "blackboard";
+
+    }
+
+
+    this.state.shards ??=
+      0;
+
+
+    this.state.deskPushes ??=
+      0;
+
+
+    this.state.questionsShown ??=
+      0;
+
+
+    this.state.firstTryCorrect ??=
+      0;
+
+
+    this.state.wrongAttempts ??=
+      0;
+
+
+    this.state.hintsUsed ??=
+      0;
+
+
+    this.state.mistakes ??=
+      {};
+
+
+    this.state.completed ??=
+      false;
+
+
+    this.state.sessionStartedAt ??=
+      Date.now();
+
+
+    if (
+      !this.state.blackboardWord
+    ) {
+
+      this.state.blackboardWord =
+        this.pickRandomWord();
+
+    }
+
+
+    if (
+      !this.state.deskExpression
+    ) {
+
+      this.state.deskExpression =
+        this.pickRandomExpression();
+
+    }
+
+
+    if (
+      !this.state.lockerExpression
+    ) {
+
+      this.state.lockerExpression =
+        this.pickRandomExpression(
+          this.state.deskExpression
+        );
+
+    }
+
+
+    if (
+      !this.state.finalWord
+    ) {
+
+      this.state.finalWord =
+        this.pickRandomWord(
+          this.state.blackboardWord
+        );
+
+    }
+
+
+    if (
+      !this.state.targetChest
+    ) {
+
+      this.state.targetChest =
+        Phaser.Utils.Array.GetRandom([
+          "red",
+          "blue",
+          "black"
+        ]);
+
+    }
+
+  }
+
+
+  /* =====================================================
      COLLISION
   ====================================================== */
 
   createCollisionAreas() {
 
+    /* 외벽 */
+
+    this.addObstacle(
+      384,
+      8,
+      768,
+      16
+    );
+
+
+    this.addObstacle(
+      8,
+      288,
+      16,
+      576
+    );
+
+
+    this.addObstacle(
+      760,
+      288,
+      16,
+      576
+    );
+
+
+    this.addObstacle(
+      384,
+      568,
+      768,
+      16
+    );
+
+
     /*
-      외벽
+      상단 칠판 벽
     */
 
     this.addObstacle(
-      384,
-      15,
-      768,
-      30
+      385,
+      61,
+      405,
+      70
     );
 
 
-    this.addObstacle(
-      15,
-      288,
-      30,
-      576
-    );
-
+    /*
+      왼쪽 위 장식장
+    */
 
     this.addObstacle(
-      753,
-      288,
-      30,
-      576
-    );
-
-
-    this.addObstacle(
-      384,
-      563,
-      768,
-      26
+      140,
+      108,
+      105,
+      68
     );
 
 
@@ -356,43 +377,86 @@ export default class Map01Scene extends Phaser.Scene {
     */
 
     this.addObstacle(
-      390,
-      150,
-      150,
-      55
+      378,
+      151,
+      275,
+      73
     );
 
 
     /*
-      학생 책상
+      책상 1열
     */
 
-    const desks = [
-
-      [210, 250],
-      [335, 250],
-      [460, 250],
-      [585, 250],
-
-      [210, 345],
-      [335, 345],
-      [460, 345],
-      [585, 345]
-
-    ];
+    this.addObstacle(
+      235,
+      241,
+      58,
+      45
+    );
 
 
-    desks.forEach(
-      ([x, y]) => {
+    this.addObstacle(
+      342,
+      241,
+      58,
+      45
+    );
 
-        this.addObstacle(
-          x,
-          y,
-          70,
-          45
-        );
 
-      }
+    this.addObstacle(
+      448,
+      241,
+      58,
+      45
+    );
+
+
+    this.addObstacle(
+      556,
+      241,
+      58,
+      45
+    );
+
+
+    /*
+      책상 2열
+    */
+
+    this.addObstacle(
+      235,
+      328,
+      58,
+      45
+    );
+
+
+    this.addObstacle(
+      342,
+      328,
+      58,
+      45
+    );
+
+
+    /*
+      빛나는 책상
+    */
+
+    this.addObstacle(
+      450,
+      328,
+      58,
+      45
+    );
+
+
+    this.addObstacle(
+      556,
+      328,
+      58,
+      45
     );
 
 
@@ -401,10 +465,10 @@ export default class Map01Scene extends Phaser.Scene {
     */
 
     this.addObstacle(
-      110,
-      465,
-      110,
-      90
+      100,
+      464,
+      120,
+      84
     );
 
 
@@ -413,34 +477,34 @@ export default class Map01Scene extends Phaser.Scene {
     */
 
     this.addObstacle(
-      315,
-      475,
-      130,
-      95
+      292,
+      468,
+      105,
+      82
     );
 
 
     /*
-      상자
+      보물상자
     */
 
     this.addObstacle(
-      580,
-      480,
-      190,
-      70
+      548,
+      466,
+      185,
+      74
     );
 
 
     /*
-      오른쪽 가구
+      오른쪽 장식
     */
 
     this.addObstacle(
-      710,
-      330,
-      50,
-      180
+      727,
+      307,
+      42,
+      185
     );
 
   }
@@ -472,9 +536,6 @@ export default class Map01Scene extends Phaser.Scene {
       zone
     );
 
-
-    return zone;
-
   }
 
 
@@ -497,61 +558,146 @@ export default class Map01Scene extends Phaser.Scene {
         "칠판",
 
       x:
-        390,
+        365,
 
       y:
-        105,
+        112,
 
-      tag:
-        "blackboard"
+      radius:
+        110
 
     });
 
 
     /*
-      시계
+      빛나는 책상
+
+      하단 책상줄
+      왼쪽에서 세 번째
     */
 
     this.addInteractable({
 
       id:
-        "clock",
+        "glowing_desk",
 
       label:
-        "시계",
+        "빛나는 책상",
 
       x:
-        590,
+        450,
 
       y:
-        75,
+        328,
 
-      tag:
-        "clock"
+      radius:
+        92
 
     });
 
 
     /*
-      창문
+      사물함
     */
 
     this.addInteractable({
 
       id:
-        "window",
+        "locker",
 
       label:
-        "창문",
+        "마법 사물함",
 
       x:
-        70,
+        292,
 
       y:
-        220,
+        455,
 
-      tag:
-        "window"
+      radius:
+        100
+
+    });
+
+
+    /*
+      상자
+    */
+
+    this.addInteractable({
+
+      id:
+        "red_chest",
+
+      type:
+        "chest",
+
+      color:
+        "red",
+
+      label:
+        "붉은 상자",
+
+      x:
+        485,
+
+      y:
+        463,
+
+      radius:
+        82
+
+    });
+
+
+    this.addInteractable({
+
+      id:
+        "blue_chest",
+
+      type:
+        "chest",
+
+      color:
+        "blue",
+
+      label:
+        "푸른 상자",
+
+      x:
+        548,
+
+      y:
+        463,
+
+      radius:
+        82
+
+    });
+
+
+    this.addInteractable({
+
+      id:
+        "black_chest",
+
+      type:
+        "chest",
+
+      color:
+        "black",
+
+      label:
+        "검은 상자",
+
+      x:
+        612,
+
+      y:
+        463,
+
+      radius:
+        82
 
     });
 
@@ -569,379 +715,13 @@ export default class Map01Scene extends Phaser.Scene {
         "봉인된 문",
 
       x:
-        680,
+        635,
 
       y:
-        95,
+        108,
 
-      tag:
-        "door"
-
-    });
-
-
-    /*
-      책상
-    */
-
-    const desks = [
-
-      {
-        id:
-          "desk_01",
-
-        x:
-          210,
-
-        y:
-          250
-      },
-
-      {
-        id:
-          "desk_02",
-
-        x:
-          335,
-
-        y:
-          250
-      },
-
-      {
-        id:
-          "desk_03",
-
-        x:
-          460,
-
-        y:
-          250
-      },
-
-      {
-        id:
-          "desk_04",
-
-        x:
-          585,
-
-        y:
-          250
-      },
-
-      {
-        id:
-          "desk_05",
-
-        x:
-          210,
-
-        y:
-          345
-      },
-
-      {
-        id:
-          "desk_06",
-
-        x:
-          335,
-
-        y:
-          345,
-
-        targetDesk:
-          true
-      },
-
-      {
-        id:
-          "desk_07",
-
-        x:
-          460,
-
-        y:
-          345
-      },
-
-      {
-        id:
-          "desk_08",
-
-        x:
-          585,
-
-        y:
-          345
-      }
-
-    ];
-
-
-    desks.forEach(
-      desk => {
-
-        this.addInteractable({
-
-          id:
-            desk.id,
-
-          label:
-            desk.targetDesk
-              ? "빛나는 책상"
-              : "책상",
-
-          x:
-            desk.x,
-
-          y:
-            desk.y,
-
-          tag:
-            "desk",
-
-          targetDesk:
-            Boolean(
-              desk.targetDesk
-            )
-
-        });
-
-      }
-    );
-
-
-    /*
-      책
-    */
-
-    this.addInteractable({
-
-      id:
-        "book",
-
-      label:
-        "책",
-
-      x:
-        220,
-
-      y:
-        235,
-
-      tag:
-        "book"
-
-    });
-
-
-    /*
-      가방
-    */
-
-    this.addInteractable({
-
-      id:
-        "bag",
-
-      label:
-        "가방",
-
-      x:
-        480,
-
-      y:
-        285,
-
-      tag:
-        "bag"
-
-    });
-
-
-    /*
-      의자
-    */
-
-    this.addInteractable({
-
-      id:
-        "chair",
-
-      label:
-        "의자",
-
-      x:
-        585,
-
-      y:
-        365,
-
-      tag:
-        "chair"
-
-    });
-
-
-    /*
-      사물함
-    */
-
-    this.addInteractable({
-
-      id:
-        "locker_a",
-
-      label:
-        "왼쪽 사물함",
-
-      x:
-        280,
-
-      y:
-        465,
-
-      tag:
-        "locker"
-
-    });
-
-
-    this.addInteractable({
-
-      id:
-        "locker_b",
-
-      label:
-        "가운데 사물함",
-
-      x:
-        330,
-
-      y:
-        465,
-
-      tag:
-        "locker"
-
-    });
-
-
-    this.addInteractable({
-
-      id:
-        "locker_c",
-
-      label:
-        "오른쪽 사물함",
-
-      x:
-        380,
-
-      y:
-        465,
-
-      tag:
-        "locker"
-
-    });
-
-
-    /*
-      상자
-    */
-
-    this.addInteractable({
-
-      id:
-        "red_box",
-
-      label:
-        "붉은 상자",
-
-      x:
-        510,
-
-      y:
-        470,
-
-      tag:
-        "box",
-
-      color:
-        "red"
-
-    });
-
-
-    this.addInteractable({
-
-      id:
-        "blue_box",
-
-      label:
-        "푸른 상자",
-
-      x:
-        575,
-
-      y:
-        470,
-
-      tag:
-        "box",
-
-      color:
-        "blue"
-
-    });
-
-
-    this.addInteractable({
-
-      id:
-        "old_box",
-
-      label:
-        "낡은 상자",
-
-      x:
-        645,
-
-      y:
-        470,
-
-      tag:
-        "box",
-
-      color:
-        "old"
-
-    });
-
-
-    /*
-      밀 수 있는 책상
-    */
-
-    this.addInteractable({
-
-      id:
-        "push_desk",
-
-      label:
-        "무거운 책상",
-
-      x:
-        460,
-
-      y:
-        345,
-
-      tag:
-        "pushDesk"
+      radius:
+        105
 
     });
 
@@ -960,39 +740,145 @@ export default class Map01Scene extends Phaser.Scene {
 
 
   /* =====================================================
+     GUIDES
+  ====================================================== */
+
+  createGuides() {
+
+    this.deskGuide =
+      this.add.rectangle(
+        450,
+        328,
+        68,
+        56
+      );
+
+
+    this.deskGuide
+      .setStrokeStyle(
+        4,
+        0xffe36a,
+        1
+      )
+      .setFillStyle(
+        0xffd850,
+        0.03
+      )
+      .setDepth(
+        40
+      )
+      .setVisible(
+        false
+      );
+
+
+    this.tweens.add({
+
+      targets:
+        this.deskGuide,
+
+      alpha:
+        {
+          from: 0.25,
+          to: 1
+        },
+
+      duration:
+        650,
+
+      yoyo:
+        true,
+
+      repeat:
+        -1
+
+    });
+
+
+    this.interactionPrompt =
+      this.add.text(
+        384,
+        535,
+        "",
+        {
+
+          fontFamily:
+            "Arial",
+
+          fontSize:
+            "16px",
+
+          fontStyle:
+            "bold",
+
+          color:
+            "#fff2a8",
+
+          backgroundColor:
+            "#10182bcc",
+
+          padding: {
+            x: 10,
+            y: 6
+          }
+
+        }
+      )
+        .setOrigin(
+          0.5
+        )
+        .setDepth(
+          500
+        )
+        .setVisible(
+          false
+        );
+
+
+    this.updateGuides();
+
+  }
+
+
+  updateGuides() {
+
+    this.deskGuide?.setVisible(
+
+      this.state.phase ===
+        "desk_quiz"
+
+      ||
+
+      this.state.phase ===
+        "desk_push"
+
+    );
+
+  }
+
+
+  /* =====================================================
      PLAYER
   ====================================================== */
 
   createPlayer() {
 
-    this.hasDirectionalSprites =
+    if (
       this.textures.exists(
         "mage_front"
       )
-      &&
-      this.textures.exists(
-        "mage_back"
-      );
-
-
-    if (
-      this.hasDirectionalSprites
     ) {
 
       this.player =
         this.physics.add.image(
-          385,
-          400,
+          382,
+          525,
           "mage_front"
         );
 
 
-      /*
-        비율 유지
-      */
-
       const targetHeight =
-        76;
+        64;
 
 
       const ratio =
@@ -1009,16 +895,12 @@ export default class Map01Scene extends Phaser.Scene {
 
     else {
 
-      /*
-        캐릭터 로딩 실패 시
-      */
-
       this.player =
         this.add.rectangle(
-          385,
-          400,
-          28,
-          44,
+          382,
+          525,
+          26,
+          40,
           0x386ed0
         );
 
@@ -1035,19 +917,16 @@ export default class Map01Scene extends Phaser.Scene {
     );
 
 
-    /*
-      발 쪽만 충돌
-    */
-
     this.player.body.setSize(
-      22,
-      24
+      20,
+      20
     );
 
 
-    this.player.body.setCollideWorldBounds(
-      true
-    );
+    this.player.body
+      .setCollideWorldBounds(
+        true
+      );
 
 
     for (
@@ -1095,10 +974,7 @@ export default class Map01Scene extends Phaser.Scene {
           "E",
 
         enter:
-          "ENTER",
-
-        space:
-          "SPACE"
+          "ENTER"
 
       });
 
@@ -1124,10 +1000,17 @@ export default class Map01Scene extends Phaser.Scene {
       this.inputLocked
     ) {
 
-      this.player.body.setVelocity(
-        0,
-        0
-      );
+      this.player.body
+        .setVelocity(
+          0,
+          0
+        );
+
+
+      this.interactionPrompt
+        ?.setVisible(
+          false
+        );
 
 
       return;
@@ -1147,12 +1030,9 @@ export default class Map01Scene extends Phaser.Scene {
       0;
 
 
-    /*
-      좌우
-    */
-
     if (
-      this.cursors.left.isDown ||
+      this.cursors.left.isDown
+      ||
       this.keys.left.isDown
     ) {
 
@@ -1162,7 +1042,8 @@ export default class Map01Scene extends Phaser.Scene {
     }
 
     else if (
-      this.cursors.right.isDown ||
+      this.cursors.right.isDown
+      ||
       this.keys.right.isDown
     ) {
 
@@ -1172,12 +1053,9 @@ export default class Map01Scene extends Phaser.Scene {
     }
 
 
-    /*
-      상하
-    */
-
     if (
-      this.cursors.up.isDown ||
+      this.cursors.up.isDown
+      ||
       this.keys.up.isDown
     ) {
 
@@ -1187,7 +1065,8 @@ export default class Map01Scene extends Phaser.Scene {
     }
 
     else if (
-      this.cursors.down.isDown ||
+      this.cursors.down.isDown
+      ||
       this.keys.down.isDown
     ) {
 
@@ -1197,10 +1076,6 @@ export default class Map01Scene extends Phaser.Scene {
     }
 
 
-    /*
-      대각선 속도 보정
-    */
-
     if (
       vx !== 0 &&
       vy !== 0
@@ -1209,17 +1084,17 @@ export default class Map01Scene extends Phaser.Scene {
       vx *=
         0.707;
 
-
       vy *=
         0.707;
 
     }
 
 
-    this.player.body.setVelocity(
-      vx,
-      vy
-    );
+    this.player.body
+      .setVelocity(
+        vx,
+        vy
+      );
 
 
     this.updateDirection(
@@ -1228,12 +1103,10 @@ export default class Map01Scene extends Phaser.Scene {
     );
 
 
-    /*
-      조사키
-    */
+    this.updateInteractionPrompt();
+
 
     if (
-
       Phaser.Input.Keyboard
         .JustDown(
           this.keys.interact
@@ -1245,14 +1118,6 @@ export default class Map01Scene extends Phaser.Scene {
         .JustDown(
           this.keys.enter
         )
-
-      ||
-
-      Phaser.Input.Keyboard
-        .JustDown(
-          this.keys.space
-        )
-
     ) {
 
       this.interact();
@@ -1272,100 +1137,33 @@ export default class Map01Scene extends Phaser.Scene {
   ) {
 
     if (
-      !this.hasDirectionalSprites
-    ) {
-
-      return;
-
-    }
-
-
-    /*
-      좌우
-    */
-
-    if (
       Math.abs(vx) >
       Math.abs(vy)
     ) {
 
       if (
-        vx < 0
+        vx < 0 &&
+        this.textures.exists(
+          "mage_left"
+        )
       ) {
 
-        if (
-          this.textures.exists(
-            "mage_left"
-          )
-        ) {
-
-          this.player.setTexture(
-            "mage_left"
-          );
-
-
-          this.player.setFlipX(
-            false
-          );
-
-        }
-
-        else if (
-          this.textures.exists(
-            "mage_side"
-          )
-        ) {
-
-          this.player.setTexture(
-            "mage_side"
-          );
-
-
-          this.player.setFlipX(
-            true
-          );
-
-        }
+        this.player.setTexture(
+          "mage_left"
+        );
 
       }
 
       else if (
-        vx > 0
+        vx > 0 &&
+        this.textures.exists(
+          "mage_right"
+        )
       ) {
 
-        if (
-          this.textures.exists(
-            "mage_right"
-          )
-        ) {
-
-          this.player.setTexture(
-            "mage_right"
-          );
-
-
-          this.player.setFlipX(
-            false
-          );
-
-        }
-
-        else if (
-          this.textures.exists(
-            "mage_side"
-          )
-        ) {
-
-          this.player.setTexture(
-            "mage_side"
-          );
-
-
-          this.player.setFlipX(
-            false
-          );
-
-        }
+        this.player.setTexture(
+          "mage_right"
+        );
 
       }
 
@@ -1375,78 +1173,31 @@ export default class Map01Scene extends Phaser.Scene {
     }
 
 
-    /*
-      위
-    */
-
     if (
-      vy < 0
+      vy < 0 &&
+      this.textures.exists(
+        "mage_back"
+      )
     ) {
 
       this.player.setTexture(
         "mage_back"
       );
 
-
-      this.player.setFlipX(
-        false
-      );
-
     }
 
-
-    /*
-      아래
-    */
-
     else if (
-      vy > 0
+      vy > 0 &&
+      this.textures.exists(
+        "mage_front"
+      )
     ) {
 
       this.player.setTexture(
         "mage_front"
       );
 
-
-      this.player.setFlipX(
-        false
-      );
-
     }
-
-  }
-
-
-  /* =====================================================
-     INTRO
-  ====================================================== */
-
-  async playIntro() {
-
-    await GameUI.say([
-
-      "…눈을 떠 보니 낯선 교실이었다.",
-
-      "루미: 드디어 정신이 들었구나!",
-
-      "루미: 언어 수정이 산산조각 나면서 우리도 책 속 세계로 떨어진 것 같아.",
-
-      "루미: 이 교실에는 세 개의 말의 조각이 숨겨져 있어.",
-
-      "루미: 먼저 칠판을 조사해 봐!"
-
-    ]);
-
-
-    this.state.introDone =
-      true;
-
-
-    this.state.phase =
-      "p1";
-
-
-    this.save();
 
   }
 
@@ -1461,12 +1212,8 @@ export default class Map01Scene extends Phaser.Scene {
       null;
 
 
-    /*
-      이전 85보다 넓힘
-    */
-
     let bestDistance =
-      115;
+      Infinity;
 
 
     for (
@@ -1476,19 +1223,19 @@ export default class Map01Scene extends Phaser.Scene {
 
       const distance =
         Phaser.Math.Distance.Between(
-
           this.player.x,
           this.player.y,
-
           object.x,
           object.y
-
         );
 
 
       if (
+        distance <=
+          object.radius
+        &&
         distance <
-        bestDistance
+          bestDistance
       ) {
 
         bestDistance =
@@ -1504,6 +1251,35 @@ export default class Map01Scene extends Phaser.Scene {
 
 
     return nearest;
+
+  }
+
+
+  updateInteractionPrompt() {
+
+    const object =
+      this.nearestObject();
+
+
+    if (!object) {
+
+      this.interactionPrompt
+        ?.setVisible(
+          false
+        );
+
+      return;
+
+    }
+
+
+    this.interactionPrompt
+      ?.setText(
+        `[E] ${object.label} 조사`
+      )
+      .setVisible(
+        true
+      );
 
   }
 
@@ -1527,20 +1303,7 @@ export default class Map01Scene extends Phaser.Scene {
       this.nearestObject();
 
 
-    if (
-      !object
-    ) {
-
-      this.inputLocked =
-        true;
-
-
-      await this.phaseHint();
-
-
-      this.inputLocked =
-        false;
-
+    if (!object) {
 
       return;
 
@@ -1551,10 +1314,11 @@ export default class Map01Scene extends Phaser.Scene {
       true;
 
 
-    this.player.body.setVelocity(
-      0,
-      0
-    );
+    this.player.body
+      .setVelocity(
+        0,
+        0
+      );
 
 
     try {
@@ -1570,74 +1334,176 @@ export default class Map01Scene extends Phaser.Scene {
       this.inputLocked =
         false;
 
+
+      this.updateGuides();
+
     }
 
   }
 
 
   /* =====================================================
-     OBJECT HANDLER
+     ROUTER
   ====================================================== */
 
   async handleObject(
     object
   ) {
 
-    /*
-      P1 실제 물건 찾기
-    */
-
     if (
-      this.state.phase ===
-      "p1_active"
+      object.id ===
+      "blackboard"
     ) {
 
-      if (
-        object.tag ===
-        this.state.p1Target
-      ) {
+      await this.handleBlackboard();
 
-        await this.solveP1();
-
-
-        return;
-
-      }
-
-
-      if (
-        object.id !==
-        "blackboard"
-      ) {
-
-        this.wrong(
-          "p1"
-        );
-
-
-        await GameUI.say(
-          "루미: 칠판에 나온 영어 단어가 이 물건을 뜻하는지 다시 생각해 봐."
-        );
-
-
-        return;
-
-      }
+      return;
 
     }
 
 
-    /*
-      최종 기억 퍼즐
-    */
-
     if (
-      this.state.phase ===
-      "final"
+      object.id ===
+      "glowing_desk"
     ) {
 
-      await this.handleFinalObject(
+      await this.handleGlowingDesk();
+
+      return;
+
+    }
+
+
+    if (
+      object.id ===
+      "locker"
+    ) {
+
+      await this.handleLocker();
+
+      return;
+
+    }
+
+
+    if (
+      object.type ===
+      "chest"
+    ) {
+
+      await this.handleChest(
         object
+      );
+
+      return;
+
+    }
+
+
+    if (
+      object.id ===
+      "exit"
+    ) {
+
+      await this.handleExit();
+
+    }
+
+  }
+
+
+  /* =====================================================
+     INTRO
+  ====================================================== */
+
+  async playIntro() {
+
+    await GameUI.say([
+
+      "…눈을 뜨자 낯선 교실이 보였다.",
+
+      "나: 여긴 어디지?",
+
+      "루미: 드디어 정신이 들었구나!",
+
+      "루미: 언어 수정이 깨지면서 우리가 책 속 세계에 떨어진 것 같아.",
+
+      "나: 그럼 여기서 빠져나가려면 어떻게 해야 해?",
+
+      "루미: 이 교실에 숨겨진 세 개의 말의 조각을 모으면 돼!",
+
+      "루미: 먼저 앞쪽 칠판을 조사해 봐!"
+
+    ]);
+
+
+    this.state.introDone =
+      true;
+
+
+    this.state.phase =
+      "blackboard";
+
+
+    this.save();
+
+  }
+
+
+  /* =====================================================
+     BLACKBOARD
+  ====================================================== */
+
+  async handleBlackboard() {
+
+    if (
+      this.state.phase !==
+      "blackboard"
+    ) {
+
+      await this.phaseHint();
+
+      return;
+
+    }
+
+
+    const target =
+      this.state.blackboardWord;
+
+
+    const options =
+      buildSpellingOptions(
+        target
+      );
+
+
+    this.state.questionsShown++;
+
+
+    const answer =
+      await GameUI.choice(
+
+        `다음 중 "${target}"와 철자가 정확히 같은 단어를 고르세요.`,
+
+        options,
+
+        options.indexOf(
+          target
+        )
+
+      );
+
+
+    if (!answer) {
+
+      this.wrong(
+        "blackboard"
+      );
+
+
+      await GameUI.say(
+        "루미: 철자를 한 글자씩 천천히 비교해 봐!"
       );
 
 
@@ -1646,189 +1512,472 @@ export default class Map01Scene extends Phaser.Scene {
     }
 
 
-    /*
-      칠판
-    */
-
-    if (
-      object.id ===
+    this.correct(
       "blackboard"
-    ) {
+    );
 
-      await this.blackboard();
 
+    this.state.shards =
+      1;
 
-      return;
 
-    }
+    this.state.phase =
+      "desk_quiz";
 
 
-    /*
-      밀 수 있는 책상
-    */
+    this.save();
 
-    if (
-      object.id ===
-      "push_desk"
-    ) {
 
-      await this.pushHeavyDesk();
+    await GameUI.say([
 
+      "루미: 정답이야! 첫 번째 말의 조각을 찾았어!",
 
-      return;
+      "나: 하나 찾았다!",
 
-    }
+      "루미: 가운데 아래쪽에 노란빛으로 빛나는 책상이 보여?",
 
+      "루미: 그 책상으로 가보자!"
 
-    /*
-      목표 책상
-    */
-
-    if (
-      object.targetDesk
-    ) {
-
-      await this.targetDesk();
-
-
-      return;
-
-    }
-
-
-    /*
-      사물함
-    */
-
-    if (
-      object.id ===
-      "locker_a"
-    ) {
-
-      if (
-        this.state.phase ===
-        "locker"
-      ) {
-
-        await GameUI.say(
-          "루미: 이 사물함에는 열쇠가 맞지 않는 것 같아."
-        );
-
-      }
-
-      else {
-
-        await this.phaseHint();
-
-      }
-
-
-      return;
-
-    }
-
-
-    if (
-      object.id ===
-      "locker_b"
-    ) {
-
-      await this.middleLocker();
-
-
-      return;
-
-    }
-
-
-    if (
-      object.id ===
-      "locker_c"
-    ) {
-
-      if (
-        this.state.phase ===
-        "locker"
-      ) {
-
-        await GameUI.say(
-          "루미: 여기도 아니야. 다른 사물함을 확인해 보자."
-        );
-
-      }
-
-      else {
-
-        await this.phaseHint();
-
-      }
-
-
-      return;
-
-    }
-
-
-    /*
-      상자
-    */
-
-    if (
-      object.tag ===
-      "box"
-    ) {
-
-      if (
-        this.state.phase ===
-        "box"
-      ) {
-
-        await this.boxPuzzle(
-          object
-        );
-
-      }
-
-      else {
-
-        await this.phaseHint();
-
-      }
-
-
-      return;
-
-    }
-
-
-    /*
-      출구
-    */
-
-    if (
-      object.id ===
-      "exit"
-    ) {
-
-      await this.exitDoor();
-
-
-      return;
-
-    }
-
-
-    /*
-      그 외
-    */
-
-    await this.phaseHint();
+    ]);
 
   }
 
 
   /* =====================================================
-     PHASE HINT
+     GLOWING DESK
+  ====================================================== */
+
+  async handleGlowingDesk() {
+
+    if (
+      this.state.phase !==
+        "desk_quiz"
+
+      &&
+
+      this.state.phase !==
+        "desk_push"
+    ) {
+
+      await this.phaseHint();
+
+      return;
+
+    }
+
+
+    if (
+      this.state.phase ===
+      "desk_quiz"
+    ) {
+
+      const sentence =
+        this.state.deskExpression;
+
+
+      const question =
+        buildMissingWordQuestion(
+          sentence,
+          this.content.words
+        );
+
+
+      this.state.questionsShown++;
+
+
+      const result =
+        question
+
+          ? await GameUI.choice(
+
+              question.prompt,
+
+              question.options,
+
+              question.correctIndex
+
+            )
+
+          : await GameUI.wordOrder(
+              sentence
+            );
+
+
+      if (!result) {
+
+        this.wrong(
+          "desk_quiz"
+        );
+
+
+        await GameUI.say(
+          "루미: 문장을 다시 천천히 읽어 봐!"
+        );
+
+
+        return;
+
+      }
+
+
+      this.correct(
+        "desk_quiz"
+      );
+
+
+      this.state.phase =
+        "desk_push";
+
+
+      this.save();
+
+
+      await GameUI.say([
+
+        "루미: 맞았어!",
+
+        "루미: 이 책상 아래에서 뭔가 빛나.",
+
+        "나: 그럼 밀어보자!",
+
+        "루미: 좋아. 두 번 밀어봐!"
+
+      ]);
+
+
+      return;
+
+    }
+
+
+    this.state.deskPushes++;
+
+
+    this.cameras.main.shake(
+      100,
+      0.006
+    );
+
+
+    if (
+      this.state.deskPushes <
+      2
+    ) {
+
+      this.save();
+
+
+      await GameUI.say(
+        "쿵! 책상이 조금 움직였다. 한 번 더 밀어보자."
+      );
+
+
+      return;
+
+    }
+
+
+    this.state.deskPushes =
+      2;
+
+
+    this.state.phase =
+      "locker";
+
+
+    this.save();
+
+
+    await GameUI.say([
+
+      "쿵!",
+
+      "책상 아래에서 작은 열쇠를 발견했다.",
+
+      "나: 열쇠다!",
+
+      "루미: 왼쪽 아래에 있는 사물함 열쇠일지도 몰라!"
+
+    ]);
+
+  }
+
+
+  /* =====================================================
+     LOCKER
+  ====================================================== */
+
+  async handleLocker() {
+
+    if (
+      this.state.phase !==
+      "locker"
+    ) {
+
+      await this.phaseHint();
+
+      return;
+
+    }
+
+
+    this.state.questionsShown++;
+
+
+    await GameUI.say(
+      "열쇠를 넣자 사물함 안에서 흩어진 영어 단어들이 떠올랐다."
+    );
+
+
+    const result =
+      await GameUI.wordOrder(
+        this.state.lockerExpression
+      );
+
+
+    if (!result) {
+
+      this.wrong(
+        "locker"
+      );
+
+
+      return;
+
+    }
+
+
+    this.correct(
+      "locker"
+    );
+
+
+    this.state.shards =
+      2;
+
+
+    this.state.phase =
+      "chest";
+
+
+    this.save();
+
+
+    const chestName =
+      chestColorName(
+        this.state.targetChest
+      );
+
+
+    await GameUI.say([
+
+      "루미: 두 번째 말의 조각이야!",
+
+      "나: 이제 하나 남았네.",
+
+      `루미: 맞아! 오른쪽 아래의 ${chestName} 상자가 빛나고 있어.`
+
+    ]);
+
+  }
+
+
+  /* =====================================================
+     CHEST
+  ====================================================== */
+
+  async handleChest(
+    object
+  ) {
+
+    if (
+      this.state.phase !==
+      "chest"
+    ) {
+
+      await this.phaseHint();
+
+      return;
+
+    }
+
+
+    if (
+      object.color !==
+      this.state.targetChest
+    ) {
+
+      this.wrong(
+        "chest"
+      );
+
+
+      await GameUI.say(
+        `루미: 그 상자가 아니야. ${chestColorName(this.state.targetChest)} 상자를 찾아봐!`
+      );
+
+
+      return;
+
+    }
+
+
+    this.correct(
+      "chest"
+    );
+
+
+    this.state.shards =
+      3;
+
+
+    this.state.phase =
+      "final";
+
+
+    this.save();
+
+
+    await GameUI.say([
+
+      "상자를 열자 세 번째 말의 조각이 떠올랐다!",
+
+      "나: 세 개를 다 모았어!",
+
+      "루미: 좋아! 이제 마지막 확인 문제만 풀면 문이 열릴 거야."
+
+    ]);
+
+
+    await this.startFinalQuiz();
+
+  }
+
+
+  /* =====================================================
+     FINAL
+  ====================================================== */
+
+  async startFinalQuiz() {
+
+    if (
+      this.state.phase !==
+      "final"
+    ) {
+
+      return;
+
+    }
+
+
+    const target =
+      this.state.finalWord;
+
+
+    const options =
+      buildSpellingOptions(
+        target
+      );
+
+
+    this.state.questionsShown++;
+
+
+    const answer =
+      await GameUI.choice(
+
+        `마지막 확인! "${target}"와 철자가 정확히 같은 단어를 고르세요.`,
+
+        options,
+
+        options.indexOf(
+          target
+        )
+
+      );
+
+
+    if (!answer) {
+
+      this.wrong(
+        "final"
+      );
+
+
+      await GameUI.say(
+        "루미: 괜찮아. 다시 한 번 확인해 봐!"
+      );
+
+
+      return;
+
+    }
+
+
+    this.correct(
+      "final"
+    );
+
+
+    this.state.phase =
+      "exit";
+
+
+    this.save();
+
+
+    await GameUI.say([
+
+      "정답!",
+
+      "교실 전체에 푸른 빛이 퍼졌다.",
+
+      "나: 문에 걸린 마법이 사라졌어!",
+
+      "루미: 성공이야! 오른쪽 위 출구로 가자!"
+
+    ]);
+
+  }
+
+
+  /* =====================================================
+     EXIT
+  ====================================================== */
+
+  async handleExit() {
+
+    if (
+      this.state.phase ===
+      "final"
+    ) {
+
+      await this.startFinalQuiz();
+
+      return;
+
+    }
+
+
+    if (
+      this.state.phase !==
+      "exit"
+    ) {
+
+      await this.phaseHint();
+
+      return;
+
+    }
+
+
+    await this.completeMap();
+
+  }
+
+
+  /* =====================================================
+     HINT
   ====================================================== */
 
   async phaseHint() {
@@ -1843,28 +1992,21 @@ export default class Map01Scene extends Phaser.Scene {
       this.state.phase
     ) {
 
-      case "p1":
+      case "blackboard":
 
         await GameUI.say(
-          "루미: 먼저 칠판을 조사해 봐."
+          "루미: 앞쪽 큰 칠판을 조사해 봐!"
         );
 
         break;
 
 
-      case "p1_active":
+      case "desk_quiz":
+
+      case "desk_push":
 
         await GameUI.say(
-          "루미: 칠판에 나온 영어 단어가 어떤 물건인지 생각해 봐."
-        );
-
-        break;
-
-
-      case "p2":
-
-        await GameUI.say(
-          "루미: 영어 문장에서 desk가 나왔지? 무거운 책상을 찾아봐."
+          "루미: 가운데 아래쪽의 노란빛 책상! 바로 그 책상이야."
         );
 
         break;
@@ -1873,25 +2015,16 @@ export default class Map01Scene extends Phaser.Scene {
       case "locker":
 
         await GameUI.say(
-          "루미: 책상 아래에서 얻은 열쇠가 맞는 사물함을 찾아보자."
+          "루미: 왼쪽 아래 책장 옆의 회색 사물함을 확인해 봐."
         );
 
         break;
 
 
-      case "box":
+      case "chest":
 
         await GameUI.say(
-          "루미: 영어 문장에 나온 상자의 색을 잘 확인해 봐."
-        );
-
-        break;
-
-
-      case "final_ready":
-
-        await GameUI.say(
-          "루미: 세 조각을 다 모았어! 이제 봉인된 문으로 가자."
+          `루미: 오른쪽 아래 ${chestColorName(this.state.targetChest)} 상자를 찾아봐!`
         );
 
         break;
@@ -1900,7 +2033,7 @@ export default class Map01Scene extends Phaser.Scene {
       case "final":
 
         await GameUI.say(
-          "루미: 지금까지 만났던 물건들을 순서대로 다시 조사해야 해."
+          "루미: 마지막 영어 문제를 풀어야 해!"
         );
 
         break;
@@ -1909,759 +2042,10 @@ export default class Map01Scene extends Phaser.Scene {
       case "exit":
 
         await GameUI.say(
-          "루미: 봉인이 풀렸어! 출구를 조사해!"
+          "루미: 오른쪽 위 봉인문으로 가자!"
         );
 
         break;
-
-
-      default:
-
-        await GameUI.say(
-          "루미: 교실을 조금 더 살펴보자."
-        );
-
-    }
-
-  }
-
-
-  /* =====================================================
-     PUZZLE 1
-  ====================================================== */
-
-  async blackboard() {
-
-    /*
-      처음 칠판
-    */
-
-    if (
-      this.state.phase ===
-      "p1"
-    ) {
-
-      this.state.phase =
-        "p1_active";
-
-
-      this.state.questionsShown++;
-
-
-      this.save();
-
-
-      await GameUI.say([
-
-        "루미: 봐! 칠판에서 마법 글씨가 나타났어.",
-
-        "루미: 저 영어 단어가 뜻하는 물건을 교실에서 찾아 조사해 봐."
-
-      ]);
-
-
-      await GameUI.english(
-
-        "이 단어가 가리키는 물건을 찾아 조사하세요.",
-
-        this.state.p1Target
-          .toUpperCase()
-
-      );
-
-
-      return;
-
-    }
-
-
-    /*
-      다시 확인
-    */
-
-    if (
-      this.state.phase ===
-      "p1_active"
-    ) {
-
-      await GameUI.english(
-
-        "칠판에는 아직 같은 단어가 떠 있다.",
-
-        this.state.p1Target
-          .toUpperCase()
-
-      );
-
-
-      return;
-
-    }
-
-
-    await GameUI.say(
-      "루미: 칠판의 마법 글씨는 이미 사라졌어."
-    );
-
-  }
-
-
-  /* =====================================================
-     P1 SOLVE + CHOICE QUIZ
-  ====================================================== */
-
-  async solveP1() {
-
-    this.correct(
-      "p1"
-    );
-
-
-    this.state.p1Solved =
-      true;
-
-
-    this.state.shards =
-      1;
-
-
-    this.save();
-
-
-    await GameUI.say([
-
-      "루미: 맞았어!",
-
-      "루미: 첫 번째 말의 조각을 찾았어!"
-
-    ]);
-
-
-    /*
-      다음 객관식 문제
-    */
-
-    const correctSentence =
-      this.p2Sentence;
-
-
-    const pool =
-      this.content.expressions
-        .filter(
-          item =>
-            item !==
-            correctSentence
-        );
-
-
-    const options =
-      buildQuizOptions(
-        correctSentence,
-        pool
-      );
-
-
-    let solved =
-      false;
-
-
-    let firstTry =
-      true;
-
-
-    while (
-      !solved
-    ) {
-
-      this.state.questionsShown++;
-
-
-      const answer =
-        await GameUI.choice(
-
-          "책상 아래를 살펴보라는 뜻의 영어 문장을 고르세요.",
-
-          options,
-
-          options.indexOf(
-            correctSentence
-          )
-
-        );
-
-
-      if (
-        answer
-      ) {
-
-        if (
-          firstTry
-        ) {
-
-          this.correct(
-            "p2_choice"
-          );
-
-        }
-
-
-        solved =
-          true;
-
-      }
-
-      else {
-
-        firstTry =
-          false;
-
-
-        this.wrong(
-          "p2_choice"
-        );
-
-
-        await GameUI.say(
-          "루미: desk와 위치 표현을 잘 살펴봐."
-        );
-
-      }
-
-    }
-
-
-    this.state.phase =
-      "p2";
-
-
-    this.save();
-
-
-    await GameUI.say([
-
-      "루미: 좋아! 이제 그 문장을 실제로 따라 해보자.",
-
-      "루미: 무거운 책상을 찾아 두 번 밀어봐."
-
-    ]);
-
-
-    await GameUI.english(
-
-      "이 문장을 기억하세요.",
-
-      this.p2Sentence
-
-    );
-
-  }
-
-
-  /* =====================================================
-     PUZZLE 2 - PUSH DESK
-  ====================================================== */
-
-  async pushHeavyDesk() {
-
-    if (
-      this.state.phase !==
-      "p2"
-    ) {
-
-      await this.phaseHint();
-
-
-      return;
-
-    }
-
-
-    if (
-      this.state.pushSteps >=
-      2
-    ) {
-
-      await GameUI.say(
-        "루미: 책상은 이미 충분히 움직였어. 이제 빛나는 책상을 조사해 봐."
-      );
-
-
-      return;
-
-    }
-
-
-    this.state.pushSteps++;
-
-
-    this.save();
-
-
-    if (
-      this.state.pushSteps ===
-      1
-    ) {
-
-      await GameUI.say(
-        "무거운 책상을 힘껏 밀었다. 조금 움직였다."
-      );
-
-    }
-
-    else {
-
-      await GameUI.say([
-
-        "책상을 한 번 더 밀었다.",
-
-        "루미: 좋아! 뒤쪽으로 갈 수 있게 됐어."
-
-      ]);
-
-    }
-
-  }
-
-
-  /* =====================================================
-     TARGET DESK
-  ====================================================== */
-
-  async targetDesk() {
-
-    if (
-      this.state.phase !==
-      "p2"
-    ) {
-
-      await this.phaseHint();
-
-
-      return;
-
-    }
-
-
-    if (
-      this.state.pushSteps <
-      2
-    ) {
-
-      await GameUI.say(
-        "루미: 앞의 무거운 책상을 먼저 움직여야 가까이 갈 수 있어."
-      );
-
-
-      return;
-
-    }
-
-
-    this.correct(
-      "p2"
-    );
-
-
-    this.state.p2Solved =
-      true;
-
-
-    this.state.lockerKey =
-      true;
-
-
-    this.state.phase =
-      "locker";
-
-
-    this.save();
-
-
-    await GameUI.say([
-
-      "책상 아래에서 작은 열쇠를 발견했다.",
-
-      "루미: 사물함 열쇠 같아! 교실 뒤쪽 사물함을 확인해 봐."
-
-    ]);
-
-  }
-
-
-  /* =====================================================
-     LOCKER + WORD ORDER
-  ====================================================== */
-
-  async middleLocker() {
-
-    if (
-      this.state.phase !==
-      "locker"
-    ) {
-
-      await this.phaseHint();
-
-
-      return;
-
-    }
-
-
-    if (
-      !this.state.lockerKey
-    ) {
-
-      await GameUI.say(
-        "사물함은 잠겨 있다."
-      );
-
-
-      return;
-
-    }
-
-
-    this.state.questionsShown++;
-
-
-    this.save();
-
-
-    await GameUI.say(
-      "루미: 사물함 안쪽에 흩어진 영어 단어들이 보여!"
-    );
-
-
-    const success =
-      await GameUI.wordOrder(
-        this.p3Sentence
-      );
-
-
-    if (
-      !success
-    ) {
-
-      return;
-
-    }
-
-
-    this.correct(
-      "p3"
-    );
-
-
-    this.state.p3Solved =
-      true;
-
-
-    this.state.shards =
-      2;
-
-
-    this.state.phase =
-      "box";
-
-
-    this.save();
-
-
-    await GameUI.say([
-
-      "두 번째 말의 조각을 발견했다!",
-
-      "루미: 이제 상자들 쪽에서 마지막 마력이 느껴져."
-
-    ]);
-
-
-    /*
-      색상 단서
-    */
-
-    const clue =
-      `The key is behind the ${this.state.boxTargetColor} box.`;
-
-
-    this.state.questionsShown++;
-
-
-    this.save();
-
-
-    await GameUI.english(
-
-      "문장을 읽고 알맞은 상자를 조사하세요.",
-
-      clue
-
-    );
-
-  }
-
-
-  /* =====================================================
-     BOX PUZZLE
-  ====================================================== */
-
-  async boxPuzzle(
-    object
-  ) {
-
-    if (
-      object.color !==
-      this.state.boxTargetColor
-    ) {
-
-      this.wrong(
-        "p4"
-      );
-
-
-      await GameUI.say(
-        "루미: 이 상자는 아닌 것 같아. 문장 속 색을 다시 확인해 봐."
-      );
-
-
-      return;
-
-    }
-
-
-    this.correct(
-      "p4"
-    );
-
-
-    this.state.p4Solved =
-      true;
-
-
-    this.state.shards =
-      3;
-
-
-    this.state.phase =
-      "final_ready";
-
-
-    this.save();
-
-
-    await GameUI.say([
-
-      "상자 뒤에서 마지막 말의 조각이 나타났다!",
-
-      "루미: 세 개를 다 모았어!",
-
-      "루미: 이제 봉인된 문을 조사해 봐."
-
-    ]);
-
-  }
-
-
-  /* =====================================================
-     EXIT
-  ====================================================== */
-
-  async exitDoor() {
-
-    /*
-      P1 정답이 door인 경우
-    */
-
-    if (
-      this.state.phase ===
-      "p1_active"
-      &&
-      this.state.p1Target ===
-      "door"
-    ) {
-
-      await this.solveP1();
-
-
-      return;
-
-    }
-
-
-    /*
-      최종 퍼즐 시작
-    */
-
-    if (
-      this.state.phase ===
-      "final_ready"
-    ) {
-
-      await this.startFinal();
-
-
-      return;
-
-    }
-
-
-    /*
-      탈출
-    */
-
-    if (
-      this.state.phase ===
-      "exit"
-    ) {
-
-      await this.completeMap();
-
-
-      return;
-
-    }
-
-
-    await this.phaseHint();
-
-  }
-
-
-  /* =====================================================
-     FINAL
-  ====================================================== */
-
-  async startFinal() {
-
-    this.state.phase =
-      "final";
-
-
-    this.state.finalStep =
-      0;
-
-
-    this.finalSequence = [
-
-      this.state.p1Target,
-
-      "box",
-
-      "desk"
-
-    ];
-
-
-    this.save();
-
-
-    await GameUI.say([
-
-      "루미: 문에 세 개의 빈 문양이 나타났어.",
-
-      "루미: 지금까지 배운 단서를 순서대로 떠올려야 해!"
-
-    ]);
-
-
-    await GameUI.english(
-
-      "아래 단서를 기억하고 해당 물건들을 순서대로 조사하세요.",
-
-      `${this.state.p1Target.toUpperCase()}
-
-Open the box.
-
-${this.p2Sentence}`
-
-    );
-
-  }
-
-
-  async handleFinalObject(
-    object
-  ) {
-
-    if (
-      !this.finalSequence
-    ) {
-
-      this.finalSequence = [
-
-        this.state.p1Target,
-
-        "box",
-
-        "desk"
-
-      ];
-
-    }
-
-
-    const expected =
-      this.finalSequence[
-        this.state.finalStep
-      ];
-
-
-    if (
-      object.tag !==
-      expected
-    ) {
-
-      this.wrong(
-        "final"
-      );
-
-
-      await GameUI.say(
-        "루미: 순서가 아닌 것 같아. 지금까지 맞힌 문양은 유지되니까 다시 생각해 봐!"
-      );
-
-
-      return;
-
-    }
-
-
-    this.state.finalStep++;
-
-
-    this.save();
-
-
-    await GameUI.say(
-      `기억의 문양 ${this.state.finalStep} / 3이 빛났다.`
-    );
-
-
-    if (
-      this.state.finalStep >=
-      3
-    ) {
-
-      this.state.finalSolved =
-        true;
-
-
-      this.state.phase =
-        "exit";
-
-
-      this.save();
-
-
-      await GameUI.say([
-
-        "세 개의 문양이 모두 빛났다!",
-
-        "루미: 봉인이 풀렸어!",
-
-        "루미: 출구를 조사하면 이 교실에서 나갈 수 있어."
-
-      ]);
 
     }
 
@@ -2687,23 +2071,20 @@ ${this.p2Sentence}`
       true;
 
 
-    this.save();
-
-
     const seconds =
       Math.max(
-
         1,
-
-        Math.round(
+        Math.floor(
           (
             Date.now() -
             this.state.sessionStartedAt
           )
           / 1000
         )
-
       );
+
+
+    this.save();
 
 
     saveRecord({
@@ -2742,19 +2123,15 @@ ${this.p2Sentence}`
     });
 
 
-    this.inputLocked =
-      true;
-
-
     await GameUI.say([
 
-      "봉인된 교실 문이 천천히 열렸다.",
+      "봉인된 문이 천천히 열렸다.",
 
       "루미: 해냈어! 첫 번째 언어 수정이 다시 빛나기 시작했어!",
 
-      "나: 아직 더 많은 조각이 남아 있는 거지?",
+      "나: 좋아. 다음 조각도 찾으러 가자!",
 
-      "루미: 응! 다음 세계로 가자!"
+      "루미: 응! 다음 세계로 출발!"
 
     ]);
 
@@ -2773,6 +2150,84 @@ ${this.p2Sentence}`
         this.state.wrongAttempts
 
     });
+
+  }
+
+
+  /* =====================================================
+     RANDOM
+  ====================================================== */
+
+  pickRandomWord(
+    exclude = null
+  ) {
+
+    let words =
+      this.content.words
+        .map(
+          item =>
+            String(item)
+              .trim()
+        )
+        .filter(Boolean);
+
+
+    if (
+      exclude &&
+      words.length > 1
+    ) {
+
+      words =
+        words.filter(
+          item =>
+            item !== exclude
+        );
+
+    }
+
+
+    return Phaser.Utils.Array.GetRandom(
+      words.length
+        ? words
+        : ["magic"]
+    );
+
+  }
+
+
+  pickRandomExpression(
+    exclude = null
+  ) {
+
+    let expressions =
+      this.content.expressions
+        .map(
+          item =>
+            String(item)
+              .trim()
+        )
+        .filter(Boolean);
+
+
+    if (
+      exclude &&
+      expressions.length > 1
+    ) {
+
+      expressions =
+        expressions.filter(
+          item =>
+            item !== exclude
+        );
+
+    }
+
+
+    return Phaser.Utils.Array.GetRandom(
+      expressions.length
+        ? expressions
+        : ["Open the magic box."]
+    );
 
   }
 
@@ -2833,6 +2288,8 @@ ${this.p2Sentence}`
 
     this.updateHUD();
 
+    this.updateGuides();
+
   }
 
 
@@ -2866,9 +2323,7 @@ ${this.p2Sentence}`
           ? "◆"
           : "◇"
 
-      ].join(
-        " "
-      );
+      ].join(" ");
 
     }
 
@@ -2890,32 +2345,26 @@ ${this.p2Sentence}`
 
     const objectives = {
 
-      intro:
-        "주변을 살펴보자.",
+      blackboard:
+        "교실 앞쪽 칠판을 조사하자.",
 
-      p1:
-        "칠판을 조사해 보자.",
+      desk_quiz:
+        "노란빛으로 빛나는 책상을 조사하자.",
 
-      p1_active:
-        "영어 단어가 뜻하는 물건을 찾아보자.",
-
-      p2:
-        "무거운 책상을 찾아 두 번 밀자.",
+      desk_push:
+        `빛나는 책상을 밀자. ${this.state.deskPushes}/2`,
 
       locker:
-        "열쇠에 맞는 사물함을 찾자.",
+        "왼쪽 아래 사물함을 조사하자.",
 
-      box:
-        "영어 단서에 맞는 상자를 조사하자.",
-
-      final_ready:
-        "봉인된 출구를 조사하자.",
+      chest:
+        `${chestColorName(this.state.targetChest)} 상자를 조사하자.`,
 
       final:
-        `기억의 문양 ${this.state.finalStep} / 3`,
+        "마지막 영어 문제를 풀자.",
 
       exit:
-        "봉인이 풀렸다. 출구로 나가자!"
+        "오른쪽 위 봉인문으로 나가자."
 
     };
 
@@ -2925,7 +2374,7 @@ ${this.p2Sentence}`
         this.state.phase
       ]
       ||
-      "교실을 탐험해 보자.";
+      "교실을 탐험하자.";
 
   }
 
@@ -2933,99 +2382,58 @@ ${this.p2Sentence}`
 
 
 /* =====================================================
-   QUIZ OPTION BUILDER
+   QUIZ HELPERS
 ===================================================== */
 
-function buildQuizOptions(
-  correct,
-  pool
+function buildSpellingOptions(
+  correct
 ) {
 
-  const unique =
-    [...new Set(pool)]
-      .filter(Boolean)
-      .filter(
-        item =>
-          item !== correct
-      );
+  const options =
+    new Set([
+      correct
+    ]);
 
 
-  /*
-    랜덤 섞기
-  */
-
-  const shuffled =
-    [...unique];
+  let safety =
+    0;
 
 
-  for (
-    let i =
-      shuffled.length - 1;
-
-    i > 0;
-
-    i--
+  while (
+    options.size < 4 &&
+    safety < 30
   ) {
 
-    const j =
-      Math.floor(
-        Math.random() *
-        (i + 1)
-      );
+    safety++;
 
-
-    [
-      shuffled[i],
-      shuffled[j]
-    ] =
-    [
-      shuffled[j],
-      shuffled[i]
-    ];
+    options.add(
+      mutateWord(
+        correct
+      )
+    );
 
   }
 
 
-  const options = [
-
-    correct,
-
-    ...shuffled.slice(
-      0,
-      3
-    )
-
-  ];
-
-
-  /*
-    교사가 표현을 4개 미만으로 넣었을 때
-    객관식이 깨지지 않도록 보충
-  */
-
   const fallbacks = [
 
-    "Open the door.",
+    `${correct}s`,
 
-    "Look at the window.",
+    `${correct}e`,
 
-    "The book is on the desk.",
+    `a${correct}`,
 
-    "Close the box.",
-
-    "Where is the key?"
+    `${correct}ing`
 
   ];
 
 
   for (
-    const fallback of
-    fallbacks
+    const fallback of fallbacks
   ) {
 
     if (
-      options.length >=
-      4
+      options.size >= 4
     ) {
 
       break;
@@ -3033,14 +2441,241 @@ function buildQuizOptions(
     }
 
 
+    options.add(
+      fallback
+    );
+
+  }
+
+
+  return shuffle(
+    [...options]
+  ).slice(
+    0,
+    4
+  );
+
+}
+
+
+function mutateWord(
+  word
+) {
+
+  const source =
+    String(word);
+
+
+  if (
+    source.length <= 2
+  ) {
+
+    return `${source}e`;
+
+  }
+
+
+  const chars =
+    source.split("");
+
+
+  const mode =
+    Math.floor(
+      Math.random() * 3
+    );
+
+
+  if (
+    mode === 0
+  ) {
+
+    const index =
+      Phaser.Math.Between(
+        0,
+        chars.length - 2
+      );
+
+
+    [
+      chars[index],
+      chars[index + 1]
+    ] =
+    [
+      chars[index + 1],
+      chars[index]
+    ];
+
+
+    return chars.join("");
+
+  }
+
+
+  if (
+    mode === 1
+  ) {
+
+    const index =
+      Phaser.Math.Between(
+        1,
+        chars.length - 1
+      );
+
+
+    chars.splice(
+      index,
+      1
+    );
+
+
+    return chars.join("");
+
+  }
+
+
+  const index =
+    Phaser.Math.Between(
+      0,
+      chars.length - 1
+    );
+
+
+  chars.splice(
+    index,
+    0,
+    chars[index]
+  );
+
+
+  return chars.join("");
+
+}
+
+
+function buildMissingWordQuestion(
+  sentence,
+  unitWords
+) {
+
+  const tokens =
+    String(sentence)
+      .trim()
+      .split(/\s+/);
+
+
+  const candidates =
+    tokens
+      .map(
+        (
+          token,
+          index
+        ) => ({
+
+          index,
+
+          clean:
+            cleanWord(
+              token
+            )
+
+        })
+      )
+      .filter(
+        item =>
+          item.clean.length >= 3
+      );
+
+
+  if (
+    candidates.length === 0
+  ) {
+
+    return null;
+
+  }
+
+
+  const target =
+    Phaser.Utils.Array.GetRandom(
+      candidates
+    );
+
+
+  const correct =
+    target.clean;
+
+
+  const displayTokens =
+    [...tokens];
+
+
+  displayTokens[
+    target.index
+  ] =
+    "□□□□";
+
+
+  const distractors =
+    unitWords
+      .map(
+        word =>
+          cleanWord(
+            word
+          )
+      )
+      .filter(
+        word =>
+          word &&
+          word.toLowerCase() !==
+            correct.toLowerCase()
+      );
+
+
+  const options =
+    [correct];
+
+
+  for (
+    const word of
+    shuffle(
+      [...new Set(distractors)]
+    )
+  ) {
+
+    if (
+      options.length >= 4
+    ) {
+
+      break;
+
+    }
+
+
+    options.push(
+      word
+    );
+
+  }
+
+
+  while (
+    options.length < 4
+  ) {
+
+    const fake =
+      mutateWord(
+        correct
+      );
+
+
     if (
       !options.includes(
-        fallback
+        fake
       )
     ) {
 
       options.push(
-        fallback
+        fake
       );
 
     }
@@ -3048,41 +2683,64 @@ function buildQuizOptions(
   }
 
 
-  /*
-    최종 4개 섞기
-  */
-
-  for (
-    let i =
-      options.length - 1;
-
-    i > 0;
-
-    i--
-  ) {
-
-    const j =
-      Math.floor(
-        Math.random() *
-        (i + 1)
-      );
+  const shuffled =
+    shuffle(
+      options
+    );
 
 
-    [
-      options[i],
-      options[j]
-    ] =
-    [
-      options[j],
-      options[i]
-    ];
+  return {
+
+    prompt:
+      `빈칸에 들어갈 알맞은 단어를 고르세요.\n\n${displayTokens.join(" ")}`,
+
+    options:
+      shuffled,
+
+    correctIndex:
+      shuffled.indexOf(
+        correct
+      )
+
+  };
+
+}
+
+
+function cleanWord(
+  value
+) {
+
+  return String(
+    value
+  )
+    .replace(
+      /^[^A-Za-z]+|[^A-Za-z]+$/g,
+      ""
+    )
+    .trim();
+
+}
+
+
+function chestColorName(
+  color
+) {
+
+  switch (color) {
+
+    case "red":
+      return "붉은";
+
+    case "blue":
+      return "푸른";
+
+    case "black":
+      return "검은";
+
+    default:
+      return "빛나는";
 
   }
-
-
-  return options.slice(
-    0,
-    4
-  );
 
 }
