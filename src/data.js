@@ -11,297 +11,216 @@ export const MAP_IDS =
 
 
 export const MAP_NAMES = {
-
-  MAP01:
-    "잠겨버린 교실",
-
-  MAP02:
-    "속삭이는 도서관",
-
-  MAP03:
-    "안개 낀 숲속 마을",
-
-  MAP04:
-    "모래시계 유적",
-
-  MAP05:
-    "거울 유령 저택",
-
-  MAP06:
-    "폭풍 속 해적선",
-
-  MAP07:
-    "뒤틀린 마법 학교",
-
-  MAP08:
-    "침수된 연구소",
-
-  MAP09:
-    "멈춰버린 시간 박물관",
-
-  MAP10:
-    "명령을 잃은 로봇 공장",
-
-  MAP11:
-    "녹아내리는 얼음 성",
-
-  MAP12:
-    "침묵의 언어 성"
-
+  MAP01: "잠겨버린 교실",
+  MAP02: "속삭이는 도서관",
+  MAP03: "안개 낀 숲속 마을",
+  MAP04: "모래시계 유적",
+  MAP05: "거울 유령 저택",
+  MAP06: "폭풍 속 해적선",
+  MAP07: "뒤틀린 마법 학교",
+  MAP08: "침수된 연구소",
+  MAP09: "멈춰버린 시간 박물관",
+  MAP10: "명령을 잃은 로봇 공장",
+  MAP11: "녹아내리는 얼음 성",
+  MAP12: "침묵의 언어 성"
 };
 
 
 /* =====================================================
-   DEFAULT DATA
+   DEFAULT CONTENT
 ===================================================== */
 
 const DEFAULT_MAPS = {};
 
 
-for (
-  const mapId of MAP_IDS
-) {
-
+for (const mapId of MAP_IDS) {
   DEFAULT_MAPS[mapId] = {
-
     words: [],
-
     expressions: []
-
   };
-
 }
 
 
-/*
-  MAP01 기본 예시
-*/
+/* -----------------------------------------------------
+   MAP01 DEFAULT
+------------------------------------------------------ */
 
 DEFAULT_MAPS.MAP01 = {
-
   words: [
-
     {
       english: "door",
       korean: "문"
     },
-
     {
       english: "key",
       korean: "열쇠"
     },
-
     {
       english: "desk",
       korean: "책상"
     },
-
     {
       english: "window",
       korean: "창문"
     },
-
     {
       english: "clock",
       korean: "시계"
     },
-
     {
       english: "book",
       korean: "책"
     },
-
     {
       english: "bag",
       korean: "가방"
     },
-
     {
       english: "box",
       korean: "상자"
     }
-
   ],
 
-
   expressions: [
-
     {
-      english:
-        "Open the door.",
-
-      korean:
-        "문을 여세요."
+      english: "Open the door.",
+      korean: "문을 여세요."
     },
-
     {
-      english:
-        "Where is the key?",
-
-      korean:
-        "열쇠는 어디에 있나요?"
+      english: "Where is the key?",
+      korean: "열쇠는 어디에 있나요?"
     },
-
     {
-      english:
-        "It is under the desk.",
-
-      korean:
-        "그것은 책상 아래에 있습니다."
+      english: "It is under the desk.",
+      korean: "그것은 책상 아래에 있습니다."
     },
-
     {
-      english:
-        "Look at the window.",
-
-      korean:
-        "창문을 보세요."
+      english: "Look at the window.",
+      korean: "창문을 보세요."
     },
-
     {
-      english:
-        "I found the key.",
-
-      korean:
-        "열쇠를 찾았어요."
+      english: "I found the key.",
+      korean: "열쇠를 찾았어요."
     }
-
   ]
-
 };
 
 
-/*
-  MAP02 예시
-*/
+/* -----------------------------------------------------
+   MAP02 DEFAULT
+------------------------------------------------------ */
 
 DEFAULT_MAPS.MAP02 = {
-
   words: [
-
     {
       english: "library",
       korean: "도서관"
     },
-
     {
-      english: "shelf",
+      english: "bookshelf",
       korean: "책장"
     },
-
+    {
+      english: "clock",
+      korean: "시계"
+    },
+    {
+      english: "table",
+      korean: "테이블"
+    },
     {
       english: "magic",
       korean: "마법"
     },
-
     {
-      english: "purple",
-      korean: "보라색"
+      english: "cabinet",
+      korean: "캐비닛"
     },
-
+    {
+      english: "book",
+      korean: "책"
+    },
     {
       english: "read",
       korean: "읽다"
-    },
-
-    {
-      english: "table",
-      korean: "탁자"
     }
-
   ],
 
-
   expressions: [
-
     {
-      english:
-        "Find the purple book.",
-
-      korean:
-        "보라색 책을 찾으세요."
+      english: "Read the old book.",
+      korean: "오래된 책을 읽으세요."
     },
-
     {
-      english:
-        "Read the magic book.",
-
-      korean:
-        "마법 책을 읽으세요."
+      english: "Look at the clock.",
+      korean: "시계를 보세요."
     },
-
     {
-      english:
-        "Look under the table.",
-
-      korean:
-        "탁자 아래를 보세요."
+      english: "Open the locked cabinet.",
+      korean: "잠긴 캐비닛을 여세요."
     },
-
     {
-      english:
-        "Open the library door.",
-
-      korean:
-        "도서관 문을 여세요."
+      english: "Go to the magic circle.",
+      korean: "마법진으로 가세요."
+    },
+    {
+      english: "Find the hidden clue.",
+      korean: "숨겨진 단서를 찾으세요."
+    },
+    {
+      english: "The key is on the table.",
+      korean: "열쇠는 테이블 위에 있습니다."
     }
-
   ]
-
 };
 
 
 /* =====================================================
-   STORAGE
+   STORAGE KEYS
 ===================================================== */
 
 const KEYS = {
-
   content:
-    "wisdom_all_maps_content_v3",
+    "wisdom_all_maps_content_v4",
 
   profile:
-    "wisdom_profile_v3",
+    "wisdom_profile_v4",
 
   progressPrefix:
-    "wisdom_progress_v3_",
+    "wisdom_progress_v4_",
 
   records:
-    "wisdom_records_v3",
+    "wisdom_records_v4",
 
   pin:
     "wisdom_teacher_pin_v1"
-
 };
 
 
 /* =====================================================
-   NORMALIZE DATA
+   BASIC HELPERS
 ===================================================== */
 
-function normalizePair(
-  item
-) {
+function clone(value) {
+  return JSON.parse(
+    JSON.stringify(value)
+  );
+}
 
-  if (
-    typeof item === "string"
-  ) {
 
+function normalizePair(item) {
+  if (typeof item === "string") {
     return {
-
       english:
         item.trim(),
 
       korean:
         ""
-
     };
-
   }
 
 
   return {
-
     english:
       String(
         item?.english ?? ""
@@ -311,91 +230,96 @@ function normalizePair(
       String(
         item?.korean ?? ""
       ).trim()
-
   };
-
 }
 
 
-function normalizeMapData(
-  data
-) {
+function normalizeMapData(data) {
+  const words =
+    Array.isArray(data?.words)
+      ? data.words
+          .map(normalizePair)
+          .filter(
+            item =>
+              item.english
+          )
+          .slice(
+            0,
+            20
+          )
+      : [];
+
+
+  const expressions =
+    Array.isArray(data?.expressions)
+      ? data.expressions
+          .map(normalizePair)
+          .filter(
+            item =>
+              item.english
+          )
+          .slice(
+            0,
+            20
+          )
+      : [];
+
 
   return {
-
-    words:
-      Array.isArray(
-        data?.words
-      )
-
-        ? data.words
-            .map(
-              normalizePair
-            )
-            .filter(
-              item =>
-                item.english
-            )
-            .slice(
-              0,
-              20
-            )
-
-        : [],
-
-
-    expressions:
-      Array.isArray(
-        data?.expressions
-      )
-
-        ? data.expressions
-            .map(
-              normalizePair
-            )
-            .filter(
-              item =>
-                item.english
-            )
-            .slice(
-              0,
-              20
-            )
-
-        : []
-
+    words,
+    expressions
   };
-
 }
 
 
-function normalizeAllMaps(
-  source
-) {
-
-  const result =
-    {};
+function normalizeAllMaps(source) {
+  const result = {};
 
 
-  for (
-    const mapId of
-    MAP_IDS
-  ) {
-
+  for (const mapId of MAP_IDS) {
     result[mapId] =
       normalizeMapData(
-
         source?.[mapId]
         ??
         DEFAULT_MAPS[mapId]
-
       );
-
   }
 
 
   return result;
+}
 
+
+function safeStudentKey(name) {
+  return String(name ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(
+      /\s+/g,
+      "_"
+    )
+    .replace(
+      /[^a-z0-9가-힣_-]/g,
+      ""
+    );
+}
+
+
+function progressKey(
+  mapId,
+  studentName
+) {
+  return (
+    KEYS.progressPrefix
+    +
+    safeStudentKey(
+      studentName
+    )
+    +
+    "_"
+    +
+    mapId
+  );
 }
 
 
@@ -404,9 +328,7 @@ function normalizeAllMaps(
 ===================================================== */
 
 export function getAllMapContent() {
-
   try {
-
     const raw =
       localStorage.getItem(
         KEYS.content
@@ -414,72 +336,61 @@ export function getAllMapContent() {
 
 
     if (raw) {
+      const parsed =
+        JSON.parse(raw);
+
 
       return normalizeAllMaps(
-        JSON.parse(
-          raw
-        )
+        parsed
       );
-
     }
-
   }
 
-  catch (
-    error
-  ) {
-
+  catch (error) {
     console.error(
       "학습 데이터 읽기 실패:",
       error
     );
-
   }
 
 
   return normalizeAllMaps(
-    DEFAULT_MAPS
+    clone(
+      DEFAULT_MAPS
+    )
   );
-
 }
 
 
-export function saveAllMapContent(
-  maps
-) {
+export function saveAllMapContent(maps) {
+  const normalized =
+    normalizeAllMaps(
+      maps
+    );
+
 
   localStorage.setItem(
-
     KEYS.content,
-
     JSON.stringify(
-      normalizeAllMaps(
-        maps
-      )
+      normalized
     )
-
   );
-
 }
 
 
-export function getMapContent(
-  mapId
-) {
-
+export function getMapContent(mapId) {
   const maps =
     getAllMapContent();
 
 
   return normalizeMapData(
-    maps[mapId]
+    maps?.[mapId]
     ??
     {
       words: [],
       expressions: []
     }
   );
-
 }
 
 
@@ -487,6 +398,16 @@ export function saveMapContent(
   mapId,
   data
 ) {
+  if (
+    !MAP_IDS.includes(mapId)
+  ) {
+    console.warn(
+      `알 수 없는 MAP ID: ${mapId}`
+    );
+
+    return;
+  }
+
 
   const maps =
     getAllMapContent();
@@ -501,35 +422,22 @@ export function saveMapContent(
   saveAllMapContent(
     maps
   );
-
 }
 
 
 /* =====================================================
-   TXT
+   TXT PARSER
 ===================================================== */
 
-export function parseAllMapsTxt(
-  text
-) {
-
-  const result =
-    {};
+export function parseAllMapsTxt(text) {
+  const result = {};
 
 
-  for (
-    const mapId of
-    MAP_IDS
-  ) {
-
+  for (const mapId of MAP_IDS) {
     result[mapId] = {
-
       words: [],
-
       expressions: []
-
     };
-
   }
 
 
@@ -542,33 +450,31 @@ export function parseAllMapsTxt(
 
 
   const lines =
-    String(text)
+    String(text ?? "")
       .split(/\r?\n/);
 
 
-  for (
-    const raw of
-    lines
-  ) {
-
+  for (const rawLine of lines) {
     const line =
-      raw.trim();
+      rawLine.trim();
 
 
-    if (
-      !line ||
-      line.startsWith("#")
-    ) {
-
+    if (!line) {
       continue;
-
     }
 
 
-    /*
-      [MAP01]
-      [MAP1]
-    */
+    if (
+      line.startsWith("#")
+    ) {
+      continue;
+    }
+
+
+    /* -----------------------------------------------
+       [MAP01]
+       [MAP1]
+    ------------------------------------------------ */
 
     const mapMatch =
       line.match(
@@ -577,7 +483,6 @@ export function parseAllMapsTxt(
 
 
     if (mapMatch) {
-
       const number =
         Number(
           mapMatch[1]
@@ -585,20 +490,17 @@ export function parseAllMapsTxt(
 
 
       if (
-        number >= 1 &&
+        number >= 1
+        &&
         number <= 12
       ) {
-
         currentMap =
           `MAP${String(number).padStart(2, "0")}`;
-
       }
 
       else {
-
         currentMap =
           null;
-
       }
 
 
@@ -607,58 +509,67 @@ export function parseAllMapsTxt(
 
 
       continue;
-
     }
 
 
+    /* -----------------------------------------------
+       [WORDS]
+    ------------------------------------------------ */
+
     if (
-      line.toUpperCase() ===
+      line.toUpperCase()
+      ===
       "[WORDS]"
     ) {
-
       currentSection =
         "words";
 
 
       continue;
-
     }
 
 
+    /* -----------------------------------------------
+       [EXPRESSIONS]
+    ------------------------------------------------ */
+
     if (
-      line.toUpperCase() ===
+      line.toUpperCase()
+      ===
       "[EXPRESSIONS]"
     ) {
-
       currentSection =
         "expressions";
 
 
       continue;
-
     }
 
 
+    /*
+      다른 [SECTION]이 나오면
+      현재 section 종료
+    */
+
     if (
       line.startsWith("[")
+      &&
+      line.endsWith("]")
     ) {
-
       currentSection =
         null;
 
 
       continue;
-
     }
 
 
     if (
-      !currentMap ||
+      !currentMap
+      ||
       !currentSection
     ) {
-
       continue;
-
     }
 
 
@@ -671,64 +582,57 @@ export function parseAllMapsTxt(
     if (
       !item.english
     ) {
-
       continue;
-
     }
 
 
     if (
       result[currentMap][currentSection]
-        .length <
+        .length
+      >=
       20
     ) {
-
-      result[currentMap][currentSection]
-        .push(
-          item
-        );
-
+      continue;
     }
 
+
+    result[currentMap][currentSection]
+      .push(
+        item
+      );
   }
 
 
   return normalizeAllMaps(
     result
   );
-
 }
 
 
-function parsePairLine(
-  line
-) {
-
+function parsePairLine(line) {
   const separator =
-    line.indexOf(
-      "|"
-    );
+    line.indexOf("|");
 
+
+  /*
+    구버전 호환:
+    영어만 있어도 일단 읽음
+  */
 
   if (
     separator === -1
   ) {
-
     return {
-
       english:
         line.trim(),
 
       korean:
         ""
-
     };
-
   }
 
 
   return {
-
     english:
       line
         .slice(
@@ -743,16 +647,17 @@ function parsePairLine(
           separator + 1
         )
         .trim()
-
   };
-
 }
 
+
+/* =====================================================
+   TXT SERIALIZER
+===================================================== */
 
 export function serializeAllMapsTxt(
   maps
 ) {
-
   const normalized =
     normalizeAllMaps(
       maps
@@ -760,20 +665,16 @@ export function serializeAllMapsTxt(
 
 
   const lines = [
-
     "# 지혜의 미로 탐험대",
     "# MAP01 ~ MAP12 학습 데이터",
-    "# 형식: 영어 | 한국어 뜻",
+    "#",
+    "# 입력 형식:",
+    "# 영어 | 한국어 뜻",
     ""
-
   ];
 
 
-  for (
-    const mapId of
-    MAP_IDS
-  ) {
-
+  for (const mapId of MAP_IDS) {
     lines.push(
       `[${mapId}]`
     );
@@ -793,13 +694,11 @@ export function serializeAllMapsTxt(
       const item of
       normalized[mapId].words
     ) {
-
       lines.push(
         pairToText(
           item
         )
       );
-
     }
 
 
@@ -815,15 +714,14 @@ export function serializeAllMapsTxt(
 
     for (
       const item of
-      normalized[mapId].expressions
+      normalized[mapId]
+        .expressions
     ) {
-
       lines.push(
         pairToText(
           item
         )
       );
-
     }
 
 
@@ -831,32 +729,26 @@ export function serializeAllMapsTxt(
       "",
       ""
     );
-
   }
 
 
   return lines.join(
     "\n"
   );
-
 }
 
 
-function pairToText(
-  item
-) {
-
+function pairToText(item) {
   if (
     item.korean
   ) {
-
-    return `${item.english} | ${item.korean}`;
-
+    return (
+      `${item.english} | ${item.korean}`
+    );
   }
 
 
   return item.english;
-
 }
 
 
@@ -864,38 +756,121 @@ function pairToText(
    PROFILE
 ===================================================== */
 
-export function saveProfile(
-  profile
-) {
-
+export function saveProfile(profile) {
   localStorage.setItem(
     KEYS.profile,
     JSON.stringify(
       profile
     )
   );
-
 }
 
 
 export function getProfile() {
-
   try {
-
-    return JSON.parse(
+    const raw =
       localStorage.getItem(
         KEYS.profile
-      )
-    );
+      );
 
+
+    if (!raw) {
+      return null;
+    }
+
+
+    return JSON.parse(
+      raw
+    );
   }
 
   catch {
-
     return null;
+  }
+}
 
+
+/* =====================================================
+   CURRENT MAP
+===================================================== */
+
+export function setCurrentMap(mapId) {
+  if (
+    !MAP_IDS.includes(mapId)
+  ) {
+    return;
   }
 
+
+  const profile =
+    getProfile();
+
+
+  if (!profile) {
+    return;
+  }
+
+
+  saveProfile({
+    ...profile,
+
+    currentMap:
+      mapId
+  });
+}
+
+
+export function getCurrentMap() {
+  const profile =
+    getProfile();
+
+
+  if (
+    profile?.currentMap
+    &&
+    MAP_IDS.includes(
+      profile.currentMap
+    )
+  ) {
+    return profile.currentMap;
+  }
+
+
+  return "MAP01";
+}
+
+
+/* =====================================================
+   NEXT MAP
+===================================================== */
+
+export function getNextMapId(
+  currentMap
+) {
+  const index =
+    MAP_IDS.indexOf(
+      currentMap
+    );
+
+
+  if (
+    index === -1
+  ) {
+    return null;
+  }
+
+
+  if (
+    index >=
+    MAP_IDS.length - 1
+  ) {
+    return null;
+  }
+
+
+  return MAP_IDS[
+    index + 1
+  ];
 }
 
 
@@ -903,12 +878,8 @@ export function getProfile() {
    GENERIC MAP STATE
 ===================================================== */
 
-export function newMapState(
-  mapId
-) {
-
+export function newMapState(mapId) {
   return {
-
     mapId,
 
     introDone:
@@ -946,63 +917,29 @@ export function newMapState(
 
     sessionStartedAt:
       Date.now()
-
   };
-
 }
 
 
 /* =====================================================
-   GENERIC PROGRESS
+   GENERIC MAP PROGRESS
 ===================================================== */
-
-function safeStudentKey(
-  name
-) {
-
-  return String(name)
-    .trim()
-    .toLowerCase()
-    .replace(
-      /\s+/g,
-      "_"
-    )
-    .replace(
-      /[^a-z0-9가-힣_-]/g,
-      ""
-    );
-
-}
-
-
-function progressKey(
-  mapId,
-  studentName
-) {
-
-  return (
-    KEYS.progressPrefix
-    +
-    safeStudentKey(
-      studentName
-    )
-    +
-    "_"
-    +
-    mapId
-  );
-
-}
-
 
 export function saveMapProgress(
   mapId,
   studentName,
   state
 ) {
+  if (
+    !mapId
+    ||
+    !studentName
+  ) {
+    return;
+  }
+
 
   localStorage.setItem(
-
     progressKey(
       mapId,
       studentName
@@ -1011,9 +948,7 @@ export function saveMapProgress(
     JSON.stringify(
       state
     )
-
   );
-
 }
 
 
@@ -1021,30 +956,29 @@ export function loadMapProgress(
   mapId,
   studentName
 ) {
-
   try {
-
-    return JSON.parse(
-
+    const raw =
       localStorage.getItem(
-
         progressKey(
           mapId,
           studentName
         )
+      );
 
-      )
 
+    if (!raw) {
+      return null;
+    }
+
+
+    return JSON.parse(
+      raw
     );
-
   }
 
   catch {
-
     return null;
-
   }
-
 }
 
 
@@ -1052,112 +986,27 @@ export function clearMapProgress(
   mapId,
   studentName
 ) {
-
   localStorage.removeItem(
-
     progressKey(
       mapId,
       studentName
     )
-
   );
-
 }
 
 
 export function clearAllProgress(
   studentName
 ) {
-
   for (
     const mapId of
     MAP_IDS
   ) {
-
     clearMapProgress(
       mapId,
       studentName
     );
-
   }
-
-}
-
-
-/* =====================================================
-   CURRENT MAP
-===================================================== */
-
-export function setCurrentMap(
-  mapId
-) {
-
-  const profile =
-    getProfile();
-
-
-  if (!profile) {
-    return;
-  }
-
-
-  saveProfile({
-
-    ...profile,
-
-    currentMap:
-      mapId
-
-  });
-
-}
-
-
-export function getCurrentMap() {
-
-  const profile =
-    getProfile();
-
-
-  return (
-    profile?.currentMap
-    ||
-    "MAP01"
-  );
-
-}
-
-
-/* =====================================================
-   NEXT MAP
-===================================================== */
-
-export function getNextMapId(
-  currentMap
-) {
-
-  const index =
-    MAP_IDS.indexOf(
-      currentMap
-    );
-
-
-  if (
-    index === -1
-    ||
-    index >=
-      MAP_IDS.length - 1
-  ) {
-
-    return null;
-
-  }
-
-
-  return MAP_IDS[
-    index + 1
-  ];
-
 }
 
 
@@ -1165,40 +1014,35 @@ export function getNextMapId(
    RECORDS
 ===================================================== */
 
-export function saveRecord(
-  record
-) {
-
+export function saveRecord(record) {
   let records =
     [];
 
 
   try {
+    const raw =
+      localStorage.getItem(
+        KEYS.records
+      );
 
-    records =
-      JSON.parse(
-        localStorage.getItem(
-          KEYS.records
+
+    if (raw) {
+      const parsed =
+        JSON.parse(raw);
+
+
+      if (
+        Array.isArray(
+          parsed
         )
-      )
-      ||
-      [];
-
+      ) {
+        records =
+          parsed;
+      }
+    }
   }
 
   catch {}
-
-
-  if (
-    !Array.isArray(
-      records
-    )
-  ) {
-
-    records =
-      [];
-
-  }
 
 
   records.push(
@@ -1212,36 +1056,38 @@ export function saveRecord(
       records
     )
   );
-
 }
 
 
 export function getRecords() {
-
   try {
+    const raw =
+      localStorage.getItem(
+        KEYS.records
+      );
 
-    const records =
+
+    if (!raw) {
+      return [];
+    }
+
+
+    const parsed =
       JSON.parse(
-        localStorage.getItem(
-          KEYS.records
-        )
+        raw
       );
 
 
     return Array.isArray(
-      records
+      parsed
     )
-      ? records
+      ? parsed
       : [];
-
   }
 
   catch {
-
     return [];
-
   }
-
 }
 
 
@@ -1250,7 +1096,6 @@ export function getRecords() {
 ===================================================== */
 
 export function getTeacherPin() {
-
   return (
     localStorage.getItem(
       KEYS.pin
@@ -1258,7 +1103,6 @@ export function getTeacherPin() {
     ||
     "1234"
   );
-
 }
 
 
@@ -1266,10 +1110,7 @@ export function getTeacherPin() {
    SHUFFLE
 ===================================================== */
 
-export function shuffle(
-  items
-) {
-
+export function shuffle(items) {
   const array =
     [...items];
 
@@ -1282,7 +1123,6 @@ export function shuffle(
 
     i--
   ) {
-
     const j =
       Math.floor(
         Math.random()
@@ -1299,10 +1139,8 @@ export function shuffle(
       array[j],
       array[i]
     ];
-
   }
 
 
   return array;
-
 }
