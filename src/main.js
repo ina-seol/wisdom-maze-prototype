@@ -1,7 +1,9 @@
 import Phaser from "phaser";
+
 import "./style.css";
 
-import Map01Scene from "./game/Map01Scene.js";
+import Map01Scene
+  from "./game/Map01Scene.js";
 
 import {
   saveProfile,
@@ -13,68 +15,103 @@ import {
 } from "./data.js";
 
 
-/* =========================================================
-   BASE URL
-   GitHub Pages:
-   /wisdom-maze-prototype/
-========================================================= */
-
-const base = import.meta.env.BASE_URL;
+const base =
+  import.meta.env.BASE_URL;
 
 
-/* =========================================================
+/* =====================================================
    DOM
-========================================================= */
+===================================================== */
 
 const titleScreen =
-  document.querySelector("#title-screen");
+  document.querySelector(
+    "#title-screen"
+  );
 
 const titleBg =
-  document.querySelector(".title-bg");
+  document.querySelector(
+    ".title-bg"
+  );
 
 const gameScreen =
-  document.querySelector("#game-screen");
+  document.querySelector(
+    "#game-screen"
+  );
 
 const setupModal =
-  document.querySelector("#setup-modal");
+  document.querySelector(
+    "#setup-modal"
+  );
 
 const modal =
-  document.querySelector("#modal");
+  document.querySelector(
+    "#modal"
+  );
 
 const modalBody =
-  document.querySelector("#modal-body");
+  document.querySelector(
+    "#modal-body"
+  );
 
 const startBtn =
-  document.querySelector("#start-btn");
+  document.querySelector(
+    "#start-btn"
+  );
 
 const continueBtn =
-  document.querySelector("#continue-btn");
+  document.querySelector(
+    "#continue-btn"
+  );
 
 const adminBtn =
-  document.querySelector("#admin-btn");
+  document.querySelector(
+    "#admin-btn"
+  );
 
 const musicBtn =
-  document.querySelector("#music-btn");
+  document.querySelector(
+    "#music-btn"
+  );
 
 const beginBtn =
-  document.querySelector("#begin-btn");
+  document.querySelector(
+    "#begin-btn"
+  );
 
 const cancelBtn =
-  document.querySelector("#setup-cancel");
+  document.querySelector(
+    "#setup-cancel"
+  );
 
 const studentNameInput =
-  document.querySelector("#student-name");
-
-const bgm =
-  document.querySelector("#bgm");
+  document.querySelector(
+    "#student-name"
+  );
 
 const hudName =
-  document.querySelector("#hud-name");
+  document.querySelector(
+    "#hud-name"
+  );
+
+const bgm =
+  document.querySelector(
+    "#bgm"
+  );
+
+const malePreview =
+  document.querySelector(
+    "#male-preview"
+  );
+
+const femalePreview =
+  document.querySelector(
+    "#female-preview"
+  );
 
 
-/* =========================================================
-   TITLE IMAGE
-========================================================= */
+/* =====================================================
+   ASSET URL
+===================================================== */
 
 if (titleBg) {
 
@@ -84,9 +121,21 @@ if (titleBg) {
 }
 
 
-/* =========================================================
-   MUSIC
-========================================================= */
+if (malePreview) {
+
+  malePreview.style.backgroundImage =
+    `url("${base}assets/male.png")`;
+
+}
+
+
+if (femalePreview) {
+
+  femalePreview.style.backgroundImage =
+    `url("${base}assets/female.png")`;
+
+}
+
 
 if (bgm) {
 
@@ -99,7 +148,14 @@ if (bgm) {
 }
 
 
-if (musicBtn && bgm) {
+/* =====================================================
+   MUSIC
+===================================================== */
+
+if (
+  musicBtn &&
+  bgm
+) {
 
   musicBtn.textContent =
     "음악 켜기";
@@ -107,10 +163,11 @@ if (musicBtn && bgm) {
 
   musicBtn.addEventListener(
     "click",
-
     async () => {
 
-      if (bgm.paused) {
+      if (
+        bgm.paused
+      ) {
 
         try {
 
@@ -127,9 +184,6 @@ if (musicBtn && bgm) {
             "음악 재생 실패:",
             error
           );
-
-          musicBtn.textContent =
-            "음악 켜기";
 
         }
 
@@ -148,9 +202,9 @@ if (musicBtn && bgm) {
 }
 
 
-/* =========================================================
+/* =====================================================
    CHARACTER SELECT
-========================================================= */
+===================================================== */
 
 let selectedGender =
   "male";
@@ -167,7 +221,6 @@ characterCards.forEach(
 
     card.addEventListener(
       "click",
-
       () => {
 
         characterCards.forEach(
@@ -188,232 +241,212 @@ characterCards.forEach(
 
         selectedGender =
           card.dataset.gender;
+
       }
     );
+
   }
 );
 
 
-/* =========================================================
+/* =====================================================
    START
-========================================================= */
+===================================================== */
 
-if (startBtn) {
+startBtn?.addEventListener(
+  "click",
+  () => {
 
-  startBtn.addEventListener(
-    "click",
-
-    () => {
-
-      selectedGender =
-        "male";
+    selectedGender =
+      "male";
 
 
-      characterCards.forEach(
-        card => {
+    characterCards.forEach(
+      card => {
 
-          card.classList.toggle(
-            "selected",
-            card.dataset.gender ===
-              "male"
-          );
-
-        }
-      );
-
-
-      if (studentNameInput) {
-
-        studentNameInput.value =
-          "";
+        card.classList.toggle(
+          "selected",
+          card.dataset.gender ===
+            "male"
+        );
 
       }
+    );
 
 
-      setupModal?.classList.remove(
-        "hidden"
-      );
+    if (
+      studentNameInput
+    ) {
 
+      studentNameInput.value =
+        "";
 
-      setTimeout(
-        () => {
-
-          studentNameInput?.focus();
-
-        },
-        50
-      );
     }
-  );
-}
 
 
-/* =========================================================
+    setupModal?.classList.remove(
+      "hidden"
+    );
+
+
+    setTimeout(
+      () =>
+        studentNameInput?.focus(),
+      50
+    );
+
+  }
+);
+
+
+/* =====================================================
    CANCEL
-========================================================= */
+===================================================== */
 
-if (cancelBtn) {
+cancelBtn?.addEventListener(
+  "click",
+  () => {
 
-  cancelBtn.addEventListener(
-    "click",
+    setupModal?.classList.add(
+      "hidden"
+    );
 
-    () => {
+  }
+);
 
-      setupModal?.classList.add(
-        "hidden"
+
+/* =====================================================
+   BEGIN
+===================================================== */
+
+beginBtn?.addEventListener(
+  "click",
+  async () => {
+
+    const name =
+      studentNameInput
+        ?.value
+        .trim();
+
+
+    if (
+      !name
+    ) {
+
+      alert(
+        "이름을 입력해 주세요."
       );
+
+      studentNameInput?.focus();
+
+      return;
 
     }
-  );
-}
 
 
-/* =========================================================
-   BEGIN GAME
-========================================================= */
+    const profile = {
 
-if (beginBtn) {
+      name,
 
-  beginBtn.addEventListener(
-    "click",
+      gender:
+        selectedGender
 
-    async () => {
-
-      const name =
-        studentNameInput
-          ?.value
-          .trim();
+    };
 
 
-      if (!name) {
-
-        alert(
-          "이름을 입력해 주세요."
-        );
-
-        studentNameInput?.focus();
-
-        return;
-      }
+    saveProfile(
+      profile
+    );
 
 
-      const profile = {
-
-        name,
-
-        gender:
-          selectedGender
-
-      };
+    clearMapProgress(
+      name
+    );
 
 
-      saveProfile(
-        profile
-      );
+    setupModal?.classList.add(
+      "hidden"
+    );
 
 
-      clearMapProgress(
-        name
-      );
+    await launchGame(
+      profile,
+      false
+    );
+
+  }
+);
 
 
-      setupModal?.classList.add(
-        "hidden"
-      );
+studentNameInput?.addEventListener(
+  "keydown",
+  event => {
 
+    if (
+      event.key ===
+      "Enter"
+    ) {
 
-      await launchGame(
-        profile,
-        false
-      );
+      beginBtn?.click();
+
     }
-  );
-}
+
+  }
+);
 
 
-/* =========================================================
-   ENTER KEY ON NAME
-========================================================= */
-
-if (studentNameInput) {
-
-  studentNameInput.addEventListener(
-    "keydown",
-
-    event => {
-
-      if (
-        event.key ===
-        "Enter"
-      ) {
-
-        beginBtn?.click();
-
-      }
-    }
-  );
-}
-
-
-/* =========================================================
+/* =====================================================
    CONTINUE
-========================================================= */
+===================================================== */
 
-if (continueBtn) {
+continueBtn?.addEventListener(
+  "click",
+  async () => {
 
-  continueBtn.addEventListener(
-    "click",
-
-    async () => {
-
-      const profile =
-        getProfile();
+    const profile =
+      getProfile();
 
 
-      if (
-        !profile?.name
-      ) {
+    if (
+      !profile?.name
+    ) {
 
-        alert(
-          "저장된 모험 기록이 없습니다.\n먼저 게임을 시작해 주세요."
-        );
-
-        return;
-      }
-
-
-      await launchGame(
-        profile,
-        true
+      alert(
+        "저장된 모험 기록이 없습니다."
       );
 
+      return;
+
     }
-  );
-}
 
 
-/* =========================================================
+    await launchGame(
+      profile,
+      true
+    );
+
+  }
+);
+
+
+/* =====================================================
    ADMIN
-========================================================= */
+===================================================== */
 
-if (adminBtn) {
+adminBtn?.addEventListener(
+  "click",
+  () => {
 
-  adminBtn.addEventListener(
-    "click",
+    window.location.href =
+      `${base}admin.html`;
 
-    () => {
-
-      window.location.href =
-        `${base}admin.html`;
-
-    }
-  );
-}
+  }
+);
 
 
-/* =========================================================
+/* =====================================================
    PHASER
-========================================================= */
+===================================================== */
 
 let phaserGame =
   null;
@@ -424,11 +457,9 @@ async function launchGame(
   continueGame
 ) {
 
-  /*
-    혹시 이전 Phaser가 남아 있으면 제거
-  */
-
-  if (phaserGame) {
+  if (
+    phaserGame
+  ) {
 
     phaserGame.destroy(
       true
@@ -436,11 +467,12 @@ async function launchGame(
 
     phaserGame =
       null;
+
   }
 
 
   /*
-    캐릭터 이미지 준비
+    캐릭터 방향 이미지 생성
   */
 
   const spriteUrls =
@@ -449,14 +481,13 @@ async function launchGame(
     );
 
 
-  /*
-    진행상황
-  */
-
-  let state = null;
+  let state =
+    null;
 
 
-  if (continueGame) {
+  if (
+    continueGame
+  ) {
 
     state =
       loadMapProgress(
@@ -466,17 +497,15 @@ async function launchGame(
   }
 
 
-  if (!state) {
+  if (
+    !state
+  ) {
 
     state =
       newMapState();
 
   }
 
-
-  /*
-    Phaser Scene에서 사용
-  */
 
   window.WISDOM_PROFILE = {
 
@@ -491,10 +520,6 @@ async function launchGame(
     state;
 
 
-  /*
-    UI 변경
-  */
-
   titleScreen?.classList.add(
     "hidden"
   );
@@ -505,17 +530,15 @@ async function launchGame(
   );
 
 
-  if (hudName) {
+  if (
+    hudName
+  ) {
 
     hudName.textContent =
       profile.name;
 
   }
 
-
-  /*
-    Phaser 생성
-  */
 
   phaserGame =
     new Phaser.Game({
@@ -533,7 +556,7 @@ async function launchGame(
         "phaser-root",
 
       backgroundColor:
-        "#101827",
+        "#0a1322",
 
       pixelArt:
         true,
@@ -548,15 +571,12 @@ async function launchGame(
 
         arcade: {
 
-          debug:
-            false,
-
           gravity: {
+            y: 0
+          },
 
-            y:
-              0
-
-          }
+          debug:
+            false
 
         }
 
@@ -567,12 +587,13 @@ async function launchGame(
       ]
 
     });
+
 }
 
 
-/* =========================================================
-   CHARACTER IMAGE PREPARATION
-========================================================= */
+/* =====================================================
+   CHARACTER SPRITES
+===================================================== */
 
 async function prepareCharacterSprites(
   gender
@@ -595,93 +616,66 @@ async function prepareCharacterSprites(
 
 
     /*
-      현재 캐릭터 시트에서
-      앞 / 뒤 / 옆 방향을 잘라내기 위한
-      프로토타입 좌표.
-
-      원본 에셋 비율이 바뀌면
-      여기만 조정하면 됨.
+      현재 에셋을 4열 × 4행 캐릭터시트로 사용.
+      첫 번째 행:
+      0 = 앞
+      1 = 뒤
+      2 = 옆
     */
 
+    const columns =
+      4;
 
-    const cellWidth =
+    const rows =
+      4;
+
+
+    const frameWidth =
       Math.floor(
-        image.width / 4
+        image.width / columns
       );
 
 
-    const cellHeight =
+    const frameHeight =
       Math.floor(
-        image.height / 4
+        image.height / rows
       );
 
-
-    /*
-      정면
-    */
 
     const front =
-      cropImage(
-
+      cropCharacter(
         image,
-
         0,
-
         0,
-
-        cellWidth,
-
-        cellHeight
-
+        frameWidth,
+        frameHeight
       );
 
-
-    /*
-      후면
-    */
 
     const back =
-      cropImage(
-
+      cropCharacter(
         image,
-
-        cellWidth,
-
+        frameWidth,
         0,
-
-        cellWidth,
-
-        cellHeight
-
+        frameWidth,
+        frameHeight
       );
 
 
-    /*
-      측면
-    */
-
     const side =
-      cropImage(
-
+      cropCharacter(
         image,
-
-        cellWidth * 2,
-
+        frameWidth * 2,
         0,
-
-        cellWidth,
-
-        cellHeight
-
+        frameWidth,
+        frameHeight
       );
 
 
     return {
 
       front,
-
       back,
-
       side
 
     };
@@ -695,12 +689,6 @@ async function prepareCharacterSprites(
       error
     );
 
-
-    /*
-      실패 시에도 Phaser에서
-      최소한 같은 이미지를 로딩할 수 있도록
-      원본 사용
-    */
 
     return {
 
@@ -719,10 +707,6 @@ async function prepareCharacterSprites(
 }
 
 
-/* =========================================================
-   LOAD IMAGE
-========================================================= */
-
 function loadImage(
   src
 ) {
@@ -738,25 +722,17 @@ function loadImage(
 
 
       image.onload =
-        () => {
-
-          resolve(
-            image
-          );
-
-        };
+        () =>
+          resolve(image);
 
 
       image.onerror =
-        () => {
-
+        () =>
           reject(
             new Error(
               `이미지 로딩 실패: ${src}`
             )
           );
-
-        };
 
 
       image.src =
@@ -764,14 +740,11 @@ function loadImage(
 
     }
   );
+
 }
 
 
-/* =========================================================
-   CROP IMAGE
-========================================================= */
-
-function cropImage(
+function cropCharacter(
   image,
   sx,
   sy,
@@ -788,22 +761,21 @@ function cropImage(
   canvas.width =
     sw;
 
-
   canvas.height =
     sh;
 
 
-  const context =
+  const ctx =
     canvas.getContext(
       "2d"
     );
 
 
-  context.imageSmoothingEnabled =
+  ctx.imageSmoothingEnabled =
     false;
 
 
-  context.drawImage(
+  ctx.drawImage(
 
     image,
 
@@ -820,233 +792,24 @@ function cropImage(
   );
 
 
-  removeEdgeBackground(
-    canvas
-  );
-
+  /*
+    배경 제거를 일부러 하지 않는다.
+    캐릭터까지 투명해지는 문제 방지.
+  */
 
   return canvas.toDataURL(
     "image/png"
   );
+
 }
 
 
-/* =========================================================
-   REMOVE BLUE BACKGROUND
-========================================================= */
-
-function removeEdgeBackground(
-  canvas
-) {
-
-  const context =
-    canvas.getContext(
-      "2d",
-      {
-        willReadFrequently:
-          true
-      }
-    );
-
-
-  const width =
-    canvas.width;
-
-
-  const height =
-    canvas.height;
-
-
-  if (
-    width <= 0 ||
-    height <= 0
-  ) {
-
-    return;
-
-  }
-
-
-  const imageData =
-    context.getImageData(
-      0,
-      0,
-      width,
-      height
-    );
-
-
-  const data =
-    imageData.data;
-
-
-  /*
-    모서리 색상 기준으로
-    배경색 추정
-  */
-
-  const corners = [
-
-    getPixel(
-      data,
-      width,
-      0,
-      0
-    ),
-
-    getPixel(
-      data,
-      width,
-      width - 1,
-      0
-    ),
-
-    getPixel(
-      data,
-      width,
-      0,
-      height - 1
-    ),
-
-    getPixel(
-      data,
-      width,
-      width - 1,
-      height - 1
-    )
-
-  ];
-
-
-  const bg = {
-
-    r:
-      Math.round(
-        corners.reduce(
-          (sum, p) =>
-            sum + p.r,
-          0
-        ) / corners.length
-      ),
-
-    g:
-      Math.round(
-        corners.reduce(
-          (sum, p) =>
-            sum + p.g,
-          0
-        ) / corners.length
-      ),
-
-    b:
-      Math.round(
-        corners.reduce(
-          (sum, p) =>
-            sum + p.b,
-          0
-        ) / corners.length
-      )
-
-  };
-
-
-  const tolerance =
-    45;
-
-
-  for (
-    let i = 0;
-    i < data.length;
-    i += 4
-  ) {
-
-    const r =
-      data[i];
-
-    const g =
-      data[i + 1];
-
-    const b =
-      data[i + 2];
-
-
-    const distance =
-      Math.sqrt(
-
-        (r - bg.r) ** 2 +
-
-        (g - bg.g) ** 2 +
-
-        (b - bg.b) ** 2
-
-      );
-
-
-    /*
-      캐릭터 내부 색상을 너무 많이
-      날리지 않도록 비교적 보수적으로 처리
-    */
-
-    if (
-      distance <
-      tolerance
-    ) {
-
-      data[i + 3] =
-        0;
-
-    }
-
-  }
-
-
-  context.putImageData(
-    imageData,
-    0,
-    0
-  );
-}
-
-
-function getPixel(
-  data,
-  width,
-  x,
-  y
-) {
-
-  const index =
-    (
-      y * width +
-      x
-    ) * 4;
-
-
-  return {
-
-    r:
-      data[index],
-
-    g:
-      data[index + 1],
-
-    b:
-      data[index + 2]
-
-  };
-}
-
-
-/* =========================================================
+/* =====================================================
    GAME UI
-========================================================= */
+===================================================== */
 
 window.GameUI = {
 
-
-  /*
-    일반 대화
-  */
 
   async say(
     messages
@@ -1056,9 +819,7 @@ window.GameUI = {
       Array.isArray(
         messages
       )
-
         ? messages
-
         : [messages];
 
 
@@ -1075,10 +836,6 @@ window.GameUI = {
 
   },
 
-
-  /*
-    영어 문제 / 단서
-  */
 
   async english(
     description,
@@ -1118,25 +875,20 @@ window.GameUI = {
           )
           ?.addEventListener(
             "click",
-
             () => {
 
               closeModal();
 
-              resolve(
-                true
-              );
+              resolve(true);
 
             }
           );
+
       }
     );
+
   },
 
-
-  /*
-    문장 순서 맞추기
-  */
 
   async wordOrder(
     sentence
@@ -1151,7 +903,7 @@ window.GameUI = {
             .split(/\s+/);
 
 
-        const shuffled =
+        const mixed =
           shuffle(
             words
           );
@@ -1167,7 +919,7 @@ window.GameUI = {
         modalBody.innerHTML = `
 
           <p class="dialogue-text">
-            단어를 올바른 순서대로 선택해 문장을 완성하세요.
+            단어를 올바른 순서대로 선택하세요.
           </p>
 
           <div
@@ -1213,7 +965,7 @@ window.GameUI = {
           );
 
 
-        function updateAnswer() {
+        function update() {
 
           answerArea.textContent =
             selected
@@ -1221,15 +973,13 @@ window.GameUI = {
                 item =>
                   item.word
               )
-              .join(
-                " "
-              ) ||
-            " ";
+              .join(" ")
+              || " ";
 
         }
 
 
-        shuffled.forEach(
+        mixed.forEach(
           (
             word,
             index
@@ -1244,10 +994,8 @@ window.GameUI = {
             button.type =
               "button";
 
-
             button.className =
               "token";
-
 
             button.textContent =
               word;
@@ -1255,15 +1003,12 @@ window.GameUI = {
 
             button.addEventListener(
               "click",
-
               () => {
 
                 if (
                   button.disabled
                 ) {
-
                   return;
-
                 }
 
 
@@ -1274,15 +1019,13 @@ window.GameUI = {
                 selected.push({
 
                   word,
-
                   index,
-
                   button
 
                 });
 
 
-                updateAnswer();
+                update();
 
               }
             );
@@ -1302,7 +1045,6 @@ window.GameUI = {
           )
           ?.addEventListener(
             "click",
-
             () => {
 
               selected.forEach(
@@ -1319,7 +1061,7 @@ window.GameUI = {
                 [];
 
 
-              updateAnswer();
+              update();
 
             }
           );
@@ -1331,7 +1073,6 @@ window.GameUI = {
           )
           ?.addEventListener(
             "click",
-
             () => {
 
               const answer =
@@ -1340,15 +1081,14 @@ window.GameUI = {
                     item =>
                       item.word
                   )
-                  .join(
-                    " "
-                  );
+                  .join(" ");
 
 
               if (
                 normalizeSentence(
                   answer
-                ) ===
+                )
+                ===
                 normalizeSentence(
                   sentence
                 )
@@ -1356,9 +1096,7 @@ window.GameUI = {
 
                 closeModal();
 
-                resolve(
-                  true
-                );
+                resolve(true);
 
               }
 
@@ -1368,16 +1106,15 @@ window.GameUI = {
                   "순서를 다시 확인해 보세요.";
 
               }
+
             }
           );
+
       }
     );
+
   },
 
-
-  /*
-    결과창
-  */
 
   async finish(
     result
@@ -1448,13 +1185,14 @@ window.GameUI = {
           )
           ?.addEventListener(
             "click",
-
             () => {
 
               closeModal();
 
 
-              if (phaserGame) {
+              if (
+                phaserGame
+              ) {
 
                 phaserGame.destroy(
                   true
@@ -1476,21 +1214,22 @@ window.GameUI = {
               );
 
 
-              resolve(
-                true
-              );
+              resolve(true);
 
             }
           );
+
       }
     );
+
   }
+
 };
 
 
-/* =========================================================
+/* =====================================================
    DIALOG HELPERS
-========================================================= */
+===================================================== */
 
 function showDialogue(
   text
@@ -1525,19 +1264,18 @@ function showDialogue(
         )
         ?.addEventListener(
           "click",
-
           () => {
 
             closeModal();
 
-            resolve(
-              true
-            );
+            resolve(true);
 
           }
         );
+
     }
   );
+
 }
 
 
@@ -1559,9 +1297,9 @@ function closeModal() {
 }
 
 
-/* =========================================================
+/* =====================================================
    UTILS
-========================================================= */
+===================================================== */
 
 function escapeHtml(
   value
@@ -1570,31 +1308,27 @@ function escapeHtml(
   return String(
     value ?? ""
   )
-
     .replaceAll(
       "&",
       "&amp;"
     )
-
     .replaceAll(
       "<",
       "&lt;"
     )
-
     .replaceAll(
       ">",
       "&gt;"
     )
-
     .replaceAll(
       '"',
       "&quot;"
     )
-
     .replaceAll(
       "'",
       "&#039;"
     );
+
 }
 
 
@@ -1603,17 +1337,15 @@ function normalizeSentence(
 ) {
 
   return String(
-    value
+    value ?? ""
   )
-
     .trim()
-
     .replace(
       /\s+/g,
       " "
     )
-
     .toLowerCase();
+
 }
 
 
@@ -1632,4 +1364,5 @@ function formatTime(
 
 
   return `${minutes}분 ${remain}초`;
+
 }
