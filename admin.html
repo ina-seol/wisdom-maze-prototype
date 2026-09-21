@@ -11,15 +11,9 @@
     content="width=device-width, initial-scale=1.0"
   />
 
-  <meta
-    name="theme-color"
-    content="#081120"
-  />
-
   <title>
     지혜의 미로 탐험대 - 교사용 설정
   </title>
-
 
   <link
     rel="stylesheet"
@@ -32,18 +26,12 @@
 <body class="admin-body">
 
 
-  <!-- =====================================================
-       LOGIN
-  ====================================================== -->
-
   <div
     id="admin-login"
     class="admin-center"
   >
 
-    <div
-      class="panel admin-login-panel"
-    >
+    <div class="panel admin-login-panel">
 
       <h1>
         교사용 설정
@@ -53,15 +41,12 @@
         교사용 PIN을 입력하세요.
       </p>
 
-
       <input
         id="teacher-pin"
         type="password"
         inputmode="numeric"
-        maxlength="8"
         placeholder="PIN"
       />
-
 
       <button
         id="teacher-login"
@@ -70,7 +55,6 @@
       >
         접속
       </button>
-
 
       <button
         id="back-title"
@@ -85,28 +69,21 @@
   </div>
 
 
-  <!-- =====================================================
-       ADMIN APP
-  ====================================================== -->
-
   <div
     id="admin-app"
     class="hidden"
   >
 
-
-    <header
-      class="admin-header"
-    >
+    <header class="admin-header">
 
       <div>
 
         <h1>
-          영어 문제 설정
+          학습 데이터 설정
         </h1>
 
         <p>
-          MAP 01 · 잠겨버린 교실
+          MAP01 ~ MAP12
         </p>
 
       </div>
@@ -123,25 +100,32 @@
     </header>
 
 
-    <main
-      class="admin-main"
-    >
+    <main class="admin-main">
 
 
-      <!-- TXT -->
-
-      <section
-        class="panel"
-      >
+      <section class="panel">
 
         <h2>
-          TXT 문제 불러오기
+          편집할 맵
+        </h2>
+
+        <select
+          id="map-select"
+          class="admin-map-select"
+        ></select>
+
+      </section>
+
+
+      <section class="panel">
+
+        <h2>
+          전체 TXT 불러오기
         </h2>
 
         <p>
-          UTF-8 형식의 TXT 파일을 선택하세요.
+          MAP01 ~ MAP12를 한 파일에서 관리합니다.
         </p>
-
 
         <input
           id="txt-upload"
@@ -150,26 +134,21 @@
           accept=".txt,text/plain"
         />
 
-
-        <p class="small">
-          영어 단어 최대 20개 · 영어 표현 최대 20개
-        </p>
-
       </section>
 
 
-      <!-- EDITOR -->
-
-      <section
-        class="admin-editor"
-      >
+      <section class="admin-editor">
 
 
         <div class="panel">
 
           <h2>
-            영어 단어
+            단어
           </h2>
+
+          <p>
+            영어 | 한국어 뜻
+          </p>
 
           <p>
             <span id="word-count">
@@ -180,7 +159,9 @@
 
           <textarea
             id="words-editor"
-            placeholder="한 줄에 단어 하나씩 입력하세요."
+            placeholder="door | 문
+key | 열쇠
+desk | 책상"
           ></textarea>
 
         </div>
@@ -193,6 +174,10 @@
           </h2>
 
           <p>
+            영어 표현 | 한국어 뜻
+          </p>
+
+          <p>
             <span id="expression-count">
               0
             </span>
@@ -201,7 +186,8 @@
 
           <textarea
             id="expressions-editor"
-            placeholder="한 줄에 문장 하나씩 입력하세요."
+            placeholder="Open the door. | 문을 여세요.
+Where is the key? | 열쇠는 어디에 있나요?"
           ></textarea>
 
         </div>
@@ -210,32 +196,27 @@
       </section>
 
 
-      <!-- SAVE -->
-
       <section class="panel">
 
-        <h2>
-          MAP 01 적용
+        <h2 id="save-title">
+          MAP01 저장
         </h2>
-
 
         <button
           id="save-content"
           class="big-gold"
           type="button"
         >
-          MAP 01 문제 저장
+          현재 맵 저장
         </button>
-
 
         <button
           id="download-txt"
           class="main-button"
           type="button"
         >
-          현재 내용을 TXT로 저장
+          MAP01~MAP12 전체 TXT 저장
         </button>
-
 
         <p
           id="save-status"
@@ -245,38 +226,47 @@
       </section>
 
 
-      <!-- FORMAT -->
-
       <section class="panel">
 
         <h2>
-          TXT 작성 예시
+          TXT 예시
         </h2>
 
-
-        <pre class="english-preview"># 지혜의 미로 탐험대
-# MAP 01
+        <pre class="english-preview">[MAP01]
 
 [WORDS]
-key
-door
-desk
-chair
-window
-clock
-book
-box
-bag
-map
-under
-behind
+door | 문
+key | 열쇠
+desk | 책상
+window | 창문
 
 [EXPRESSIONS]
-Where is the key?
-It is under the desk.
-Look under the desk.
-Open the box.
-I found the key.</pre>
+Open the door. | 문을 여세요.
+Where is the key? | 열쇠는 어디에 있나요?
+
+
+[MAP02]
+
+[WORDS]
+library | 도서관
+shelf | 책장
+magic | 마법
+read | 읽다
+
+[EXPRESSIONS]
+Find the purple book. | 보라색 책을 찾으세요.
+Read the magic book. | 마법 책을 읽으세요.
+
+
+...
+
+[MAP12]
+
+[WORDS]
+...
+
+[EXPRESSIONS]
+...</pre>
 
       </section>
 
