@@ -951,4 +951,79 @@ button {
       column;
   }
 
+  .quiz-options {
+  display: grid;
+  gap: 10px;
+
+  margin: 18px 0;
+}
+
+.quiz-option {
+  width: 100%;
+
+  padding: 13px 15px;
+
+  border: 3px solid #4a6189;
+
+  border-radius: 6px;
+
+  background: #152946;
+
+  color: white;
+
+  text-align: left;
+
+  font-family:
+    Arial,
+    sans-serif;
+
+  font-size: 17px;
+
+  transition:
+    .12s;
+}
+
+.quiz-option:hover {
+  border-color:
+    #8eb8ef;
+}
+
+.quiz-option.selected {
+  border-color:
+    #ffe16b;
+
+  background:
+    #24517e;
+
+  box-shadow:
+    0 0 14px
+    rgba(255, 222, 95, .25);
+}
+
+.quiz-feedback {
+  color:
+    #ffdf75;
+
+  min-height:
+    20px;
+}
+
+#quiz-submit:disabled {
+  opacity:
+    .4;
+
+  cursor:
+    default;
+}
+
+.system-symbol {
+  font-size:
+    72px;
+
+  color:
+    #62d8ff;
+
+  text-shadow:
+    0 0 22px #3698ff;
+}
 }
