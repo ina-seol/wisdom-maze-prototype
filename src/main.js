@@ -808,6 +808,9 @@ function getPlayerPortrait() {
 
 }
 
+function getLumiPortrait() {
+  return `${base}assets/portraits/lumi_portrait.png`;
+}
 
 function getPlayerName() {
 
