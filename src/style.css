@@ -15,6 +15,7 @@ html,
 body {
   margin: 0;
   min-height: 100%;
+
   background: var(--navy);
   color: white;
 
@@ -22,6 +23,10 @@ body {
     "Malgun Gothic",
     "Apple SD Gothic Neo",
     sans-serif;
+}
+
+body {
+  overflow-x: hidden;
 }
 
 button,
@@ -58,16 +63,22 @@ button {
   position: absolute;
   inset: 0;
 
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: cover;
+  background-position:
+    center center;
+
+  background-repeat:
+    no-repeat;
+
+  background-size:
+    cover;
+
+  image-rendering:
+    pixelated;
 }
 
 
 /*
-  배경 그림에 이미 그려져 있는
-  GAME START / CONTINUE / OPTIONS 영역을
-  실제 버튼으로 덮는다.
+  배경에 그려진 메뉴를 실제 버튼으로 덮기
 */
 
 .title-menu {
@@ -81,6 +92,7 @@ button {
   width: 260px;
 
   display: grid;
+
   gap: 7px;
 }
 
@@ -92,7 +104,8 @@ button {
 
   padding: 8px 14px;
 
-  border: 2px solid #f3ca55;
+  border:
+    2px solid #f3ca55;
 
   border-radius: 5px;
 
@@ -122,7 +135,8 @@ button {
 }
 
 .main-button:active {
-  transform: translateY(2px);
+  transform:
+    translateY(2px);
 }
 
 
@@ -137,6 +151,7 @@ button {
   z-index: 1000;
 
   display: grid;
+
   place-items: center;
 
   padding: 20px;
@@ -145,12 +160,16 @@ button {
     rgba(3, 8, 20, .84);
 }
 
+
 .panel {
-  width: min(700px, 96vw);
+  width:
+    min(700px, 96vw);
 
   padding: 24px;
 
-  border: 4px solid #a87629;
+  border:
+    4px solid #a87629;
+
   border-radius: 10px;
 
   background:
@@ -161,8 +180,10 @@ button {
     );
 
   box-shadow:
-    0 18px 70px rgba(0,0,0,.65);
+    0 18px 70px
+    rgba(0,0,0,.65);
 }
+
 
 .panel h1,
 .panel h2,
@@ -170,9 +191,11 @@ button {
   margin-top: 0;
 }
 
+
 .panel h2 {
   color: #ffe57e;
 }
+
 
 .panel p {
   line-height: 1.65;
@@ -184,8 +207,10 @@ button {
 ===================================================== */
 
 .setup-panel {
-  width: min(760px, 96vw);
+  width:
+    min(760px, 96vw);
 }
+
 
 #student-name {
   width: 100%;
@@ -194,14 +219,19 @@ button {
 
   margin-bottom: 20px;
 
-  border: 3px solid #a87d36;
+  border:
+    3px solid #a87d36;
 
   border-radius: 5px;
 
-  background: #fff7d8;
-  color: #18223a;
+  background:
+    #fff7d8;
 
-  font-size: 18px;
+  color:
+    #18223a;
+
+  font-size:
+    18px;
 }
 
 
@@ -209,7 +239,10 @@ button {
   display: grid;
 
   grid-template-columns:
-    repeat(2, minmax(0, 1fr));
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
 
   gap: 18px;
 }
@@ -218,7 +251,9 @@ button {
 .character-card {
   position: relative;
 
-  border: 4px solid #3d506f;
+  border:
+    4px solid #3d506f;
+
   border-radius: 9px;
 
   padding: 10px;
@@ -231,52 +266,103 @@ button {
     );
 
   color: white;
+
+  overflow: hidden;
 }
+
+
+.character-card:hover {
+  border-color:
+    #8098be;
+}
+
 
 .character-card.selected {
-  border-color: #ffe478;
+  border-color:
+    #ffe478;
 
   box-shadow:
-    0 0 20px rgba(255, 225, 105, .45);
+    0 0 20px
+    rgba(
+      255,
+      225,
+      105,
+      .45
+    );
 }
 
+
 .character-card.selected::after {
-  content: "선택됨";
+  content:
+    "선택됨";
 
   position: absolute;
 
   top: 8px;
   right: 8px;
 
-  padding: 5px 8px;
+  padding:
+    5px 8px;
 
-  border-radius: 999px;
+  border-radius:
+    999px;
 
-  background: #f2c94c;
-  color: #15203a;
+  background:
+    #f2c94c;
 
-  font-size: 12px;
-  font-weight: 900;
+  color:
+    #15203a;
+
+  font-size:
+    12px;
+
+  font-weight:
+    900;
 }
 
 
+/*
+  중요
+
+  실제 male.png / female.png는
+  4열 × 1행이다.
+
+  그래서:
+  background-size = 400% 100%
+
+  첫 칸 정면을 보여준다.
+*/
+
 .character-preview {
   width: 100%;
+
   height: 250px;
 
   border-radius: 6px;
 
-  background-color: #547daa;
+  background-color:
+    #547daa;
 
-  background-repeat: no-repeat;
+  background-repeat:
+    no-repeat;
 
-  /*
-    캐릭터 시트 미리보기
-  */
-  background-position: 0% 0%;
-  background-size: 400% 400%;
+  background-size:
+    400% 100%;
 
-  image-rendering: pixelated;
+  background-position:
+    0% center;
+
+  image-rendering:
+    pixelated;
+
+  box-shadow:
+    inset 0 0 0 2px
+    rgba(
+      255,
+      255,
+      255,
+      .08
+    );
 }
 
 
@@ -295,11 +381,14 @@ button {
 
 
 .big-gold {
-  padding: 12px 22px;
+  padding:
+    12px 22px;
 
-  border: 3px solid #8a5d19;
+  border:
+    3px solid #8a5d19;
 
-  border-radius: 6px;
+  border-radius:
+    6px;
 
   background:
     linear-gradient(
@@ -307,23 +396,34 @@ button {
       #e8b33e
     );
 
-  color: #15223a;
+  color:
+    #15223a;
 
-  font-weight: 900;
+  font-weight:
+    900;
 
   box-shadow:
     0 4px 0 #63410e;
 }
 
 
+.big-gold:hover {
+  filter:
+    brightness(1.08);
+}
+
+
 .text-button {
   border: 0;
 
-  background: transparent;
+  background:
+    transparent;
 
-  color: #c7d6f2;
+  color:
+    #c7d6f2;
 
-  padding: 12px 16px;
+  padding:
+    12px 16px;
 }
 
 
@@ -332,30 +432,41 @@ button {
 ===================================================== */
 
 #game-screen {
-  min-height: 100vh;
+  min-height:
+    100vh;
 
-  display: flex;
-  flex-direction: column;
+  display:
+    flex;
 
-  background: #07101e;
+  flex-direction:
+    column;
+
+  background:
+    #07101e;
 }
 
 
 #game-hud {
-  min-height: 68px;
+  min-height:
+    68px;
 
-  display: grid;
+  display:
+    grid;
 
   grid-template-columns:
     1fr auto 1fr;
 
-  gap: 15px;
+  gap:
+    15px;
 
-  align-items: center;
+  align-items:
+    center;
 
-  padding: 10px 18px;
+  padding:
+    10px 18px;
 
-  background: #071225;
+  background:
+    #071225;
 
   border-bottom:
     3px solid #af8335;
@@ -363,23 +474,29 @@ button {
 
 
 #hud-name {
-  color: #ffe37b;
+  color:
+    #ffe37b;
 }
 
 
 #hud-shards {
-  color: #55d8ff;
+  color:
+    #55d8ff;
 
-  margin-left: 8px;
+  margin-left:
+    8px;
 
-  letter-spacing: 4px;
+  letter-spacing:
+    4px;
 }
 
 
 #hud-objective {
-  text-align: right;
+  text-align:
+    right;
 
-  color: #d5e3ff;
+  color:
+    #d5e3ff;
 }
 
 
@@ -387,44 +504,60 @@ button {
   flex: 1;
 
   display: grid;
-  place-items: center;
+
+  place-items:
+    center;
 
   padding: 8px;
 
-  overflow: hidden;
+  overflow:
+    hidden;
 }
 
 
 #phaser-root canvas {
   display: block;
 
-  max-width: 100%;
+  max-width:
+    100%;
+
   max-height:
-    calc(100vh - 115px);
+    calc(
+      100vh - 115px
+    );
 
   border:
     4px solid #17233d;
 
-  image-rendering: pixelated;
+  image-rendering:
+    pixelated;
 
   box-shadow:
-    0 12px 45px rgba(0,0,0,.5);
+    0 12px 45px
+    rgba(0,0,0,.5);
 }
 
 
 #control-help {
-  min-height: 38px;
+  min-height:
+    38px;
 
   display: grid;
-  place-items: center;
 
-  padding: 8px;
+  place-items:
+    center;
 
-  background: #050d19;
+  padding:
+    8px;
 
-  color: #aabbdc;
+  background:
+    #050d19;
 
-  font-size: 13px;
+  color:
+    #aabbdc;
+
+  font-size:
+    13px;
 }
 
 
@@ -433,96 +566,138 @@ button {
 ===================================================== */
 
 .dialogue-text {
-  color: #f7f8ff;
+  color:
+    #f7f8ff;
 
-  font-size: 18px;
+  font-size:
+    18px;
 
-  line-height: 1.75;
+  line-height:
+    1.75;
 
-  white-space: pre-wrap;
+  white-space:
+    pre-wrap;
 }
 
 
 .english-box {
-  margin: 18px 0;
+  margin:
+    18px 0;
 
-  padding: 20px;
+  padding:
+    20px;
 
   border:
     3px solid #d4a943;
 
-  border-radius: 7px;
+  border-radius:
+    7px;
 
-  background: #fff8dc;
+  background:
+    #fff8dc;
 
-  color: #16223b;
+  color:
+    #16223b;
 
   font-family:
     Arial,
     sans-serif;
 
-  font-size: 22px;
-  font-weight: 800;
+  font-size:
+    22px;
 
-  text-align: center;
+  font-weight:
+    800;
 
-  white-space: pre-wrap;
+  text-align:
+    center;
+
+  white-space:
+    pre-wrap;
 }
 
 
 .token-area {
-  display: flex;
+  display:
+    flex;
 
-  flex-wrap: wrap;
+  flex-wrap:
+    wrap;
 
-  gap: 8px;
+  gap:
+    8px;
 
-  margin: 15px 0;
+  margin:
+    15px 0;
 }
 
 
 .token {
-  padding: 9px 13px;
+  padding:
+    9px 13px;
 
-  border: 2px solid #4b668e;
+  border:
+    2px solid #4b668e;
 
-  border-radius: 5px;
+  border-radius:
+    5px;
 
-  background: #d8ecff;
+  background:
+    #d8ecff;
 
-  color: #14203a;
+  color:
+    #14203a;
 
-  font-weight: 800;
+  font-weight:
+    800;
+}
+
+
+.token:disabled {
+  opacity:
+    .45;
 }
 
 
 .clear-title {
-  text-align: center;
+  text-align:
+    center;
 
-  color: #ffe169;
+  color:
+    #ffe169;
 }
 
 
 .result-box {
-  display: grid;
+  display:
+    grid;
 
   grid-template-columns:
-    repeat(2, 1fr);
+    repeat(
+      2,
+      1fr
+    );
 
-  gap: 10px;
+  gap:
+    10px;
 
-  margin: 18px 0;
+  margin:
+    18px 0;
 }
 
 
 .result-box > div {
-  padding: 12px;
+  padding:
+    12px;
 
-  border: 2px solid #40567c;
+  border:
+    2px solid #40567c;
 
-  border-radius: 5px;
+  border-radius:
+    5px;
 
-  background: #10213c;
+  background:
+    #10213c;
 }
 
 
@@ -531,7 +706,8 @@ button {
 ===================================================== */
 
 .admin-body {
-  min-height: 100vh;
+  min-height:
+    100vh;
 
   background:
     radial-gradient(
@@ -544,51 +720,74 @@ button {
 
 
 .admin-center {
-  min-height: 100vh;
+  min-height:
+    100vh;
 
-  display: grid;
-  place-items: center;
+  display:
+    grid;
 
-  padding: 20px;
+  place-items:
+    center;
+
+  padding:
+    20px;
 }
 
 
 .admin-login-panel {
-  width: min(430px, 95vw);
+  width:
+    min(
+      430px,
+      95vw
+    );
 }
 
 
 .admin-login-panel input {
-  width: 100%;
+  width:
+    100%;
 
-  padding: 12px;
+  padding:
+    12px;
 
-  margin: 8px 0 15px;
+  margin:
+    8px 0 15px;
 
   border:
     3px solid #9d7638;
 
-  border-radius: 5px;
+  border-radius:
+    5px;
 
-  background: #fff9dd;
+  background:
+    #fff9dd;
 
-  color: #15213a;
+  color:
+    #15213a;
 
-  font-size: 18px;
+  font-size:
+    18px;
 }
 
 
 .admin-header {
-  display: flex;
+  display:
+    flex;
 
-  justify-content: space-between;
-  align-items: center;
+  justify-content:
+    space-between;
 
-  gap: 20px;
+  align-items:
+    center;
 
-  padding: 18px 5vw;
+  gap:
+    20px;
 
-  background: #071224;
+  padding:
+    18px 5vw;
+
+  background:
+    #071224;
 
   border-bottom:
     3px solid #b78a39;
@@ -596,148 +795,213 @@ button {
 
 
 .admin-header h1 {
-  margin: 0;
+  margin:
+    0;
 }
 
 
 .admin-header p {
-  margin: 5px 0 0;
+  margin:
+    5px 0 0;
 
-  color: #afc2e5;
+  color:
+    #afc2e5;
 }
 
 
 .admin-main {
-  width: min(1150px, 94vw);
+  width:
+    min(
+      1150px,
+      94vw
+    );
 
-  margin: 26px auto;
+  margin:
+    26px auto;
 
-  display: grid;
-  gap: 20px;
+  display:
+    grid;
 
-  padding-bottom: 50px;
+  gap:
+    20px;
+
+  padding-bottom:
+    50px;
 }
 
 
 .admin-editor {
-  display: grid;
+  display:
+    grid;
 
   grid-template-columns:
-    repeat(2, 1fr);
+    repeat(
+      2,
+      1fr
+    );
 
-  gap: 20px;
+  gap:
+    20px;
 }
 
 
 .admin-editor textarea {
-  width: 100%;
+  width:
+    100%;
 
-  min-height: 330px;
+  min-height:
+    330px;
 
-  padding: 12px;
+  padding:
+    12px;
 
-  resize: vertical;
+  resize:
+    vertical;
 
   border:
     3px solid #997239;
 
-  border-radius: 5px;
+  border-radius:
+    5px;
 
-  background: #fffbea;
-  color: #172139;
+  background:
+    #fffbea;
+
+  color:
+    #172139;
 
   font-family:
     Consolas,
     monospace;
 
-  line-height: 1.55;
+  line-height:
+    1.55;
 }
 
 
 #word-count,
 #expression-count {
-  color: #ffe174;
+  color:
+    #ffe174;
 }
 
 
 .english-preview {
-  white-space: pre-wrap;
+  white-space:
+    pre-wrap;
 
-  color: #c9e5ff;
+  color:
+    #c9e5ff;
 
-  line-height: 1.6;
+  line-height:
+    1.6;
 }
 
 
 .small {
-  color: #acbfdf;
+  color:
+    #acbfdf;
 
-  font-size: 13px;
+  font-size:
+    13px;
 }
 
 
 /* =====================================================
-   MOBILE
+   RESPONSIVE
 ===================================================== */
 
-@media (max-width: 850px) {
+@media (
+  max-width: 850px
+) {
 
   .title-menu {
-    left: auto;
-    right: 4%;
-    top: 53%;
+    left:
+      auto;
 
-    width: 260px;
+    right:
+      4%;
+
+    top:
+      53%;
+
+    width:
+      260px;
   }
 
 }
 
 
-@media (max-width: 700px) {
+@media (
+  max-width: 700px
+) {
 
   .title-menu {
-    left: 50%;
-    right: auto;
+    left:
+      50%;
 
-    top: auto;
-    bottom: 5%;
+    right:
+      auto;
+
+    top:
+      auto;
+
+    bottom:
+      5%;
 
     transform:
       translateX(-50%);
 
     width:
-      min(350px, 90vw);
+      min(
+        350px,
+        90vw
+      );
   }
 
 
   .character-select {
-    grid-template-columns: 1fr;
+    grid-template-columns:
+      1fr;
   }
 
 
   .character-preview {
-    height: 210px;
+    height:
+      210px;
   }
 
 
   #game-hud {
-    grid-template-columns: 1fr;
+    grid-template-columns:
+      1fr;
   }
 
 
   #hud-objective {
-    text-align: left;
+    text-align:
+      left;
+  }
+
+
+  .result-box {
+    grid-template-columns:
+      1fr;
   }
 
 
   .admin-editor {
-    grid-template-columns: 1fr;
+    grid-template-columns:
+      1fr;
   }
 
 
   .admin-header {
-    align-items: flex-start;
-    flex-direction: column;
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
   }
 
 }
