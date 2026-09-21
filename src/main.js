@@ -1040,7 +1040,159 @@ window.GameUI = {
                   button
 
                 });
+async choice(
+  question,
+  options,
+  correctIndex
+) {
 
+  return new Promise(
+    resolve => {
+
+      openModal();
+
+
+      let selected =
+        -1;
+
+
+      modalBody.innerHTML = `
+
+        <p class="dialogue-text">
+          ${escapeHtml(question)}
+        </p>
+
+        <div
+          id="quiz-options"
+          class="quiz-options"
+        ></div>
+
+        <p
+          id="quiz-feedback"
+          class="quiz-feedback"
+        ></p>
+
+        <button
+          id="quiz-submit"
+          class="big-gold"
+          type="button"
+          disabled
+        >
+          확인
+        </button>
+
+      `;
+
+
+      const optionArea =
+        document.querySelector(
+          "#quiz-options"
+        );
+
+
+      const submit =
+        document.querySelector(
+          "#quiz-submit"
+        );
+
+
+      options.forEach(
+        (option, index) => {
+
+          const button =
+            document.createElement(
+              "button"
+            );
+
+
+          button.type =
+            "button";
+
+
+          button.className =
+            "quiz-option";
+
+
+          button.textContent =
+            option;
+
+
+          button.addEventListener(
+            "click",
+            () => {
+
+              selected =
+                index;
+
+
+              document
+                .querySelectorAll(
+                  ".quiz-option"
+                )
+                .forEach(
+                  element => {
+
+                    element.classList.remove(
+                      "selected"
+                    );
+
+                  }
+                );
+
+
+              button.classList.add(
+                "selected"
+              );
+
+
+              submit.disabled =
+                false;
+
+            }
+          );
+
+
+          optionArea.appendChild(
+            button
+          );
+
+        }
+      );
+
+
+      submit.addEventListener(
+        "click",
+        () => {
+
+          if (
+            selected < 0
+          ) {
+            return;
+          }
+
+
+          const correct =
+            selected ===
+            correctIndex;
+
+
+          closeModal();
+
+
+          resolve(
+            correct
+          );
+
+        },
+        {
+          once: true
+        }
+      );
+
+    }
+  );
+
+},
 
                 updateAnswer();
 
@@ -1251,114 +1403,160 @@ window.GameUI = {
    RPG DIALOG
 ===================================================== */
 
-function showDialogue(
-  rawText
-) {
+function showDialogue(rawText) {
 
-  return new Promise(
-    resolve => {
+  return new Promise(resolve => {
 
-      openModal();
+    openModal();
+
+    let text =
+      String(rawText ?? "");
+
+    let speaker =
+      "";
+
+    let portrait =
+      null;
 
 
-      let text =
-        String(
-          rawText ?? ""
+    /*
+      루미 대사
+    */
+
+    if (text.startsWith("루미:")) {
+
+      speaker =
+        "루미";
+
+      portrait =
+        getLumiPortrait();
+
+      text =
+        text.replace(
+          /^루미:\s*/,
+          ""
         );
 
+    }
 
-      let speaker =
+
+    /*
+      플레이어 대사
+
+      나:
+      플레이어:
+      로 시작하는 경우
+    */
+
+    else if (
+      text.startsWith("나:") ||
+      text.startsWith("플레이어:")
+    ) {
+
+      speaker =
         getPlayerName();
 
-
-      let portrait =
+      portrait =
         getPlayerPortrait();
 
+      text =
+        text
+          .replace(/^나:\s*/, "")
+          .replace(/^플레이어:\s*/, "");
 
-      /*
-        루미 대사는 아직 루미 초상화가 없으므로
-        초상화 없이 표시
-      */
-
-      if (
-        text.startsWith(
-          "루미:"
-        )
-      ) {
-
-        speaker =
-          "루미";
+    }
 
 
-        text =
-          text.replace(
-            /^루미:\s*/,
-            ""
-          );
+    /*
+      나머지는 시스템 설명
+    */
+
+    else {
+
+      speaker =
+        "";
+
+      portrait =
+        null;
+
+    }
 
 
-        portrait =
-          null;
-
-      }
-
-
-      const portraitHTML =
-        portrait
-
+    const portraitHTML =
+      portrait
         ? `
-
           <div class="dialogue-portrait-box">
 
             <img
               class="dialogue-portrait"
               src="${portrait}"
-              alt=""
+              alt="${escapeHtml(speaker)}"
             />
 
           </div>
-
         `
-
         : `
-
-          <div
-            class="dialogue-portrait-box"
-          ></div>
-
+          <div class="dialogue-portrait-box system-portrait">
+            <div class="system-symbol">✦</div>
+          </div>
         `;
 
 
-      modalBody.innerHTML = `
+    modalBody.innerHTML = `
 
-        <div class="dialogue-layout">
+      <div class="dialogue-layout">
 
-          ${portraitHTML}
+        ${portraitHTML}
 
+        <div class="dialogue-content">
 
-          <div class="dialogue-content">
+          ${
+            speaker
+              ? `
+                <div class="dialogue-speaker">
+                  ${escapeHtml(speaker)}
+                </div>
+              `
+              : ""
+          }
 
-            <div class="dialogue-speaker">
-              ${escapeHtml(speaker)}
-            </div>
+          <p class="dialogue-text">
+            ${escapeHtml(text)}
+          </p>
 
-            <p class="dialogue-text">
-              ${escapeHtml(text)}
-            </p>
-
-            <button
-              id="dialog-next"
-              class="big-gold"
-              type="button"
-            >
-              다음
-            </button>
-
-          </div>
+          <button
+            id="dialog-next"
+            class="big-gold"
+            type="button"
+          >
+            다음
+          </button>
 
         </div>
 
-      `;
+      </div>
+
+    `;
+
+
+    document
+      .querySelector("#dialog-next")
+      ?.addEventListener(
+        "click",
+        () => {
+
+          closeModal();
+
+          resolve(true);
+
+        },
+        {
+          once: true
+        }
+      );
+
+  });
+}
 
 
       document
@@ -1482,3 +1680,49 @@ function formatTime(
   return `${minutes}분 ${remain}초`;
 
 }
+document.addEventListener(
+  "keydown",
+  event => {
+
+    if (
+      event.key !== "Enter" &&
+      event.code !== "Space"
+    ) {
+      return;
+    }
+
+
+    if (
+      modal?.classList.contains(
+        "hidden"
+      )
+    ) {
+      return;
+    }
+
+
+    const button =
+      document.querySelector(
+        `
+        #dialog-next,
+        #english-ok,
+        #sentence-submit,
+        #quiz-submit
+        `
+      );
+
+
+    if (
+      !button ||
+      button.disabled
+    ) {
+      return;
+    }
+
+
+    event.preventDefault();
+
+    button.click();
+
+  }
+);
