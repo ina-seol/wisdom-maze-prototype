@@ -2,11 +2,25 @@ import Phaser from "phaser";
 
 import "./style.css";
 
+
 import Map01Scene
   from "./game/Map01Scene.js";
 
 import Map02Scene
   from "./game/Map02Scene.js";
+
+import Map03Scene
+  from "./game/Map03Scene.js";
+
+import Map04Scene
+  from "./game/Map04Scene.js";
+
+import Map05Scene
+  from "./game/Map05Scene.js";
+
+import Map06Scene
+  from "./game/Map06Scene.js";
+
 
 import {
   saveProfile,
@@ -23,7 +37,11 @@ import {
 
 const GAME_SCENES = [
   Map01Scene,
-  Map02Scene
+  Map02Scene,
+  Map03Scene,
+  Map04Scene,
+  Map05Scene,
+  Map06Scene
 ];
 
 
@@ -150,10 +168,12 @@ const ASSETS = {
 
 
 /* =====================================================
-   TITLE ASSETS
+   TITLE
 ===================================================== */
 
-if (titleBg) {
+if (
+  titleBg
+) {
 
   titleBg.style.backgroundImage =
     `url("${base}assets/title.png")`;
@@ -161,7 +181,9 @@ if (titleBg) {
 }
 
 
-if (malePreview) {
+if (
+  malePreview
+) {
 
   malePreview.src =
     ASSETS.malePortrait;
@@ -169,7 +191,9 @@ if (malePreview) {
 }
 
 
-if (femalePreview) {
+if (
+  femalePreview
+) {
 
   femalePreview.src =
     ASSETS.femalePortrait;
@@ -177,10 +201,13 @@ if (femalePreview) {
 }
 
 
-if (bgm) {
+if (
+  bgm
+) {
 
   bgm.src =
     `${base}assets/theme.mp3`;
+
 
   bgm.volume =
     0.45;
@@ -192,54 +219,61 @@ if (bgm) {
    MUSIC
 ===================================================== */
 
-musicBtn?.addEventListener(
-  "click",
-  async () => {
+musicBtn
+  ?.addEventListener(
+    "click",
+    async () => {
 
-    if (!bgm) {
-      return;
-    }
+      if (
+        !bgm
+      ) {
+
+        return;
+
+      }
 
 
-    if (bgm.paused) {
+      if (
+        bgm.paused
+      ) {
 
-      try {
+        try {
 
-        await bgm.play();
+          await bgm.play();
+
+
+          musicBtn.textContent =
+            "음악 끄기";
+
+        }
+
+        catch (error) {
+
+          console.error(
+            "음악 재생 실패:",
+            error
+          );
+
+        }
+
+      }
+
+      else {
+
+        bgm.pause();
 
 
         musicBtn.textContent =
-          "음악 끄기";
-
-      }
-
-      catch (error) {
-
-        console.error(
-          "음악 재생 실패:",
-          error
-        );
+          "음악 켜기";
 
       }
 
     }
-
-    else {
-
-      bgm.pause();
-
-
-      musicBtn.textContent =
-        "음악 켜기";
-
-    }
-
-  }
-);
+  );
 
 
 /* =====================================================
-   CHARACTER SELECT
+   CHARACTER
 ===================================================== */
 
 let selectedGender =
@@ -291,141 +325,140 @@ characterCards.forEach(
    NEW GAME
 ===================================================== */
 
-startBtn?.addEventListener(
-  "click",
-  () => {
+startBtn
+  ?.addEventListener(
+    "click",
+    () => {
 
-    selectedGender =
-      "male";
-
-
-    characterCards.forEach(
-      card => {
-
-        card.classList.toggle(
-
-          "selected",
-
-          card.dataset.gender ===
-            "male"
-
-        );
-
-      }
-    );
+      selectedGender =
+        "male";
 
 
-    if (
-      studentNameInput
-    ) {
+      characterCards.forEach(
+        card => {
 
-      studentNameInput.value =
-        "";
+          card.classList.toggle(
+            "selected",
+            card.dataset.gender ===
+              "male"
+          );
 
-    }
-
-
-    setupModal
-      ?.classList
-      .remove(
-        "hidden"
+        }
       );
 
 
-    setTimeout(
-      () => {
+      if (
+        studentNameInput
+      ) {
+
+        studentNameInput.value =
+          "";
+
+      }
+
+
+      setupModal
+        ?.classList
+        .remove(
+          "hidden"
+        );
+
+
+      setTimeout(
+        () => {
+
+          studentNameInput
+            ?.focus();
+
+        },
+        50
+      );
+
+    }
+  );
+
+
+cancelBtn
+  ?.addEventListener(
+    "click",
+    () => {
+
+      setupModal
+        ?.classList
+        .add(
+          "hidden"
+        );
+
+    }
+  );
+
+
+beginBtn
+  ?.addEventListener(
+    "click",
+    async () => {
+
+      const name =
+        studentNameInput
+          ?.value
+          .trim();
+
+
+      if (
+        !name
+      ) {
+
+        alert(
+          "이름을 입력해 주세요."
+        );
+
 
         studentNameInput
           ?.focus();
 
-      },
-      50
-    );
 
-  }
-);
+        return;
+
+      }
 
 
-cancelBtn?.addEventListener(
-  "click",
-  () => {
+      const profile = {
 
-    setupModal
-      ?.classList
-      .add(
-        "hidden"
-      );
+        name,
 
-  }
-);
+        gender:
+          selectedGender,
 
+        currentMap:
+          "MAP01"
 
-beginBtn?.addEventListener(
-  "click",
-  async () => {
-
-    const name =
-      studentNameInput
-        ?.value
-        .trim();
+      };
 
 
-    if (!name) {
-
-      alert(
-        "이름을 입력해 주세요."
+      saveProfile(
+        profile
       );
 
 
-      studentNameInput
-        ?.focus();
+      clearAllProgress(
+        name
+      );
 
 
-      return;
+      setupModal
+        ?.classList
+        .add(
+          "hidden"
+        );
+
+
+      await launchGame(
+        profile,
+        "MAP01"
+      );
 
     }
-
-
-    const profile = {
-
-      name,
-
-      gender:
-        selectedGender,
-
-      currentMap:
-        "MAP01"
-
-    };
-
-
-    saveProfile(
-      profile
-    );
-
-
-    clearAllProgress(
-      name
-    );
-
-
-    setupModal
-      ?.classList
-      .add(
-        "hidden"
-      );
-
-
-    await launchGame(
-
-      profile,
-
-      "MAP01"
-
-    );
-
-  }
-);
+  );
 
 
 studentNameInput
@@ -454,65 +487,64 @@ studentNameInput
    CONTINUE
 ===================================================== */
 
-continueBtn?.addEventListener(
-  "click",
-  async () => {
+continueBtn
+  ?.addEventListener(
+    "click",
+    async () => {
 
-    const profile =
-      getProfile();
+      const profile =
+        getProfile();
 
 
-    if (
-      !profile?.name
-    ) {
+      if (
+        !profile?.name
+      ) {
 
-      alert(
-        "저장된 기록이 없습니다."
+        alert(
+          "저장된 기록이 없습니다."
+        );
+
+
+        return;
+
+      }
+
+
+      const mapId =
+        profile.currentMap
+        ||
+        getCurrentMap()
+        ||
+        "MAP01";
+
+
+      await launchGame(
+        profile,
+        mapId
       );
 
-
-      return;
-
     }
-
-
-    const mapId =
-      profile.currentMap
-      ||
-      getCurrentMap()
-      ||
-      "MAP01";
-
-
-    await launchGame(
-
-      profile,
-
-      mapId
-
-    );
-
-  }
-);
+  );
 
 
 /* =====================================================
    ADMIN
 ===================================================== */
 
-adminBtn?.addEventListener(
-  "click",
-  () => {
+adminBtn
+  ?.addEventListener(
+    "click",
+    () => {
 
-    window.location.href =
-      `${base}admin.html`;
+      window.location.href =
+        `${base}admin.html`;
 
-  }
-);
+    }
+  );
 
 
 /* =====================================================
-   PHASER GAME
+   PHASER
 ===================================================== */
 
 let phaserGame =
@@ -523,10 +555,6 @@ async function launchGame(
   profile,
   startMapId = "MAP01"
 ) {
-
-  /*
-    이전 게임 제거
-  */
 
   if (
     phaserGame
@@ -542,10 +570,6 @@ async function launchGame(
 
   }
 
-
-  /*
-    캐릭터 방향 이미지 준비
-  */
 
   const spriteUrls =
     await prepareCharacterSprites(
@@ -576,10 +600,6 @@ async function launchGame(
   };
 
 
-  /*
-    UI 전환
-  */
-
   titleScreen
     ?.classList
     .add(
@@ -603,10 +623,6 @@ async function launchGame(
 
   }
 
-
-  /*
-    게임 생성
-  */
 
   phaserGame =
     new Phaser.Game({
@@ -657,8 +673,7 @@ async function launchGame(
 
 
   /*
-    Phaser가 실제 scene들을 등록한 뒤
-    원하는 맵 시작
+    Phaser 준비 후 저장 맵으로 이동
   */
 
   phaserGame.events.once(
@@ -676,7 +691,7 @@ async function launchGame(
 
 
 /* =====================================================
-   START REGISTERED MAP
+   START MAP
 ===================================================== */
 
 function startRegisteredMap(
@@ -692,21 +707,13 @@ function startRegisteredMap(
   }
 
 
-  const sceneManager =
-    phaserGame.scene;
-
-
-  /*
-    MAP02가 아직 등록되지 않았을 경우 등
-  */
-
   if (
-    sceneManager.keys[
+    phaserGame.scene.keys[
       mapId
     ]
   ) {
 
-    sceneManager.start(
+    phaserGame.scene.start(
       mapId
     );
 
@@ -722,10 +729,10 @@ function startRegisteredMap(
 
 
   if (
-    sceneManager.keys.MAP01
+    phaserGame.scene.keys.MAP01
   ) {
 
-    sceneManager.start(
+    phaserGame.scene.start(
       "MAP01"
     );
 
@@ -742,8 +749,6 @@ function startRegisteredMap(
 
 /* =====================================================
    GLOBAL GAME CONTROL
-
-   Map01Scene.js / Map02Scene.js에서 사용
 ===================================================== */
 
 window.WisdomGame = {
@@ -763,13 +768,9 @@ window.WisdomGame = {
 
 
     return Boolean(
-
-      phaserGame
-        .scene
-        .keys[
-          mapId
-        ]
-
+      phaserGame.scene.keys[
+        mapId
+      ]
     );
 
   },
@@ -789,11 +790,9 @@ window.WisdomGame = {
 
 
     if (
-      !phaserGame
-        .scene
-        .keys[
-          mapId
-        ]
+      !phaserGame.scene.keys[
+        mapId
+      ]
     ) {
 
       console.warn(
@@ -823,15 +822,15 @@ window.WisdomGame = {
 
       });
 
+    }
 
-      if (
-        window.WISDOM_PROFILE
-      ) {
 
-        window.WISDOM_PROFILE.currentMap =
-          mapId;
+    if (
+      window.WISDOM_PROFILE
+    ) {
 
-      }
+      window.WISDOM_PROFILE.currentMap =
+        mapId;
 
     }
 
@@ -883,12 +882,6 @@ window.WisdomGame = {
 
 /* =====================================================
    CHARACTER SPRITES
-
-   4열 시트
-   0 = front
-   1 = back
-   2 = left
-   3 = right
 ===================================================== */
 
 async function prepareCharacterSprites(
@@ -978,10 +971,6 @@ async function prepareCharacterSprites(
 
 }
 
-
-/* =====================================================
-   IMAGE
-===================================================== */
 
 function loadImage(
   src
@@ -1078,19 +1067,15 @@ function cropCharacter(
 
 
   context.drawImage(
-
     image,
-
     sx,
     sy,
     sw,
     sh,
-
     0,
     0,
     sw,
     sh
-
   );
 
 
@@ -1118,15 +1103,11 @@ function getPlayerPortrait() {
   }
 
 
-  const gender =
+  return (
     window.WISDOM_PROFILE
-      ?.gender
-      ||
-      "male";
-
-
-  return gender ===
+      ?.gender ===
     "female"
+  )
 
     ? ASSETS.femalePortrait
 
@@ -1161,10 +1142,6 @@ function getPlayerName() {
 window.QuizEngine = {
 
 
-  /* -----------------------------------------------------
-     영어 단어 → 한국어 뜻
-  ------------------------------------------------------ */
-
   wordToKorean(
     words,
     used = []
@@ -1192,14 +1169,11 @@ window.QuizEngine = {
 
     const options =
       buildOptions(
-
         target.korean,
-
         pool.map(
           item =>
             item.korean
         )
-
       );
 
 
@@ -1225,10 +1199,6 @@ window.QuizEngine = {
 
   },
 
-
-  /* -----------------------------------------------------
-     한국어 뜻 → 영어 단어
-  ------------------------------------------------------ */
 
   koreanToWord(
     words,
@@ -1257,14 +1227,11 @@ window.QuizEngine = {
 
     const options =
       buildOptions(
-
         target.english,
-
         pool.map(
           item =>
             item.english
         )
-
       );
 
 
@@ -1290,10 +1257,6 @@ window.QuizEngine = {
 
   },
 
-
-  /* -----------------------------------------------------
-     영어 표현 → 한국어 뜻
-  ------------------------------------------------------ */
 
   expressionToKorean(
     expressions,
@@ -1322,14 +1285,11 @@ window.QuizEngine = {
 
     const options =
       buildOptions(
-
         target.korean,
-
         pool.map(
           item =>
             item.korean
         )
-
       );
 
 
@@ -1355,10 +1315,6 @@ window.QuizEngine = {
 
   },
 
-
-  /* -----------------------------------------------------
-     한국어 뜻 → 영어 표현
-  ------------------------------------------------------ */
 
   koreanToExpression(
     expressions,
@@ -1387,14 +1343,11 @@ window.QuizEngine = {
 
     const options =
       buildOptions(
-
         target.english,
-
         pool.map(
           item =>
             item.english
         )
-
       );
 
 
@@ -1421,31 +1374,20 @@ window.QuizEngine = {
   },
 
 
-  /* -----------------------------------------------------
-     문장 배열용 표현 선택
-  ------------------------------------------------------ */
-
   pickExpression(
     expressions,
     used = []
   ) {
 
     return pickUnused(
-
       usablePairs(
         expressions
       ),
-
       used
-
     );
 
   },
 
-
-  /* -----------------------------------------------------
-     랜덤 복습
-  ------------------------------------------------------ */
 
   randomReview(
     content,
@@ -1457,30 +1399,17 @@ window.QuizEngine = {
       [];
 
 
-    const wordPool =
+    if (
       usablePairs(
         content?.words
-      );
-
-
-    const expressionPool =
-      usablePairs(
-        content?.expressions
-      );
-
-
-    if (
-      wordPool.length
+      ).length
     ) {
 
       makers.push(
         () =>
           this.wordToKorean(
-
-            wordPool,
-
+            content.words,
             usedWords
-
           )
       );
 
@@ -1488,11 +1417,8 @@ window.QuizEngine = {
       makers.push(
         () =>
           this.koreanToWord(
-
-            wordPool,
-
+            content.words,
             usedWords
-
           )
       );
 
@@ -1500,17 +1426,16 @@ window.QuizEngine = {
 
 
     if (
-      expressionPool.length
+      usablePairs(
+        content?.expressions
+      ).length
     ) {
 
       makers.push(
         () =>
           this.expressionToKorean(
-
-            expressionPool,
-
+            content.expressions,
             usedExpressions
-
           )
       );
 
@@ -1518,11 +1443,8 @@ window.QuizEngine = {
       makers.push(
         () =>
           this.koreanToExpression(
-
-            expressionPool,
-
+            content.expressions,
             usedExpressions
-
           )
       );
 
@@ -1538,13 +1460,9 @@ window.QuizEngine = {
     }
 
 
-    const maker =
-      shuffle(
-        makers
-      )[0];
-
-
-    return maker();
+    return shuffle(
+      makers
+    )[0]();
 
   }
 
@@ -1604,11 +1522,9 @@ function pickUnused(
 
 
   return shuffle(
-
     unused.length
       ? unused
       : items
-
   )[0];
 
 }
@@ -1629,32 +1545,20 @@ function buildOptions(
 
   const wrong =
     shuffle(
-
       values.filter(
         value =>
           value !==
           correct
       )
-
     );
 
 
-  /*
-    단어/표현을 최소 4개 넣으면
-    항상 4지선다.
-
-    4개 미만이면 있는 것만 표시.
-  */
-
   return shuffle([
-
     correct,
-
     ...wrong.slice(
       0,
       3
     )
-
   ]);
 
 }
@@ -1666,10 +1570,6 @@ function buildOptions(
 
 window.GameUI = {
 
-
-  /* -----------------------------------------------------
-     DIALOGUE
-  ------------------------------------------------------ */
 
   async say(
     messages
@@ -1696,10 +1596,6 @@ window.GameUI = {
 
   },
 
-
-  /* -----------------------------------------------------
-     MULTIPLE CHOICE
-  ------------------------------------------------------ */
 
   async choice(
     question,
@@ -1756,24 +1652,6 @@ window.GameUI = {
           );
 
 
-        if (
-          !optionArea ||
-          !submit
-        ) {
-
-          closeModal();
-
-
-          resolve(
-            false
-          );
-
-
-          return;
-
-        }
-
-
         options.forEach(
           (
             option,
@@ -1795,9 +1673,7 @@ window.GameUI = {
 
 
             button.textContent =
-              String(
-                option
-              );
+              String(option);
 
 
             button.addEventListener(
@@ -1813,13 +1689,10 @@ window.GameUI = {
                     ".quiz-option"
                   )
                   .forEach(
-                    item => {
-
+                    item =>
                       item.classList.remove(
                         "selected"
-                      );
-
-                    }
+                      )
                   );
 
 
@@ -1882,9 +1755,14 @@ window.GameUI = {
   },
 
 
-  /* -----------------------------------------------------
-     WORD ORDER
-  ------------------------------------------------------ */
+  /*
+    문장 배열
+
+    중요:
+    오답이어도 Promise를 끝냄.
+    그래서 Scene의 finally가 실행되고
+    키보드가 다시 풀림.
+  */
 
   async wordOrder(
     sentence
@@ -1894,9 +1772,7 @@ window.GameUI = {
       resolve => {
 
         const words =
-          String(
-            sentence
-          )
+          String(sentence)
             .trim()
             .split(/\s+/)
             .filter(Boolean);
@@ -1986,21 +1862,15 @@ window.GameUI = {
 
         function renderAnswer() {
 
-          if (
-            answerArea
-          ) {
-
-            answerArea.textContent =
-              selected
-                .map(
-                  item =>
-                    item.word
-                )
-                .join(" ")
-              ||
-              " ";
-
-          }
+          answerArea.textContent =
+            selected
+              .map(
+                item =>
+                  item.word
+              )
+              .join(" ")
+            ||
+            " ";
 
         }
 
@@ -2058,10 +1928,9 @@ window.GameUI = {
             );
 
 
-            tokenArea
-              ?.appendChild(
-                button
-              );
+            tokenArea.appendChild(
+              button
+            );
 
           }
         );
@@ -2106,34 +1975,27 @@ window.GameUI = {
                   .join(" ");
 
 
-              if (
+              const correct =
                 normalizeSentence(
                   result
                 )
                 ===
                 normalizeSentence(
                   sentence
-                )
-              ) {
-
-                closeModal();
-
-
-                resolve(
-                  true
                 );
 
-              }
 
-              else if (
-                answerArea
-              ) {
+              closeModal();
 
-                answerArea.textContent =
-                  "순서를 다시 확인해 보세요.";
 
-              }
+              resolve(
+                correct
+              );
 
+            },
+            {
+              once:
+                true
             }
           );
 
@@ -2142,10 +2004,6 @@ window.GameUI = {
 
   },
 
-
-  /* -----------------------------------------------------
-     SIMPLE ENGLISH DISPLAY
-  ------------------------------------------------------ */
 
   async english(
     description,
@@ -2160,33 +2018,21 @@ window.GameUI = {
 
         modalBody.innerHTML = `
 
-          <div class="question-layout">
+          <p class="dialogue-text">
+            ${escapeHtml(description)}
+          </p>
 
-            <div class="question-icon">
-              ABC
-            </div>
-
-            <div class="question-content">
-
-              <p class="dialogue-text">
-                ${escapeHtml(description)}
-              </p>
-
-              <div class="english-box">
-                ${escapeHtml(englishText)}
-              </div>
-
-              <button
-                id="english-ok"
-                class="big-gold"
-                type="button"
-              >
-                확인
-              </button>
-
-            </div>
-
+          <div class="english-box">
+            ${escapeHtml(englishText)}
           </div>
+
+          <button
+            id="english-ok"
+            class="big-gold"
+            type="button"
+          >
+            확인
+          </button>
 
         `;
 
@@ -2219,10 +2065,6 @@ window.GameUI = {
   },
 
 
-  /* -----------------------------------------------------
-     RESULT
-  ------------------------------------------------------ */
-
   async finish(
     result
   ) {
@@ -2239,47 +2081,35 @@ window.GameUI = {
             ${escapeHtml(result.mapId ?? "MAP")} CLEAR!
           </h2>
 
-          <p class="dialogue-text result-message">
+          <p class="dialogue-text">
             ${escapeHtml(result.name)}의 모험 완료!
           </p>
 
           <div class="result-box">
 
             <div>
-              <span>
-                플레이 시간
-              </span>
-
+              <span>플레이 시간</span>
               <strong>
                 ${formatTime(result.seconds)}
               </strong>
             </div>
 
             <div>
-              <span>
-                첫 시도 정답
-              </span>
-
+              <span>첫 시도 정답</span>
               <strong>
                 ${Number(result.firstTry) || 0}
               </strong>
             </div>
 
             <div>
-              <span>
-                오답 횟수
-              </span>
-
+              <span>오답 횟수</span>
               <strong>
                 ${Number(result.wrong) || 0}
               </strong>
             </div>
 
             <div>
-              <span>
-                말의 조각
-              </span>
-
+              <span>말의 조각</span>
               <strong>
                 ◆ ◆ ◆
               </strong>
@@ -2360,10 +2190,6 @@ function showDialogue(
         null;
 
 
-      /*
-        LUMI
-      */
-
       if (
         text.startsWith(
           "루미:"
@@ -2385,11 +2211,6 @@ function showDialogue(
           );
 
       }
-
-
-      /*
-        PLAYER
-      */
 
       else if (
         text.startsWith(
@@ -2525,7 +2346,7 @@ function showDialogue(
 
 
 /* =====================================================
-   ENTER / SPACE SUPPORT
+   ENTER / SPACE
 ===================================================== */
 
 document.addEventListener(
@@ -2553,11 +2374,6 @@ document.addEventListener(
 
     }
 
-
-    /*
-      모달 닫혀 있으면
-      Phaser가 Enter/E를 처리.
-    */
 
     if (
       modal
@@ -2693,14 +2509,11 @@ function normalizeSentence(
   return String(
     value ?? ""
   )
-
     .trim()
-
     .replace(
       /\s+/g,
       " "
     )
-
     .toLowerCase();
 
 }
@@ -2716,18 +2529,10 @@ function formatTime(
     0;
 
 
-  const minutes =
-    Math.floor(
-      safeSeconds / 60
-    );
-
-
-  const remain =
-    Math.floor(
-      safeSeconds % 60
-    );
-
-
-  return `${minutes}분 ${remain}초`;
+  return (
+    `${Math.floor(safeSeconds / 60)}분 `
+    +
+    `${Math.floor(safeSeconds % 60)}초`
+  );
 
 }
