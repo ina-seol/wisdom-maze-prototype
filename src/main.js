@@ -15,6 +15,10 @@ import {
 } from "./data.js";
 
 
+/* =====================================================
+   BASE
+===================================================== */
+
 const base =
   import.meta.env.BASE_URL;
 
@@ -110,7 +114,7 @@ const femalePreview =
 
 
 /* =====================================================
-   ASSETS
+   ASSET PATHS
 ===================================================== */
 
 if (titleBg) {
@@ -163,7 +167,6 @@ if (
 
   musicBtn.addEventListener(
     "click",
-
     async () => {
 
       if (
@@ -182,8 +185,12 @@ if (
         catch (error) {
 
           console.error(
+            "음악 재생 실패:",
             error
           );
+
+          musicBtn.textContent =
+            "음악 켜기";
 
         }
 
@@ -223,7 +230,6 @@ characterCards.forEach(
 
     card.addEventListener(
       "click",
-
       () => {
 
         characterCards.forEach(
@@ -253,12 +259,11 @@ characterCards.forEach(
 
 
 /* =====================================================
-   START
+   START BUTTON
 ===================================================== */
 
 startBtn?.addEventListener(
   "click",
-
   () => {
 
     selectedGender =
@@ -294,8 +299,11 @@ startBtn?.addEventListener(
 
 
     setTimeout(
-      () =>
-        studentNameInput?.focus(),
+      () => {
+
+        studentNameInput?.focus();
+
+      },
       50
     );
 
@@ -309,7 +317,6 @@ startBtn?.addEventListener(
 
 cancelBtn?.addEventListener(
   "click",
-
   () => {
 
     setupModal?.classList.add(
@@ -321,12 +328,11 @@ cancelBtn?.addEventListener(
 
 
 /* =====================================================
-   BEGIN
+   BEGIN GAME
 ===================================================== */
 
 beginBtn?.addEventListener(
   "click",
-
   async () => {
 
     const name =
@@ -342,6 +348,8 @@ beginBtn?.addEventListener(
       alert(
         "이름을 입력해 주세요."
       );
+
+      studentNameInput?.focus();
 
       return;
 
@@ -383,12 +391,34 @@ beginBtn?.addEventListener(
 
 
 /* =====================================================
+   ENTER ON NAME INPUT
+===================================================== */
+
+studentNameInput?.addEventListener(
+  "keydown",
+  event => {
+
+    if (
+      event.key ===
+      "Enter"
+    ) {
+
+      event.preventDefault();
+
+      beginBtn?.click();
+
+    }
+
+  }
+);
+
+
+/* =====================================================
    CONTINUE
 ===================================================== */
 
 continueBtn?.addEventListener(
   "click",
-
   async () => {
 
     const profile =
@@ -423,7 +453,6 @@ continueBtn?.addEventListener(
 
 adminBtn?.addEventListener(
   "click",
-
   () => {
 
     window.location.href =
@@ -434,7 +463,7 @@ adminBtn?.addEventListener(
 
 
 /* =====================================================
-   PHASER
+   PHASER GAME
 ===================================================== */
 
 let phaserGame =
@@ -577,7 +606,10 @@ async function launchGame(
 
 
 /* =====================================================
-   4-DIRECTION SPRITE
+   CHARACTER SPRITE PREPARATION
+
+   새 PNG 시트:
+   [정면][후면][왼쪽][오른쪽]
 ===================================================== */
 
 async function prepareCharacterSprites(
@@ -600,11 +632,6 @@ async function prepareCharacterSprites(
       );
 
 
-    /*
-      새 시트:
-      [앞][뒤][왼쪽][오른쪽]
-    */
-
     const frameWidth =
       Math.floor(
         image.width / 4
@@ -615,52 +642,59 @@ async function prepareCharacterSprites(
       image.height;
 
 
+    const front =
+      cropCharacter(
+        image,
+        0,
+        0,
+        frameWidth,
+        frameHeight
+      );
+
+
+    const back =
+      cropCharacter(
+        image,
+        frameWidth,
+        0,
+        frameWidth,
+        frameHeight
+      );
+
+
+    const left =
+      cropCharacter(
+        image,
+        frameWidth * 2,
+        0,
+        frameWidth,
+        frameHeight
+      );
+
+
+    const right =
+      cropCharacter(
+        image,
+        frameWidth * 3,
+        0,
+        frameWidth,
+        frameHeight
+      );
+
+
     return {
 
-      front:
-        cropCharacter(
-          image,
-          0,
-          0,
-          frameWidth,
-          frameHeight
-        ),
+      front,
+      back,
+      left,
+      right,
 
-      back:
-        cropCharacter(
-          image,
-          frameWidth,
-          0,
-          frameWidth,
-          frameHeight
-        ),
-
-      left:
-        cropCharacter(
-          image,
-          frameWidth * 2,
-          0,
-          frameWidth,
-          frameHeight
-        ),
-
-      right:
-        cropCharacter(
-          image,
-          frameWidth * 3,
-          0,
-          frameWidth,
-          frameHeight
-        ),
+      /*
+        옛 MapScene 호환
+      */
 
       side:
-        cropCharacter(
-          image,
-          frameWidth * 3,
-          0,
-          frameWidth,
-          frameHeight
-        )
+        right
 
     };
 
@@ -676,11 +710,20 @@ async function prepareCharacterSprites(
 
     return {
 
-      front: imageUrl,
-      back: imageUrl,
-      left: imageUrl,
-      right: imageUrl,
-      side: imageUrl
+      front:
+        imageUrl,
+
+      back:
+        imageUrl,
+
+      left:
+        imageUrl,
+
+      right:
+        imageUrl,
+
+      side:
+        imageUrl
 
     };
 
@@ -688,6 +731,10 @@ async function prepareCharacterSprites(
 
 }
 
+
+/* =====================================================
+   IMAGE LOADER
+===================================================== */
 
 function loadImage(
   src
@@ -704,19 +751,25 @@ function loadImage(
 
 
       image.onload =
-        () =>
+        () => {
+
           resolve(
             image
           );
 
+        };
+
 
       image.onerror =
-        () =>
+        () => {
+
           reject(
             new Error(
               `이미지 로딩 실패: ${src}`
             )
           );
+
+        };
 
 
       image.src =
@@ -727,6 +780,13 @@ function loadImage(
 
 }
 
+
+/* =====================================================
+   CROP SPRITE
+
+   새 캐릭터 PNG는 이미 투명 배경이므로
+   별도 배경제거를 하지 않는다.
+===================================================== */
 
 function cropCharacter(
   image,
@@ -749,17 +809,17 @@ function cropCharacter(
     sh;
 
 
-  const ctx =
+  const context =
     canvas.getContext(
       "2d"
     );
 
 
-  ctx.imageSmoothingEnabled =
+  context.imageSmoothingEnabled =
     false;
 
 
-  ctx.drawImage(
+  context.drawImage(
 
     image,
 
@@ -776,11 +836,6 @@ function cropCharacter(
   );
 
 
-  /*
-    새 PNG가 이미 투명 배경이므로
-    별도 배경 제거 필요 없음.
-  */
-
   return canvas.toDataURL(
     "image/png"
   );
@@ -789,32 +844,43 @@ function cropCharacter(
 
 
 /* =====================================================
-   PORTRAIT
+   PORTRAITS
 ===================================================== */
 
 function getPlayerPortrait() {
 
   const gender =
-    window.WISDOM_PROFILE?.gender
-    || "male";
+    window.WISDOM_PROFILE
+      ?.gender
+      || "male";
 
 
-  return gender ===
+  if (
+    gender ===
     "female"
+  ) {
 
-    ? `${base}assets/portraits/female_portrait.png`
+    return `${base}assets/portraits/female_portrait.png`;
 
-    : `${base}assets/portraits/male_portrait.png`;
+  }
+
+
+  return `${base}assets/portraits/male_portrait.png`;
 
 }
+
 
 function getLumiPortrait() {
+
   return `${base}assets/portraits/lumi_portrait.png`;
+
 }
+
 
 function getPlayerName() {
 
-  return window.WISDOM_PROFILE?.name
+  return window.WISDOM_PROFILE
+    ?.name
     || "모험가";
 
 }
@@ -827,6 +893,10 @@ function getPlayerName() {
 window.GameUI = {
 
 
+  /* -----------------------------------------------------
+     NORMAL DIALOG
+  ------------------------------------------------------ */
+
   async say(
     messages
   ) {
@@ -835,7 +905,9 @@ window.GameUI = {
       Array.isArray(
         messages
       )
+
         ? messages
+
         : [messages];
 
 
@@ -853,6 +925,10 @@ window.GameUI = {
   },
 
 
+  /* -----------------------------------------------------
+     ENGLISH CLUE
+  ------------------------------------------------------ */
+
   async english(
     description,
     englishText
@@ -866,21 +942,33 @@ window.GameUI = {
 
         modalBody.innerHTML = `
 
-          <p class="dialogue-text">
-            ${escapeHtml(description)}
-          </p>
+          <div class="question-layout">
 
-          <div class="english-box">
-            ${escapeHtml(englishText)}
+            <div class="question-icon">
+              ABC
+            </div>
+
+            <div class="question-content">
+
+              <p class="dialogue-text">
+                ${escapeHtml(description)}
+              </p>
+
+              <div class="english-box">
+                ${escapeHtml(englishText)}
+              </div>
+
+              <button
+                id="english-ok"
+                class="big-gold"
+                type="button"
+              >
+                확인
+              </button>
+
+            </div>
+
           </div>
-
-          <button
-            id="english-ok"
-            class="big-gold"
-            type="button"
-          >
-            확인
-          </button>
 
         `;
 
@@ -891,13 +979,18 @@ window.GameUI = {
           )
           ?.addEventListener(
             "click",
-
             () => {
 
               closeModal();
 
-              resolve(true);
+              resolve(
+                true
+              );
 
+            },
+            {
+              once:
+                true
             }
           );
 
@@ -906,6 +999,180 @@ window.GameUI = {
 
   },
 
+
+  /* -----------------------------------------------------
+     MULTIPLE CHOICE
+  ------------------------------------------------------ */
+
+  async choice(
+    question,
+    options,
+    correctIndex
+  ) {
+
+    return new Promise(
+      resolve => {
+
+        openModal();
+
+
+        let selectedIndex =
+          -1;
+
+
+        modalBody.innerHTML = `
+
+          <div class="quiz-header">
+            영어 퀴즈
+          </div>
+
+          <p class="dialogue-text">
+            ${escapeHtml(question)}
+          </p>
+
+          <div
+            id="quiz-options"
+            class="quiz-options"
+          ></div>
+
+          <p
+            id="quiz-feedback"
+            class="quiz-feedback"
+          ></p>
+
+          <button
+            id="quiz-submit"
+            class="big-gold"
+            type="button"
+            disabled
+          >
+            확인
+          </button>
+
+        `;
+
+
+        const optionArea =
+          document.querySelector(
+            "#quiz-options"
+          );
+
+
+        const submit =
+          document.querySelector(
+            "#quiz-submit"
+          );
+
+
+        options.forEach(
+          (
+            option,
+            index
+          ) => {
+
+            const button =
+              document.createElement(
+                "button"
+              );
+
+
+            button.type =
+              "button";
+
+
+            button.className =
+              "quiz-option";
+
+
+            button.textContent =
+              option;
+
+
+            button.addEventListener(
+              "click",
+              () => {
+
+                selectedIndex =
+                  index;
+
+
+                document
+                  .querySelectorAll(
+                    ".quiz-option"
+                  )
+                  .forEach(
+                    element => {
+
+                      element.classList.remove(
+                        "selected"
+                      );
+
+                    }
+                  );
+
+
+                button.classList.add(
+                  "selected"
+                );
+
+
+                submit.disabled =
+                  false;
+
+              }
+            );
+
+
+            optionArea.appendChild(
+              button
+            );
+
+          }
+        );
+
+
+        submit.addEventListener(
+          "click",
+          () => {
+
+            if (
+              selectedIndex <
+              0
+            ) {
+
+              return;
+
+            }
+
+
+            const correct =
+              selectedIndex ===
+              correctIndex;
+
+
+            closeModal();
+
+
+            resolve(
+              correct
+            );
+
+          },
+          {
+            once:
+              true
+          }
+        );
+
+      }
+    );
+
+  },
+
+
+  /* -----------------------------------------------------
+     WORD ORDER
+  ------------------------------------------------------ */
 
   async wordOrder(
     sentence
@@ -935,6 +1202,10 @@ window.GameUI = {
 
         modalBody.innerHTML = `
 
+          <div class="quiz-header">
+            문장 만들기
+          </div>
+
           <p class="dialogue-text">
             단어를 올바른 순서대로 선택하세요.
           </p>
@@ -951,21 +1222,25 @@ window.GameUI = {
             class="token-area"
           ></div>
 
-          <button
-            id="sentence-reset"
-            class="text-button"
-            type="button"
-          >
-            다시 선택
-          </button>
+          <div class="quiz-actions">
 
-          <button
-            id="sentence-submit"
-            class="big-gold"
-            type="button"
-          >
-            확인
-          </button>
+            <button
+              id="sentence-reset"
+              class="text-button"
+              type="button"
+            >
+              다시 선택
+            </button>
+
+            <button
+              id="sentence-submit"
+              class="big-gold"
+              type="button"
+            >
+              확인
+            </button>
+
+          </div>
 
         `;
 
@@ -982,6 +1257,18 @@ window.GameUI = {
           );
 
 
+        const resetButton =
+          document.querySelector(
+            "#sentence-reset"
+          );
+
+
+        const submitButton =
+          document.querySelector(
+            "#sentence-submit"
+          );
+
+
         function updateAnswer() {
 
           answerArea.textContent =
@@ -990,7 +1277,9 @@ window.GameUI = {
                 item =>
                   item.word
               )
-              .join(" ")
+              .join(
+                " "
+              )
               ||
               " ";
 
@@ -998,7 +1287,10 @@ window.GameUI = {
 
 
         mixed.forEach(
-          word => {
+          (
+            word,
+            index
+          ) => {
 
             const button =
               document.createElement(
@@ -1009,8 +1301,10 @@ window.GameUI = {
             button.type =
               "button";
 
+
             button.className =
               "token";
+
 
             button.textContent =
               word;
@@ -1018,7 +1312,6 @@ window.GameUI = {
 
             button.addEventListener(
               "click",
-
               () => {
 
                 if (
@@ -1037,162 +1330,11 @@ window.GameUI = {
                 selected.push({
 
                   word,
+                  index,
                   button
 
                 });
-async choice(
-  question,
-  options,
-  correctIndex
-) {
 
-  return new Promise(
-    resolve => {
-
-      openModal();
-
-
-      let selected =
-        -1;
-
-
-      modalBody.innerHTML = `
-
-        <p class="dialogue-text">
-          ${escapeHtml(question)}
-        </p>
-
-        <div
-          id="quiz-options"
-          class="quiz-options"
-        ></div>
-
-        <p
-          id="quiz-feedback"
-          class="quiz-feedback"
-        ></p>
-
-        <button
-          id="quiz-submit"
-          class="big-gold"
-          type="button"
-          disabled
-        >
-          확인
-        </button>
-
-      `;
-
-
-      const optionArea =
-        document.querySelector(
-          "#quiz-options"
-        );
-
-
-      const submit =
-        document.querySelector(
-          "#quiz-submit"
-        );
-
-
-      options.forEach(
-        (option, index) => {
-
-          const button =
-            document.createElement(
-              "button"
-            );
-
-
-          button.type =
-            "button";
-
-
-          button.className =
-            "quiz-option";
-
-
-          button.textContent =
-            option;
-
-
-          button.addEventListener(
-            "click",
-            () => {
-
-              selected =
-                index;
-
-
-              document
-                .querySelectorAll(
-                  ".quiz-option"
-                )
-                .forEach(
-                  element => {
-
-                    element.classList.remove(
-                      "selected"
-                    );
-
-                  }
-                );
-
-
-              button.classList.add(
-                "selected"
-              );
-
-
-              submit.disabled =
-                false;
-
-            }
-          );
-
-
-          optionArea.appendChild(
-            button
-          );
-
-        }
-      );
-
-
-      submit.addEventListener(
-        "click",
-        () => {
-
-          if (
-            selected < 0
-          ) {
-            return;
-          }
-
-
-          const correct =
-            selected ===
-            correctIndex;
-
-
-          closeModal();
-
-
-          resolve(
-            correct
-          );
-
-        },
-        {
-          once: true
-        }
-      );
-
-    }
-  );
-
-},
 
                 updateAnswer();
 
@@ -1208,13 +1350,9 @@ async choice(
         );
 
 
-        document
-          .querySelector(
-            "#sentence-reset"
-          )
+        resetButton
           ?.addEventListener(
             "click",
-
             () => {
 
               selected.forEach(
@@ -1237,13 +1375,9 @@ async choice(
           );
 
 
-        document
-          .querySelector(
-            "#sentence-submit"
-          )
+        submitButton
           ?.addEventListener(
             "click",
-
             () => {
 
               const answer =
@@ -1252,7 +1386,9 @@ async choice(
                     item =>
                       item.word
                   )
-                  .join(" ");
+                  .join(
+                    " "
+                  );
 
 
               if (
@@ -1267,7 +1403,9 @@ async choice(
 
                 closeModal();
 
-                resolve(true);
+                resolve(
+                  true
+                );
 
               }
 
@@ -1287,6 +1425,10 @@ async choice(
   },
 
 
+  /* -----------------------------------------------------
+     RESULT
+  ------------------------------------------------------ */
+
   async finish(
     result
   ) {
@@ -1300,38 +1442,50 @@ async choice(
         modalBody.innerHTML = `
 
           <h2 class="clear-title">
-            MAP CLEAR!
+            MAP 01 CLEAR!
           </h2>
 
-          <p class="dialogue-text">
-            ${escapeHtml(result.name)}의 모험 완료!
+          <p class="dialogue-text result-message">
+            ${escapeHtml(result.name)}의 첫 번째 모험 완료!
           </p>
 
           <div class="result-box">
 
             <div>
-              플레이 시간
+              <span>
+                플레이 시간
+              </span>
+
               <strong>
                 ${formatTime(result.seconds)}
               </strong>
             </div>
 
             <div>
-              첫 시도 정답
+              <span>
+                첫 시도 정답
+              </span>
+
               <strong>
                 ${result.firstTry}
               </strong>
             </div>
 
             <div>
-              오답 횟수
+              <span>
+                오답 횟수
+              </span>
+
               <strong>
                 ${result.wrong}
               </strong>
             </div>
 
             <div>
-              말의 조각
+              <span>
+                말의 조각
+              </span>
+
               <strong>
                 ◆ ◆ ◆
               </strong>
@@ -1356,7 +1510,6 @@ async choice(
           )
           ?.addEventListener(
             "click",
-
             () => {
 
               closeModal();
@@ -1369,6 +1522,7 @@ async choice(
                 phaserGame.destroy(
                   true
                 );
+
 
                 phaserGame =
                   null;
@@ -1386,8 +1540,14 @@ async choice(
               );
 
 
-              resolve(true);
+              resolve(
+                true
+              );
 
+            },
+            {
+              once:
+                true
             }
           );
 
@@ -1400,163 +1560,167 @@ async choice(
 
 
 /* =====================================================
-   RPG DIALOG
+   RPG DIALOGUE
 ===================================================== */
 
-function showDialogue(rawText) {
+function showDialogue(
+  rawText
+) {
 
-  return new Promise(resolve => {
+  return new Promise(
+    resolve => {
 
-    openModal();
-
-    let text =
-      String(rawText ?? "");
-
-    let speaker =
-      "";
-
-    let portrait =
-      null;
+      openModal();
 
 
-    /*
-      루미 대사
-    */
-
-    if (text.startsWith("루미:")) {
-
-      speaker =
-        "루미";
-
-      portrait =
-        getLumiPortrait();
-
-      text =
-        text.replace(
-          /^루미:\s*/,
-          ""
+      let text =
+        String(
+          rawText ?? ""
         );
 
-    }
 
-
-    /*
-      플레이어 대사
-
-      나:
-      플레이어:
-      로 시작하는 경우
-    */
-
-    else if (
-      text.startsWith("나:") ||
-      text.startsWith("플레이어:")
-    ) {
-
-      speaker =
-        getPlayerName();
-
-      portrait =
-        getPlayerPortrait();
-
-      text =
-        text
-          .replace(/^나:\s*/, "")
-          .replace(/^플레이어:\s*/, "");
-
-    }
-
-
-    /*
-      나머지는 시스템 설명
-    */
-
-    else {
-
-      speaker =
+      let speaker =
         "";
 
-      portrait =
+
+      let portrait =
         null;
 
-    }
+
+      /*
+        LUMI
+      */
+
+      if (
+        text.startsWith(
+          "루미:"
+        )
+      ) {
+
+        speaker =
+          "루미";
 
 
-    const portraitHTML =
-      portrait
-        ? `
-          <div class="dialogue-portrait-box">
+        portrait =
+          getLumiPortrait();
 
-            <img
-              class="dialogue-portrait"
-              src="${portrait}"
-              alt="${escapeHtml(speaker)}"
-            />
+
+        text =
+          text.replace(
+            /^루미:\s*/,
+            ""
+          );
+
+      }
+
+
+      /*
+        PLAYER
+      */
+
+      else if (
+        text.startsWith(
+          "나:"
+        )
+        ||
+        text.startsWith(
+          "플레이어:"
+        )
+      ) {
+
+        speaker =
+          getPlayerName();
+
+
+        portrait =
+          getPlayerPortrait();
+
+
+        text =
+          text
+            .replace(
+              /^나:\s*/,
+              ""
+            )
+            .replace(
+              /^플레이어:\s*/,
+              ""
+            );
+
+      }
+
+
+      /*
+        SYSTEM MESSAGE
+      */
+
+      const portraitHTML =
+        portrait
+
+          ? `
+
+            <div class="dialogue-portrait-box">
+
+              <img
+                class="dialogue-portrait"
+                src="${portrait}"
+                alt="${escapeHtml(speaker)}"
+              />
+
+            </div>
+
+          `
+
+          : `
+
+            <div class="dialogue-system-box">
+
+              <div class="dialogue-system-icon">
+                ✦
+              </div>
+
+            </div>
+
+          `;
+
+
+      modalBody.innerHTML = `
+
+        <div class="dialogue-layout">
+
+          ${portraitHTML}
+
+          <div class="dialogue-content">
+
+            ${
+              speaker
+
+                ? `
+                  <div class="dialogue-speaker">
+                    ${escapeHtml(speaker)}
+                  </div>
+                `
+
+                : ""
+            }
+
+            <p class="dialogue-text">
+              ${escapeHtml(text)}
+            </p>
+
+            <button
+              id="dialog-next"
+              class="big-gold"
+              type="button"
+            >
+              다음
+            </button>
 
           </div>
-        `
-        : `
-          <div class="dialogue-portrait-box system-portrait">
-            <div class="system-symbol">✦</div>
-          </div>
-        `;
-
-
-    modalBody.innerHTML = `
-
-      <div class="dialogue-layout">
-
-        ${portraitHTML}
-
-        <div class="dialogue-content">
-
-          ${
-            speaker
-              ? `
-                <div class="dialogue-speaker">
-                  ${escapeHtml(speaker)}
-                </div>
-              `
-              : ""
-          }
-
-          <p class="dialogue-text">
-            ${escapeHtml(text)}
-          </p>
-
-          <button
-            id="dialog-next"
-            class="big-gold"
-            type="button"
-          >
-            다음
-          </button>
 
         </div>
 
-      </div>
-
-    `;
-
-
-    document
-      .querySelector("#dialog-next")
-      ?.addEventListener(
-        "click",
-        () => {
-
-          closeModal();
-
-          resolve(true);
-
-        },
-        {
-          once: true
-        }
-      );
-
-  });
-}
+      `;
 
 
       document
@@ -1565,13 +1729,19 @@ function showDialogue(rawText) {
         )
         ?.addEventListener(
           "click",
-
           () => {
 
             closeModal();
 
-            resolve(true);
 
+            resolve(
+              true
+            );
+
+          },
+          {
+            once:
+              true
           }
         );
 
@@ -1579,6 +1749,102 @@ function showDialogue(rawText) {
   );
 
 }
+
+
+/* =====================================================
+   ENTER / SPACE SUPPORT
+
+   대화창이나 문제창이 열려 있을 때:
+   Enter 또는 Space = 확인
+===================================================== */
+
+document.addEventListener(
+  "keydown",
+  event => {
+
+    if (
+      event.repeat
+    ) {
+
+      return;
+
+    }
+
+
+    if (
+      event.key !==
+        "Enter"
+      &&
+      event.code !==
+        "Space"
+    ) {
+
+      return;
+
+    }
+
+
+    if (
+      modal?.classList.contains(
+        "hidden"
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    /*
+      사용자가 버튼 자체에 포커스하고
+      Space를 누른 경우 브라우저 기본 클릭과
+      중복되지 않도록 막는다.
+    */
+
+    event.preventDefault();
+
+
+    const selectors = [
+
+      "#dialog-next",
+
+      "#english-ok",
+
+      "#quiz-submit",
+
+      "#sentence-submit",
+
+      "#finish-home"
+
+    ];
+
+
+    for (
+      const selector of
+      selectors
+    ) {
+
+      const button =
+        document.querySelector(
+          selector
+        );
+
+
+      if (
+        button &&
+        !button.disabled
+      ) {
+
+        button.click();
+
+        return;
+
+      }
+
+    }
+
+  }
+);
 
 
 /* =====================================================
@@ -1604,7 +1870,7 @@ function closeModal() {
 
 
 /* =====================================================
-   UTILS
+   HELPERS
 ===================================================== */
 
 function escapeHtml(
@@ -1667,62 +1933,26 @@ function formatTime(
   seconds
 ) {
 
+  const safeSeconds =
+    Number.isFinite(
+      Number(seconds)
+    )
+      ? Number(seconds)
+      : 0;
+
+
   const minutes =
     Math.floor(
-      seconds / 60
+      safeSeconds / 60
     );
 
 
   const remain =
-    seconds % 60;
+    Math.floor(
+      safeSeconds % 60
+    );
 
 
   return `${minutes}분 ${remain}초`;
 
 }
-document.addEventListener(
-  "keydown",
-  event => {
-
-    if (
-      event.key !== "Enter" &&
-      event.code !== "Space"
-    ) {
-      return;
-    }
-
-
-    if (
-      modal?.classList.contains(
-        "hidden"
-      )
-    ) {
-      return;
-    }
-
-
-    const button =
-      document.querySelector(
-        `
-        #dialog-next,
-        #english-ok,
-        #sentence-submit,
-        #quiz-submit
-        `
-      );
-
-
-    if (
-      !button ||
-      button.disabled
-    ) {
-      return;
-    }
-
-
-    event.preventDefault();
-
-    button.click();
-
-  }
-);
