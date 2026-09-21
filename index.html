@@ -1,16 +1,17 @@
 <!doctype html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8" />
 
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1.0, user-scalable=no"
+    content="width=device-width, initial-scale=1.0"
   />
 
   <meta
     name="theme-color"
-    content="#0b1630"
+    content="#081120"
   />
 
   <title>지혜의 미로 탐험대</title>
@@ -18,9 +19,9 @@
 
 <body>
 
-  <!-- =====================================================
-       타이틀 화면
-  ====================================================== -->
+  <!-- =========================
+       TITLE
+  ========================== -->
 
   <div id="title-screen">
 
@@ -30,7 +31,7 @@
 
       <button
         id="start-btn"
-        class="main-button selected"
+        class="main-button"
         type="button"
       >
         ▶ 게임 시작
@@ -65,9 +66,9 @@
   </div>
 
 
-  <!-- =====================================================
-       게임 화면
-  ====================================================== -->
+  <!-- =========================
+       GAME
+  ========================== -->
 
   <div
     id="game-screen"
@@ -77,26 +78,16 @@
     <div id="game-hud">
 
       <div class="hud-student">
-
         <strong id="hud-name"></strong>
-
-        <span>
-          · 잠겨버린 교실
-        </span>
-
+        <span> · 잠겨버린 교실</span>
       </div>
 
-
       <div class="hud-shards">
-
         말의 조각
-
         <strong id="hud-shards">
           ◇ ◇ ◇
         </strong>
-
       </div>
-
 
       <div id="hud-objective">
         주변을 조사해 보자.
@@ -105,29 +96,21 @@
     </div>
 
 
-    <!-- Phaser가 실제 MAP01을 그리는 영역 -->
-
     <div id="phaser-root"></div>
 
 
     <div id="control-help">
-
-      이동:
-      WASD / 방향키
-
+      이동: WASD / 방향키
       &nbsp;·&nbsp;
-
-      조사:
-      SPACE / ENTER / E
-
+      조사: E / ENTER / SPACE
     </div>
 
   </div>
 
 
-  <!-- =====================================================
-       학생 이름 + 캐릭터 선택
-  ====================================================== -->
+  <!-- =========================
+       CHARACTER SETUP
+  ========================== -->
 
   <div
     id="setup-modal"
@@ -141,9 +124,8 @@
       </h2>
 
       <p>
-        모험에서 사용할 이름을 입력해 주세요.
+        이름과 캐릭터를 선택해 주세요.
       </p>
-
 
       <input
         id="student-name"
@@ -161,9 +143,6 @@
 
       <div class="character-select">
 
-
-        <!-- 남자 캐릭터 -->
-
         <button
           class="character-card selected"
           data-gender="male"
@@ -171,7 +150,8 @@
         >
 
           <div
-            class="character-preview male"
+            id="male-preview"
+            class="character-preview"
           ></div>
 
           <strong>
@@ -181,8 +161,6 @@
         </button>
 
 
-        <!-- 여자 캐릭터 -->
-
         <button
           class="character-card"
           data-gender="female"
@@ -190,7 +168,8 @@
         >
 
           <div
-            class="character-preview female"
+            id="female-preview"
+            class="character-preview"
           ></div>
 
           <strong>
@@ -199,35 +178,37 @@
 
         </button>
 
-
       </div>
 
 
-      <button
-        id="begin-btn"
-        class="big-gold"
-        type="button"
-      >
-        모험 시작
-      </button>
+      <div class="setup-buttons">
 
+        <button
+          id="begin-btn"
+          class="big-gold"
+          type="button"
+        >
+          모험 시작
+        </button>
 
-      <button
-        id="setup-cancel"
-        class="text-button"
-        type="button"
-      >
-        돌아가기
-      </button>
+        <button
+          id="setup-cancel"
+          class="text-button"
+          type="button"
+        >
+          돌아가기
+        </button>
+
+      </div>
 
     </div>
 
   </div>
 
 
-  <!-- =====================================================
-       공용 대화 / 문제 모달
-  ====================================================== -->
+  <!-- =========================
+       GAME DIALOG
+  ========================== -->
 
   <div
     id="modal"
@@ -238,32 +219,20 @@
       id="modal-panel"
       class="panel"
     >
-
       <div id="modal-body"></div>
-
     </div>
 
   </div>
 
 
-  <!-- =====================================================
-       배경 음악
+  <!-- 음악 경로는 main.js에서 설정 -->
 
-       실제 파일 위치:
-       public/assets/theme.mp3
+  <audio
+    id="bgm"
+    loop
+    preload="auto"
+  ></audio>
 
-       Vite가 GitHub Pages 배포 경로에 맞게 처리
-  ====================================================== -->
-
-<audio
-  id="bgm"
-  loop
-  preload="auto"
-></audio>
-
-  <!-- =====================================================
-       메인 JS
-  ====================================================== -->
 
   <script
     type="module"
@@ -271,4 +240,5 @@
   ></script>
 
 </body>
+
 </html>
