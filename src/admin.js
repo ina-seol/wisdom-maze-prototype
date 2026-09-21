@@ -1,25 +1,15 @@
 import "./style.css";
 
 import {
-
   MAP_IDS,
-
   MAP_NAMES,
-
   getTeacherPin,
-
   getAllMapContent,
-
   getMapContent,
-
   saveMapContent,
-
   saveAllMapContent,
-
   parseAllMapsTxt,
-
   serializeAllMapsTxt
-
 } from "./data.js";
 
 
@@ -117,33 +107,57 @@ let currentMap =
 
 
 /* =====================================================
-   BUILD MAP SELECT
+   MAP SELECT
 ===================================================== */
 
-for (
-  const mapId of
-  MAP_IDS
-) {
+function buildMapSelect() {
 
-  const option =
-    document.createElement(
-      "option"
+  if (
+    !mapSelect
+  ) {
+
+    return;
+
+  }
+
+
+  mapSelect.innerHTML =
+    "";
+
+
+  for (
+    const mapId of
+    MAP_IDS
+  ) {
+
+    const option =
+      document.createElement(
+        "option"
+      );
+
+
+    option.value =
+      mapId;
+
+
+    option.textContent =
+      `${mapId} · ${MAP_NAMES[mapId]}`;
+
+
+    mapSelect.appendChild(
+      option
     );
 
-
-  option.value =
-    mapId;
+  }
 
 
-  option.textContent =
-    `${mapId} · ${MAP_NAMES[mapId]}`;
-
-
-  mapSelect.appendChild(
-    option
-  );
+  mapSelect.value =
+    currentMap;
 
 }
+
+
+buildMapSelect();
 
 
 /* =====================================================
@@ -152,9 +166,14 @@ for (
 
 function login() {
 
+  const inputPin =
+    pinInput
+      ?.value
+      .trim();
+
+
   if (
-    pinInput.value.trim()
-    !==
+    inputPin !==
     getTeacherPin()
   ) {
 
@@ -163,20 +182,23 @@ function login() {
     );
 
 
+    pinInput?.focus();
+
+
     return;
 
   }
 
 
   loginScreen
-    .classList
+    ?.classList
     .add(
       "hidden"
     );
 
 
   adminApp
-    .classList
+    ?.classList
     .remove(
       "hidden"
     );
@@ -203,6 +225,9 @@ pinInput
         event.key ===
         "Enter"
       ) {
+
+        event.preventDefault();
+
 
         login();
 
@@ -239,7 +264,7 @@ adminHome
 
 
 /* =====================================================
-   MAP
+   MAP CHANGE
 ===================================================== */
 
 mapSelect
@@ -257,6 +282,10 @@ mapSelect
   );
 
 
+/* =====================================================
+   LOAD MAP
+===================================================== */
+
 function loadCurrentMap() {
 
   const data =
@@ -265,32 +294,56 @@ function loadCurrentMap() {
     );
 
 
-  wordsEditor.value =
-    data.words
-      .map(
-        formatPair
-      )
-      .join(
-        "\n"
-      );
+  if (
+    wordsEditor
+  ) {
+
+    wordsEditor.value =
+      data.words
+        .map(
+          formatPair
+        )
+        .join(
+          "\n"
+        );
+
+  }
 
 
-  expressionsEditor.value =
-    data.expressions
-      .map(
-        formatPair
-      )
-      .join(
-        "\n"
-      );
+  if (
+    expressionsEditor
+  ) {
+
+    expressionsEditor.value =
+      data.expressions
+        .map(
+          formatPair
+        )
+        .join(
+          "\n"
+        );
+
+  }
 
 
-  saveTitle.textContent =
-    `${currentMap} · ${MAP_NAMES[currentMap]} 저장`;
+  if (
+    saveTitle
+  ) {
+
+    saveTitle.textContent =
+      `${currentMap} · ${MAP_NAMES[currentMap]} 저장`;
+
+  }
 
 
-  status.textContent =
-    `${currentMap} 편집 중`;
+  if (
+    status
+  ) {
+
+    status.textContent =
+      `${currentMap} 편집 중`;
+
+  }
 
 
   updateCounts();
@@ -305,6 +358,15 @@ function loadCurrentMap() {
 function parseEditor(
   textarea
 ) {
+
+  if (
+    !textarea
+  ) {
+
+    return [];
+
+  }
+
 
   return textarea.value
 
@@ -325,20 +387,21 @@ function parseEditor(
     .map(
       line => {
 
-        const index =
+        const separator =
           line.indexOf(
             "|"
           );
 
 
         if (
-          index === -1
+          separator ===
+          -1
         ) {
 
           return {
 
             english:
-              line,
+              line.trim(),
 
             korean:
               ""
@@ -354,14 +417,14 @@ function parseEditor(
             line
               .slice(
                 0,
-                index
+                separator
               )
               .trim(),
 
           korean:
             line
               .slice(
-                index + 1
+                separator + 1
               )
               .trim()
 
@@ -382,11 +445,18 @@ function formatPair(
   item
 ) {
 
-  return item.korean
+  if (
+    item.korean
+  ) {
 
-    ? `${item.english} | ${item.korean}`
+    return (
+      `${item.english} | ${item.korean}`
+    );
 
-    : item.english;
+  }
+
+
+  return item.english;
 
 }
 
@@ -397,16 +467,36 @@ function formatPair(
 
 function updateCounts() {
 
-  wordCount.textContent =
+  const words =
     parseEditor(
       wordsEditor
-    ).length;
+    );
 
 
-  expressionCount.textContent =
+  const expressions =
     parseEditor(
       expressionsEditor
-    ).length;
+    );
+
+
+  if (
+    wordCount
+  ) {
+
+    wordCount.textContent =
+      words.length;
+
+  }
+
+
+  if (
+    expressionCount
+  ) {
+
+    expressionCount.textContent =
+      expressions.length;
+
+  }
 
 }
 
@@ -426,7 +516,98 @@ expressionsEditor
 
 
 /* =====================================================
-   SAVE CURRENT
+   VALIDATION
+===================================================== */
+
+function validateCurrentMap(
+  words,
+  expressions
+) {
+
+  /*
+    4지선다를 위해
+    최소 4단어 권장
+  */
+
+  if (
+    words.length <
+    4
+  ) {
+
+    alert(
+      "객관식 문제를 만들기 위해 단어를 최소 4개 입력해 주세요."
+    );
+
+
+    return false;
+
+  }
+
+
+  if (
+    expressions.length <
+    4
+  ) {
+
+    alert(
+      "객관식 문제를 만들기 위해 영어 표현을 최소 4개 입력해 주세요."
+    );
+
+
+    return false;
+
+  }
+
+
+  const missingWordMeaning =
+    words.find(
+      item =>
+        !item.korean
+    );
+
+
+  if (
+    missingWordMeaning
+  ) {
+
+    alert(
+      `한국어 뜻이 없습니다:\n${missingWordMeaning.english}`
+    );
+
+
+    return false;
+
+  }
+
+
+  const missingExpressionMeaning =
+    expressions.find(
+      item =>
+        !item.korean
+    );
+
+
+  if (
+    missingExpressionMeaning
+  ) {
+
+    alert(
+      `한국어 뜻이 없습니다:\n${missingExpressionMeaning.english}`
+    );
+
+
+    return false;
+
+  }
+
+
+  return true;
+
+}
+
+
+/* =====================================================
+   SAVE CURRENT MAP
 ===================================================== */
 
 saveButton
@@ -446,77 +627,12 @@ saveButton
         );
 
 
-      /*
-        객관식 오답 선택지 때문에
-        4개 이상 권장.
-      */
-
       if (
-        words.length <
-        4
+        !validateCurrentMap(
+          words,
+          expressions
+        )
       ) {
-
-        alert(
-          "객관식 문제를 위해 단어를 최소 4개 입력해 주세요."
-        );
-
-
-        return;
-
-      }
-
-
-      if (
-        expressions.length <
-        4
-      ) {
-
-        alert(
-          "객관식 문제를 위해 영어 표현을 최소 4개 입력해 주세요."
-        );
-
-
-        return;
-
-      }
-
-
-      const invalidWord =
-        words.find(
-          item =>
-            !item.korean
-        );
-
-
-      if (
-        invalidWord
-      ) {
-
-        alert(
-          `한국어 뜻이 없습니다: ${invalidWord.english}`
-        );
-
-
-        return;
-
-      }
-
-
-      const invalidExpression =
-        expressions.find(
-          item =>
-            !item.korean
-        );
-
-
-      if (
-        invalidExpression
-      ) {
-
-        alert(
-          `한국어 뜻이 없습니다: ${invalidExpression.english}`
-        );
-
 
         return;
 
@@ -532,15 +648,21 @@ saveButton
       );
 
 
-      status.textContent =
-        `${currentMap} 저장 완료 · 단어 ${words.length}개 · 표현 ${expressions.length}개`;
+      if (
+        status
+      ) {
+
+        status.textContent =
+          `${currentMap} 저장 완료 · 단어 ${words.length}개 · 표현 ${expressions.length}개`;
+
+      }
 
     }
   );
 
 
 /* =====================================================
-   IMPORT ALL
+   TXT IMPORT
 ===================================================== */
 
 txtUpload
@@ -549,7 +671,8 @@ txtUpload
     async event => {
 
       const file =
-        event.target.files?.[0];
+        event.target
+          .files?.[0];
 
 
       if (!file) {
@@ -579,16 +702,21 @@ txtUpload
         loadCurrentMap();
 
 
-        status.textContent =
-          "전체 MAP TXT를 불러왔습니다.";
+        if (
+          status
+        ) {
+
+          status.textContent =
+            "MAP01~MAP12 전체 TXT를 불러왔습니다.";
+
+        }
 
       }
 
-      catch (
-        error
-      ) {
+      catch (error) {
 
         console.error(
+          "TXT 불러오기 실패:",
           error
         );
 
@@ -599,12 +727,20 @@ txtUpload
 
       }
 
+
+      /*
+        같은 파일을 다시 선택할 수 있게
+      */
+
+      event.target.value =
+        "";
+
     }
   );
 
 
 /* =====================================================
-   EXPORT ALL
+   TXT EXPORT
 ===================================================== */
 
 downloadButton
@@ -613,30 +749,38 @@ downloadButton
     () => {
 
       /*
-        현재 편집중 내용 먼저 저장
+        다운로드 전에
+        현재 편집 화면을 먼저 저장
       */
+
+      const words =
+        parseEditor(
+          wordsEditor
+        );
+
+
+      const expressions =
+        parseEditor(
+          expressionsEditor
+        );
+
 
       saveMapContent(
         currentMap,
         {
-
-          words:
-            parseEditor(
-              wordsEditor
-            ),
-
-          expressions:
-            parseEditor(
-              expressionsEditor
-            )
-
+          words,
+          expressions
         }
       );
 
 
+      const maps =
+        getAllMapContent();
+
+
       const text =
         serializeAllMapsTxt(
-          getAllMapContent()
+          maps
         );
 
 
@@ -670,9 +814,10 @@ downloadButton
         "wisdom-maze-map01-map12.txt";
 
 
-      document.body.appendChild(
-        anchor
-      );
+      document.body
+        .appendChild(
+          anchor
+        );
 
 
       anchor.click();
@@ -685,7 +830,15 @@ downloadButton
         url
       );
 
+
+      if (
+        status
+      ) {
+
+        status.textContent =
+          "MAP01~MAP12 전체 TXT를 저장했습니다.";
+
+      }
+
     }
   );
-  }
-);
