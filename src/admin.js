@@ -13,10 +13,6 @@ const base =
   import.meta.env.BASE_URL;
 
 
-/* =========================================================
-   DOM
-========================================================= */
-
 const loginScreen =
   document.querySelector(
     "#admin-login"
@@ -88,31 +84,9 @@ const status =
   );
 
 
-/* =========================================================
+/* =====================================================
    LOGIN
-========================================================= */
-
-loginButton.addEventListener(
-  "click",
-  login
-);
-
-
-pinInput.addEventListener(
-  "keydown",
-  event => {
-
-    if (
-      event.key ===
-      "Enter"
-    ) {
-
-      login();
-
-    }
-  }
-);
-
+===================================================== */
 
 function login() {
 
@@ -125,8 +99,7 @@ function login() {
 
 
   if (
-    entered !==
-    correct
+    entered !== correct
   ) {
 
     alert(
@@ -134,6 +107,7 @@ function login() {
     );
 
     return;
+
   }
 
 
@@ -148,12 +122,37 @@ function login() {
 
 
   loadCurrentContent();
+
 }
 
 
-/* =========================================================
-   RETURN GAME
-========================================================= */
+loginButton?.addEventListener(
+  "click",
+  login
+);
+
+
+pinInput?.addEventListener(
+  "keydown",
+
+  event => {
+
+    if (
+      event.key ===
+      "Enter"
+    ) {
+
+      login();
+
+    }
+
+  }
+);
+
+
+/* =====================================================
+   HOME
+===================================================== */
 
 function goHome() {
 
@@ -163,21 +162,21 @@ function goHome() {
 }
 
 
-backTitle.addEventListener(
+backTitle?.addEventListener(
   "click",
   goHome
 );
 
 
-adminHome.addEventListener(
+adminHome?.addEventListener(
   "click",
   goHome
 );
 
 
-/* =========================================================
+/* =====================================================
    LOAD
-========================================================= */
+===================================================== */
 
 function loadCurrentContent() {
 
@@ -186,31 +185,41 @@ function loadCurrentContent() {
 
 
   wordsEditor.value =
-    data.words.join("\n");
+    data.words.join(
+      "\n"
+    );
 
 
   expressionsEditor.value =
-    data.expressions.join("\n");
+    data.expressions.join(
+      "\n"
+    );
 
 
   updateCounts();
+
 }
 
 
-/* =========================================================
-   TXT UPLOAD
-========================================================= */
+/* =====================================================
+   TXT
+===================================================== */
 
-txtUpload.addEventListener(
+txtUpload?.addEventListener(
   "change",
+
   async event => {
 
     const file =
       event.target.files?.[0];
 
 
-    if (!file) {
+    if (
+      !file
+    ) {
+
       return;
+
     }
 
 
@@ -221,7 +230,9 @@ txtUpload.addEventListener(
 
 
       const parsed =
-        parseTxt(text);
+        parseTxt(
+          text
+        );
 
 
       if (
@@ -230,57 +241,54 @@ txtUpload.addEventListener(
       ) {
 
         alert(
-          "TXT 문서에서 [WORDS] 또는 [EXPRESSIONS] 내용을 찾지 못했습니다."
+          "TXT에서 [WORDS] 또는 [EXPRESSIONS] 내용을 찾지 못했습니다."
         );
 
         return;
+
       }
 
 
       wordsEditor.value =
-        parsed.words.join("\n");
+        parsed.words.join(
+          "\n"
+        );
 
 
       expressionsEditor.value =
-        parsed.expressions.join("\n");
+        parsed.expressions.join(
+          "\n"
+        );
 
 
       updateCounts();
 
 
       status.textContent =
-        "TXT 문서를 불러왔습니다. 아래의 'MAP 01 문제 저장'을 눌러 적용하세요.";
+        "TXT를 불러왔습니다. 아래 저장 버튼을 눌러 적용하세요.";
 
     }
 
     catch (error) {
 
-      console.error(error);
+      console.error(
+        error
+      );
 
 
       alert(
         "TXT 파일을 읽지 못했습니다."
       );
+
     }
+
   }
 );
 
 
-/* =========================================================
+/* =====================================================
    EDITOR
-========================================================= */
-
-wordsEditor.addEventListener(
-  "input",
-  updateCounts
-);
-
-
-expressionsEditor.addEventListener(
-  "input",
-  updateCounts
-);
-
+===================================================== */
 
 function linesFrom(
   textarea
@@ -296,6 +304,7 @@ function linesFrom(
     )
 
     .filter(Boolean);
+
 }
 
 
@@ -323,23 +332,41 @@ function updateCounts() {
 
   wordCount.style.color =
     words.length > 20
-      ? "#ff7777"
+
+      ? "#ff7a7a"
+
       : "";
 
 
   expressionCount.style.color =
     expressions.length > 20
-      ? "#ff7777"
+
+      ? "#ff7a7a"
+
       : "";
+
 }
 
 
-/* =========================================================
-   SAVE
-========================================================= */
+wordsEditor?.addEventListener(
+  "input",
+  updateCounts
+);
 
-saveButton.addEventListener(
+
+expressionsEditor?.addEventListener(
+  "input",
+  updateCounts
+);
+
+
+/* =====================================================
+   SAVE
+===================================================== */
+
+saveButton?.addEventListener(
   "click",
+
   () => {
 
     const words =
@@ -359,10 +386,11 @@ saveButton.addEventListener(
     ) {
 
       alert(
-        "영어 단어를 하나 이상 입력하세요."
+        "단어를 하나 이상 입력하세요."
       );
 
       return;
+
     }
 
 
@@ -371,10 +399,11 @@ saveButton.addEventListener(
     ) {
 
       alert(
-        "영어 표현을 하나 이상 입력하세요."
+        "표현을 하나 이상 입력하세요."
       );
 
       return;
+
     }
 
 
@@ -387,6 +416,7 @@ saveButton.addEventListener(
       );
 
       return;
+
     }
 
 
@@ -399,6 +429,7 @@ saveButton.addEventListener(
       );
 
       return;
+
     }
 
 
@@ -419,22 +450,24 @@ saveButton.addEventListener(
 
 
     status.textContent =
-      `저장 완료: 단어 ${data.words.length}개 / 표현 ${data.expressions.length}개`;
+      `저장 완료 · 단어 ${data.words.length}개 · 표현 ${data.expressions.length}개`;
 
 
     alert(
-      "MAP 01 문제가 저장되었습니다."
+      "MAP 01 문제를 저장했습니다."
     );
+
   }
 );
 
 
-/* =========================================================
-   DOWNLOAD TXT
-========================================================= */
+/* =====================================================
+   DOWNLOAD
+===================================================== */
 
-downloadButton.addEventListener(
+downloadButton?.addEventListener(
   "click",
+
   () => {
 
     const data = {
@@ -494,11 +527,20 @@ downloadButton.addEventListener(
       "map01-english.txt";
 
 
+    document.body.appendChild(
+      a
+    );
+
+
     a.click();
+
+
+    a.remove();
 
 
     URL.revokeObjectURL(
       url
     );
+
   }
 );
