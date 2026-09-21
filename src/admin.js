@@ -1,17 +1,35 @@
 import "./style.css";
 
 import {
+
+  MAP_IDS,
+
+  MAP_NAMES,
+
   getTeacherPin,
-  getUnit1Content,
-  saveUnit1Content,
-  parseTxt,
-  serializeTxt
+
+  getAllMapContent,
+
+  getMapContent,
+
+  saveMapContent,
+
+  saveAllMapContent,
+
+  parseAllMapsTxt,
+
+  serializeAllMapsTxt
+
 } from "./data.js";
 
 
 const base =
   import.meta.env.BASE_URL;
 
+
+/* =====================================================
+   DOM
+===================================================== */
 
 const loginScreen =
   document.querySelector(
@@ -41,6 +59,11 @@ const backTitle =
 const adminHome =
   document.querySelector(
     "#admin-home"
+  );
+
+const mapSelect =
+  document.querySelector(
+    "#map-select"
   );
 
 const txtUpload =
@@ -78,10 +101,49 @@ const downloadButton =
     "#download-txt"
   );
 
+const saveTitle =
+  document.querySelector(
+    "#save-title"
+  );
+
 const status =
   document.querySelector(
     "#save-status"
   );
+
+
+let currentMap =
+  "MAP01";
+
+
+/* =====================================================
+   BUILD MAP SELECT
+===================================================== */
+
+for (
+  const mapId of
+  MAP_IDS
+) {
+
+  const option =
+    document.createElement(
+      "option"
+    );
+
+
+  option.value =
+    mapId;
+
+
+  option.textContent =
+    `${mapId} · ${MAP_NAMES[mapId]}`;
+
+
+  mapSelect.appendChild(
+    option
+  );
+
+}
 
 
 /* =====================================================
@@ -90,64 +152,64 @@ const status =
 
 function login() {
 
-  const entered =
-    pinInput.value.trim();
-
-
-  const correct =
-    getTeacherPin();
-
-
   if (
-    entered !== correct
+    pinInput.value.trim()
+    !==
+    getTeacherPin()
   ) {
 
     alert(
       "PIN이 올바르지 않습니다."
     );
 
+
     return;
 
   }
 
 
-  loginScreen.classList.add(
-    "hidden"
-  );
+  loginScreen
+    .classList
+    .add(
+      "hidden"
+    );
 
 
-  adminApp.classList.remove(
-    "hidden"
-  );
+  adminApp
+    .classList
+    .remove(
+      "hidden"
+    );
 
 
-  loadCurrentContent();
+  loadCurrentMap();
 
 }
 
 
-loginButton?.addEventListener(
-  "click",
-  login
-);
+loginButton
+  ?.addEventListener(
+    "click",
+    login
+  );
 
 
-pinInput?.addEventListener(
-  "keydown",
+pinInput
+  ?.addEventListener(
+    "keydown",
+    event => {
 
-  event => {
+      if (
+        event.key ===
+        "Enter"
+      ) {
 
-    if (
-      event.key ===
-      "Enter"
-    ) {
+        login();
 
-      login();
+      }
 
     }
-
-  }
-);
+  );
 
 
 /* =====================================================
@@ -162,38 +224,73 @@ function goHome() {
 }
 
 
-backTitle?.addEventListener(
-  "click",
-  goHome
-);
+backTitle
+  ?.addEventListener(
+    "click",
+    goHome
+  );
 
 
-adminHome?.addEventListener(
-  "click",
-  goHome
-);
+adminHome
+  ?.addEventListener(
+    "click",
+    goHome
+  );
 
 
 /* =====================================================
-   LOAD
+   MAP
 ===================================================== */
 
-function loadCurrentContent() {
+mapSelect
+  ?.addEventListener(
+    "change",
+    () => {
+
+      currentMap =
+        mapSelect.value;
+
+
+      loadCurrentMap();
+
+    }
+  );
+
+
+function loadCurrentMap() {
 
   const data =
-    getUnit1Content();
+    getMapContent(
+      currentMap
+    );
 
 
   wordsEditor.value =
-    data.words.join(
-      "\n"
-    );
+    data.words
+      .map(
+        formatPair
+      )
+      .join(
+        "\n"
+      );
 
 
   expressionsEditor.value =
-    data.expressions.join(
-      "\n"
-    );
+    data.expressions
+      .map(
+        formatPair
+      )
+      .join(
+        "\n"
+      );
+
+
+  saveTitle.textContent =
+    `${currentMap} · ${MAP_NAMES[currentMap]} 저장`;
+
+
+  status.textContent =
+    `${currentMap} 편집 중`;
 
 
   updateCounts();
@@ -202,95 +299,10 @@ function loadCurrentContent() {
 
 
 /* =====================================================
-   TXT
+   EDITOR PARSER
 ===================================================== */
 
-txtUpload?.addEventListener(
-  "change",
-
-  async event => {
-
-    const file =
-      event.target.files?.[0];
-
-
-    if (
-      !file
-    ) {
-
-      return;
-
-    }
-
-
-    try {
-
-      const text =
-        await file.text();
-
-
-      const parsed =
-        parseTxt(
-          text
-        );
-
-
-      if (
-        parsed.words.length === 0 &&
-        parsed.expressions.length === 0
-      ) {
-
-        alert(
-          "TXT에서 [WORDS] 또는 [EXPRESSIONS] 내용을 찾지 못했습니다."
-        );
-
-        return;
-
-      }
-
-
-      wordsEditor.value =
-        parsed.words.join(
-          "\n"
-        );
-
-
-      expressionsEditor.value =
-        parsed.expressions.join(
-          "\n"
-        );
-
-
-      updateCounts();
-
-
-      status.textContent =
-        "TXT를 불러왔습니다. 아래 저장 버튼을 눌러 적용하세요.";
-
-    }
-
-    catch (error) {
-
-      console.error(
-        error
-      );
-
-
-      alert(
-        "TXT 파일을 읽지 못했습니다."
-      );
-
-    }
-
-  }
-);
-
-
-/* =====================================================
-   EDITOR
-===================================================== */
-
-function linesFrom(
+function parseEditor(
   textarea
 ) {
 
@@ -303,244 +315,377 @@ function linesFrom(
         line.trim()
     )
 
-    .filter(Boolean);
+    .filter(Boolean)
+
+    .slice(
+      0,
+      20
+    )
+
+    .map(
+      line => {
+
+        const index =
+          line.indexOf(
+            "|"
+          );
+
+
+        if (
+          index === -1
+        ) {
+
+          return {
+
+            english:
+              line,
+
+            korean:
+              ""
+
+          };
+
+        }
+
+
+        return {
+
+          english:
+            line
+              .slice(
+                0,
+                index
+              )
+              .trim(),
+
+          korean:
+            line
+              .slice(
+                index + 1
+              )
+              .trim()
+
+        };
+
+      }
+    )
+
+    .filter(
+      item =>
+        item.english
+    );
 
 }
 
+
+function formatPair(
+  item
+) {
+
+  return item.korean
+
+    ? `${item.english} | ${item.korean}`
+
+    : item.english;
+
+}
+
+
+/* =====================================================
+   COUNTS
+===================================================== */
 
 function updateCounts() {
 
-  const words =
-    linesFrom(
-      wordsEditor
-    );
-
-
-  const expressions =
-    linesFrom(
-      expressionsEditor
-    );
-
-
   wordCount.textContent =
-    words.length;
+    parseEditor(
+      wordsEditor
+    ).length;
 
 
   expressionCount.textContent =
-    expressions.length;
-
-
-  wordCount.style.color =
-    words.length > 20
-
-      ? "#ff7a7a"
-
-      : "";
-
-
-  expressionCount.style.color =
-    expressions.length > 20
-
-      ? "#ff7a7a"
-
-      : "";
+    parseEditor(
+      expressionsEditor
+    ).length;
 
 }
 
 
-wordsEditor?.addEventListener(
-  "input",
-  updateCounts
-);
+wordsEditor
+  ?.addEventListener(
+    "input",
+    updateCounts
+  );
 
 
-expressionsEditor?.addEventListener(
-  "input",
-  updateCounts
-);
-
-
-/* =====================================================
-   SAVE
-===================================================== */
-
-saveButton?.addEventListener(
-  "click",
-
-  () => {
-
-    const words =
-      linesFrom(
-        wordsEditor
-      );
-
-
-    const expressions =
-      linesFrom(
-        expressionsEditor
-      );
-
-
-    if (
-      words.length === 0
-    ) {
-
-      alert(
-        "단어를 하나 이상 입력하세요."
-      );
-
-      return;
-
-    }
-
-
-    if (
-      expressions.length === 0
-    ) {
-
-      alert(
-        "표현을 하나 이상 입력하세요."
-      );
-
-      return;
-
-    }
-
-
-    if (
-      words.length > 20
-    ) {
-
-      alert(
-        "단어는 최대 20개까지 가능합니다."
-      );
-
-      return;
-
-    }
-
-
-    if (
-      expressions.length > 20
-    ) {
-
-      alert(
-        "표현은 최대 20개까지 가능합니다."
-      );
-
-      return;
-
-    }
-
-
-    const data = {
-
-      words:
-        [...new Set(words)],
-
-      expressions:
-        [...new Set(expressions)]
-
-    };
-
-
-    saveUnit1Content(
-      data
-    );
-
-
-    status.textContent =
-      `저장 완료 · 단어 ${data.words.length}개 · 표현 ${data.expressions.length}개`;
-
-
-    alert(
-      "MAP 01 문제를 저장했습니다."
-    );
-
-  }
-);
+expressionsEditor
+  ?.addEventListener(
+    "input",
+    updateCounts
+  );
 
 
 /* =====================================================
-   DOWNLOAD
+   SAVE CURRENT
 ===================================================== */
 
-downloadButton?.addEventListener(
-  "click",
+saveButton
+  ?.addEventListener(
+    "click",
+    () => {
 
-  () => {
-
-    const data = {
-
-      words:
-        linesFrom(
+      const words =
+        parseEditor(
           wordsEditor
-        ).slice(
-          0,
-          20
-        ),
+        );
 
-      expressions:
-        linesFrom(
+
+      const expressions =
+        parseEditor(
           expressionsEditor
-        ).slice(
-          0,
-          20
-        )
-
-    };
+        );
 
 
-    const text =
-      serializeTxt(
-        data
-      );
+      /*
+        객관식 오답 선택지 때문에
+        4개 이상 권장.
+      */
+
+      if (
+        words.length <
+        4
+      ) {
+
+        alert(
+          "객관식 문제를 위해 단어를 최소 4개 입력해 주세요."
+        );
 
 
-    const blob =
-      new Blob(
-        [text],
+        return;
+
+      }
+
+
+      if (
+        expressions.length <
+        4
+      ) {
+
+        alert(
+          "객관식 문제를 위해 영어 표현을 최소 4개 입력해 주세요."
+        );
+
+
+        return;
+
+      }
+
+
+      const invalidWord =
+        words.find(
+          item =>
+            !item.korean
+        );
+
+
+      if (
+        invalidWord
+      ) {
+
+        alert(
+          `한국어 뜻이 없습니다: ${invalidWord.english}`
+        );
+
+
+        return;
+
+      }
+
+
+      const invalidExpression =
+        expressions.find(
+          item =>
+            !item.korean
+        );
+
+
+      if (
+        invalidExpression
+      ) {
+
+        alert(
+          `한국어 뜻이 없습니다: ${invalidExpression.english}`
+        );
+
+
+        return;
+
+      }
+
+
+      saveMapContent(
+        currentMap,
         {
-          type:
-            "text/plain;charset=utf-8"
+          words,
+          expressions
         }
       );
 
 
-    const url =
-      URL.createObjectURL(
-        blob
+      status.textContent =
+        `${currentMap} 저장 완료 · 단어 ${words.length}개 · 표현 ${expressions.length}개`;
+
+    }
+  );
+
+
+/* =====================================================
+   IMPORT ALL
+===================================================== */
+
+txtUpload
+  ?.addEventListener(
+    "change",
+    async event => {
+
+      const file =
+        event.target.files?.[0];
+
+
+      if (!file) {
+
+        return;
+
+      }
+
+
+      try {
+
+        const text =
+          await file.text();
+
+
+        const maps =
+          parseAllMapsTxt(
+            text
+          );
+
+
+        saveAllMapContent(
+          maps
+        );
+
+
+        loadCurrentMap();
+
+
+        status.textContent =
+          "전체 MAP TXT를 불러왔습니다.";
+
+      }
+
+      catch (
+        error
+      ) {
+
+        console.error(
+          error
+        );
+
+
+        alert(
+          "TXT 파일을 읽지 못했습니다."
+        );
+
+      }
+
+    }
+  );
+
+
+/* =====================================================
+   EXPORT ALL
+===================================================== */
+
+downloadButton
+  ?.addEventListener(
+    "click",
+    () => {
+
+      /*
+        현재 편집중 내용 먼저 저장
+      */
+
+      saveMapContent(
+        currentMap,
+        {
+
+          words:
+            parseEditor(
+              wordsEditor
+            ),
+
+          expressions:
+            parseEditor(
+              expressionsEditor
+            )
+
+        }
       );
 
 
-    const a =
-      document.createElement(
-        "a"
+      const text =
+        serializeAllMapsTxt(
+          getAllMapContent()
+        );
+
+
+      const blob =
+        new Blob(
+          [text],
+          {
+            type:
+              "text/plain;charset=utf-8"
+          }
+        );
+
+
+      const url =
+        URL.createObjectURL(
+          blob
+        );
+
+
+      const anchor =
+        document.createElement(
+          "a"
+        );
+
+
+      anchor.href =
+        url;
+
+
+      anchor.download =
+        "wisdom-maze-map01-map12.txt";
+
+
+      document.body.appendChild(
+        anchor
       );
 
 
-    a.href =
-      url;
+      anchor.click();
 
 
-    a.download =
-      "map01-english.txt";
+      anchor.remove();
 
 
-    document.body.appendChild(
-      a
-    );
+      URL.revokeObjectURL(
+        url
+      );
 
-
-    a.click();
-
-
-    a.remove();
-
-
-    URL.revokeObjectURL(
-      url
-    );
-
+    }
+  );
   }
 );
