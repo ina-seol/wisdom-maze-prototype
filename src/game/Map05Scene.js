@@ -22,10 +22,6 @@ export default class Map05Scene extends Phaser.Scene {
   }
 
 
-  /* =====================================================
-     PRELOAD
-  ====================================================== */
-
   preload() {
 
     const base =
@@ -33,7 +29,7 @@ export default class Map05Scene extends Phaser.Scene {
 
 
     this.load.image(
-      "map05",
+      "map05_background",
       `${base}assets/maps/map05.png`
     );
 
@@ -44,41 +40,34 @@ export default class Map05Scene extends Phaser.Scene {
 
     if (sprites?.front) {
       this.load.image(
-        "map05_mage_front",
+        "map05_front",
         sprites.front
       );
     }
 
-
     if (sprites?.back) {
       this.load.image(
-        "map05_mage_back",
+        "map05_back",
         sprites.back
       );
     }
 
-
     if (sprites?.left) {
       this.load.image(
-        "map05_mage_left",
+        "map05_left",
         sprites.left
       );
     }
 
-
     if (sprites?.right) {
       this.load.image(
-        "map05_mage_right",
+        "map05_right",
         sprites.right
       );
     }
 
   }
 
-
-  /* =====================================================
-     CREATE
-  ====================================================== */
 
   create() {
 
@@ -114,8 +103,8 @@ export default class Map05Scene extends Phaser.Scene {
       false;
 
 
-    this.obstacles =
-      [];
+    this.lockStartedAt =
+      Date.now();
 
 
     this.interactables =
@@ -125,7 +114,7 @@ export default class Map05Scene extends Phaser.Scene {
     this.add.image(
       384,
       288,
-      "map05"
+      "map05_background"
     )
       .setDisplaySize(
         768,
@@ -143,8 +132,6 @@ export default class Map05Scene extends Phaser.Scene {
       576
     );
 
-
-    this.createCollisions();
 
     this.createInteractables();
 
@@ -184,7 +171,7 @@ export default class Map05Scene extends Phaser.Scene {
 
         finally {
 
-          this.unlockInput();
+          this.forceUnlock();
 
         }
 
@@ -193,10 +180,6 @@ export default class Map05Scene extends Phaser.Scene {
 
   }
 
-
-  /* =====================================================
-     STATE
-  ====================================================== */
 
   prepareState() {
 
@@ -268,14 +251,18 @@ export default class Map05Scene extends Phaser.Scene {
   }
 
 
-  /* =====================================================
-     INPUT LOCK
-  ====================================================== */
-
   lockInput() {
 
     this.inputLocked =
       true;
+
+
+    this.interactionRunning =
+      true;
+
+
+    this.lockStartedAt =
+      Date.now();
 
 
     if (
@@ -298,7 +285,7 @@ export default class Map05Scene extends Phaser.Scene {
   }
 
 
-  unlockInput() {
+  forceUnlock() {
 
     this.inputLocked =
       false;
@@ -306,6 +293,10 @@ export default class Map05Scene extends Phaser.Scene {
 
     this.interactionRunning =
       false;
+
+
+    this.lockStartedAt =
+      0;
 
 
     if (
@@ -322,6 +313,10 @@ export default class Map05Scene extends Phaser.Scene {
       this.player?.body
     ) {
 
+      this.player.body.enable =
+        true;
+
+
       this.player.body.setVelocity(
         0,
         0
@@ -332,362 +327,203 @@ export default class Map05Scene extends Phaser.Scene {
   }
 
 
-  /* =====================================================
-     COLLISIONS
-  ====================================================== */
+  recoverStuckInput() {
 
-  createCollisions() {
+    if (
+      !this.inputLocked
+    ) {
 
-    /*
-      바깥 가장자리
-    */
-    this.addWall(
-      384,
-      8,
-      768,
-      16
-    );
+      return;
+
+    }
 
 
-    this.addWall(
-      8,
-      288,
-      16,
-      576
-    );
-
-
-    this.addWall(
-      760,
-      288,
-      16,
-      576
-    );
-
-
-    this.addWall(
-      384,
-      568,
-      768,
-      16
-    );
-
-
-    /*
-      상단 중앙 차원문 건물
-    */
-    this.addWall(
-      384,
-      86,
-      220,
-      92
-    );
-
-
-    /*
-      왼쪽 위 관측대
-    */
-    this.addWall(
-      126,
-      142,
-      138,
-      86
-    );
-
-
-    /*
-      오른쪽 위 별 수정 제단
-    */
-    this.addWall(
-      625,
-      128,
-      126,
-      88
-    );
-
-
-    /*
-      오른쪽 중앙 서고/정원
-    */
-    this.addWall(
-      635,
-      266,
-      130,
-      100
-    );
-
-
-    /*
-      중앙 별빛 분수
-    */
-    this.addWall(
-      384,
-      255,
-      88,
-      72
-    );
-
-
-    /*
-      왼쪽 중앙 화단/기둥
-    */
-    this.addWall(
-      165,
-      290,
-      95,
-      110
-    );
-
-
-    /*
-      중앙 오른쪽 기둥
-    */
-    this.addWall(
-      525,
-      318,
-      48,
-      122
-    );
-
-
-    /*
-      아래쪽 선착장
-    */
-    this.addWall(
-      384,
-      472,
-      205,
-      84
-    );
-
-
-    /*
-      왼쪽 아래 보조 플랫폼
-    */
-    this.addWall(
-      140,
-      460,
-      120,
-      60
-    );
-
-
-    /*
-      오른쪽 아래 보조 플랫폼
-    */
-    this.addWall(
-      630,
-      470,
-      118,
-      62
-    );
-
-  }
-
-
-  addWall(
-    x,
-    y,
-    width,
-    height
-  ) {
-
-    const zone =
-      this.add.zone(
-        x,
-        y,
-        width,
-        height
+    const modal =
+      document.querySelector(
+        "#modal"
       );
 
 
-    this.physics.add.existing(
-      zone,
-      true
+    const modalVisible =
+      Boolean(
+        modal
+        &&
+        !modal.classList.contains(
+          "hidden"
+        )
+      );
+
+
+    if (
+      modalVisible
+    ) {
+
+      return;
+
+    }
+
+
+    if (
+      !this.lockStartedAt
+    ) {
+
+      return;
+
+    }
+
+
+    if (
+      Date.now()
+      -
+      this.lockStartedAt
+      <
+      200
+    ) {
+
+      return;
+
+    }
+
+
+    console.warn(
+      "MAP05 input lock 자동 복구"
     );
 
 
-    this.obstacles.push(
-      zone
-    );
+    this.forceUnlock();
 
   }
 
-
-  /* =====================================================
-     INTERACTABLES
-  ====================================================== */
 
   createInteractables() {
 
-    /*
-      중앙 분수
-    */
-    this.addInteractable({
+    this.interactables = [
 
-      id:
-        "fountain",
+      {
+        id:
+          "fountain",
 
-      label:
-        "별빛 분수",
+        label:
+          "별빛 분수",
 
-      x:
-        384,
+        x:
+          384,
 
-      y:
-        308,
+        y:
+          305,
 
-      radius:
-        70
-
-    });
+        radius:
+          82
+      },
 
 
-    /*
-      왼쪽 위 관측대
-    */
-    this.addInteractable({
+      {
+        id:
+          "observatory",
 
-      id:
-        "observatory",
+        label:
+          "천체 관측대",
 
-      label:
-        "천체 관측대",
+        x:
+          135,
 
-      x:
-        145,
+        y:
+          160,
 
-      y:
-        190,
-
-      radius:
-        74
-
-    });
+        radius:
+          85
+      },
 
 
-    /*
-      오른쪽 서고
-    */
-    this.addInteractable({
+      {
+        id:
+          "library",
 
-      id:
-        "library",
+        label:
+          "공중 서고",
 
-      label:
-        "공중 정원 서고",
+        x:
+          645,
 
-      x:
-        602,
+        y:
+          165,
 
-      y:
-        315,
-
-      radius:
-        74
-
-    });
+        radius:
+          85
+      },
 
 
-    /*
-      아래쪽 선착장
-    */
-    this.addInteractable({
+      {
+        id:
+          "dock",
 
-      id:
-        "dock",
+        label:
+          "하늘 선착장",
 
-      label:
-        "하늘 선착장",
+        x:
+          384,
 
-      x:
-        384,
+        y:
+          460,
 
-      y:
-        430,
-
-      radius:
-        76
-
-    });
+        radius:
+          90
+      },
 
 
-    /*
-      오른쪽 위 별 제단
-    */
-    this.addInteractable({
+      {
+        id:
+          "altar",
 
-      id:
-        "altar",
+        label:
+          "별 수정 제단",
 
-      label:
-        "별 수정 제단",
+        x:
+          640,
 
-      x:
-        615,
+        y:
+          355,
 
-      y:
-        185,
-
-      radius:
-        76
-
-    });
+        radius:
+          90
+      },
 
 
-    /*
-      상단 중앙 출구
-    */
-    this.addInteractable({
+      {
+        id:
+          "exit",
 
-      id:
-        "exit",
+        label:
+          "별빛 성문",
 
-      label:
-        "차원의 문",
+        x:
+          384,
 
-      x:
-        384,
+        y:
+          120,
 
-      y:
-        140,
+        radius:
+          95
+      }
 
-      radius:
-        76
-
-    });
+    ];
 
   }
 
-
-  addInteractable(
-    data
-  ) {
-
-    this.interactables.push(
-      data
-    );
-
-  }
-
-
-  /* =====================================================
-     GUIDE
-  ====================================================== */
 
   createGuide() {
 
     this.guide =
       this.add.circle(
         384,
-        308,
-        20,
-        0xffd66e,
-        0.16
+        305,
+        21,
+        0xffdd77,
+        0.18
       )
         .setStrokeStyle(
           4,
-          0xfff1a8,
+          0xfff4bb,
           1
         )
         .setDepth(
@@ -734,10 +570,10 @@ export default class Map05Scene extends Phaser.Scene {
             "bold",
 
           color:
-            "#fff5d6",
+            "#ffffff",
 
           backgroundColor:
-            "#22183add",
+            "#1c1835dd",
 
           padding: {
             x: 10,
@@ -764,49 +600,37 @@ export default class Map05Scene extends Phaser.Scene {
 
   updateGuide() {
 
-    const positions = {
+    const points = {
 
-      fountain: {
-        x: 384,
-        y: 308
-      },
+      fountain:
+        [384, 305],
 
-      observatory: {
-        x: 145,
-        y: 190
-      },
+      observatory:
+        [135, 160],
 
-      library: {
-        x: 602,
-        y: 315
-      },
+      library:
+        [645, 165],
 
-      dock: {
-        x: 384,
-        y: 430
-      },
+      dock:
+        [384, 460],
 
-      altar: {
-        x: 615,
-        y: 185
-      },
+      altar:
+        [640, 355],
 
-      exit: {
-        x: 384,
-        y: 140
-      }
+      exit:
+        [384, 120]
 
     };
 
 
-    const position =
-      positions[
+    const point =
+      points[
         this.state.phase
       ];
 
 
     if (
-      !position
+      !point
     ) {
 
       this.guide
@@ -825,30 +649,26 @@ export default class Map05Scene extends Phaser.Scene {
         true
       )
       .setPosition(
-        position.x,
-        position.y
+        point[0],
+        point[1]
       );
 
   }
 
 
-  /* =====================================================
-     PLAYER
-  ====================================================== */
-
   createPlayer() {
 
     if (
       this.textures.exists(
-        "map05_mage_front"
+        "map05_front"
       )
     ) {
 
       this.player =
         this.physics.add.image(
           384,
-          520,
-          "map05_mage_front"
+          525,
+          "map05_front"
         );
 
 
@@ -873,7 +693,7 @@ export default class Map05Scene extends Phaser.Scene {
       this.player =
         this.add.rectangle(
           384,
-          520,
+          525,
           26,
           40,
           0x386ed0
@@ -902,25 +722,8 @@ export default class Map05Scene extends Phaser.Scene {
       true
     );
 
-
-    for (
-      const obstacle of
-      this.obstacles
-    ) {
-
-      this.physics.add.collider(
-        this.player,
-        obstacle
-      );
-
-    }
-
   }
 
-
-  /* =====================================================
-     INPUT
-  ====================================================== */
 
   createInput() {
 
@@ -932,17 +735,23 @@ export default class Map05Scene extends Phaser.Scene {
     this.keys =
       this.input.keyboard.addKeys({
 
-        up: "W",
+        up:
+          "W",
 
-        down: "S",
+        down:
+          "S",
 
-        left: "A",
+        left:
+          "A",
 
-        right: "D",
+        right:
+          "D",
 
-        interact: "E",
+        interact:
+          "E",
 
-        enter: "ENTER"
+        enter:
+          "ENTER"
 
       });
 
@@ -958,6 +767,9 @@ export default class Map05Scene extends Phaser.Scene {
       return;
 
     }
+
+
+    this.recoverStuckInput();
 
 
     if (
@@ -1087,7 +899,8 @@ export default class Map05Scene extends Phaser.Scene {
   ) {
 
     if (
-      Math.abs(vx) >
+      Math.abs(vx)
+      >
       Math.abs(vy)
     ) {
 
@@ -1095,12 +908,12 @@ export default class Map05Scene extends Phaser.Scene {
         vx < 0
         &&
         this.textures.exists(
-          "map05_mage_left"
+          "map05_left"
         )
       ) {
 
         this.player.setTexture(
-          "map05_mage_left"
+          "map05_left"
         );
 
       }
@@ -1109,12 +922,12 @@ export default class Map05Scene extends Phaser.Scene {
         vx > 0
         &&
         this.textures.exists(
-          "map05_mage_right"
+          "map05_right"
         )
       ) {
 
         this.player.setTexture(
-          "map05_mage_right"
+          "map05_right"
         );
 
       }
@@ -1129,12 +942,12 @@ export default class Map05Scene extends Phaser.Scene {
       vy < 0
       &&
       this.textures.exists(
-        "map05_mage_back"
+        "map05_back"
       )
     ) {
 
       this.player.setTexture(
-        "map05_mage_back"
+        "map05_back"
       );
 
     }
@@ -1143,12 +956,12 @@ export default class Map05Scene extends Phaser.Scene {
       vy > 0
       &&
       this.textures.exists(
-        "map05_mage_front"
+        "map05_front"
       )
     ) {
 
       this.player.setTexture(
-        "map05_mage_front"
+        "map05_front"
       );
 
     }
@@ -1156,17 +969,13 @@ export default class Map05Scene extends Phaser.Scene {
   }
 
 
-  /* =====================================================
-     NEAREST OBJECT
-  ====================================================== */
-
   nearestObject() {
 
     let nearest =
       null;
 
 
-    let bestDistance =
+    let shortest =
       Infinity;
 
 
@@ -1189,14 +998,14 @@ export default class Map05Scene extends Phaser.Scene {
           object.radius
         &&
         distance <
-          bestDistance
+          shortest
       ) {
 
         nearest =
           object;
 
 
-        bestDistance =
+        shortest =
           distance;
 
       }
@@ -1241,10 +1050,6 @@ export default class Map05Scene extends Phaser.Scene {
   }
 
 
-  /* =====================================================
-     INTERACT
-  ====================================================== */
-
   async interact() {
 
     if (
@@ -1271,66 +1076,55 @@ export default class Map05Scene extends Phaser.Scene {
     }
 
 
-    this.interactionRunning =
-      true;
-
-
     this.lockInput();
 
 
     try {
 
-      if (
-        object.id ===
-        "fountain"
+      switch (
+        object.id
       ) {
 
-        await this.handleFountain();
+        case "fountain":
 
-      }
+          await this.handleFountain();
 
-      else if (
-        object.id ===
-        "observatory"
-      ) {
+          break;
 
-        await this.handleObservatory();
 
-      }
+        case "observatory":
 
-      else if (
-        object.id ===
-        "library"
-      ) {
+          await this.handleObservatory();
 
-        await this.handleLibrary();
+          break;
 
-      }
 
-      else if (
-        object.id ===
-        "dock"
-      ) {
+        case "library":
 
-        await this.handleDock();
+          await this.handleLibrary();
 
-      }
+          break;
 
-      else if (
-        object.id ===
-        "altar"
-      ) {
 
-        await this.handleAltar();
+        case "dock":
 
-      }
+          await this.handleDock();
 
-      else if (
-        object.id ===
-        "exit"
-      ) {
+          break;
 
-        await this.handleExit();
+
+        case "altar":
+
+          await this.handleAltar();
+
+          break;
+
+
+        case "exit":
+
+          await this.handleExit();
+
+          break;
 
       }
 
@@ -1343,17 +1137,11 @@ export default class Map05Scene extends Phaser.Scene {
         error
       );
 
-
-      await GameUI.say(
-        "루미: 별빛 마법이 흔들렸어. 다시 조사해 보자!"
-      );
-
     }
 
     finally {
 
-      this.unlockInput();
-
+      this.forceUnlock();
 
       this.updateGuide();
 
@@ -1362,25 +1150,17 @@ export default class Map05Scene extends Phaser.Scene {
   }
 
 
-  /* =====================================================
-     INTRO
-  ====================================================== */
-
   async playIntro() {
 
     await GameUI.say([
 
-      "구름 위로 떠 있는 성역이 눈앞에 펼쳐졌다.",
+      "구름 위의 별빛 공중도시가 눈앞에 나타났다.",
 
-      "나: 우와... 마을이 하늘에 떠 있어!",
+      "나: 도시 전체가 하늘에 떠 있어!",
 
-      "루미: 여긴 별빛 공중도시야.",
+      "루미: 다섯 번째 언어 수정 때문에 별빛 마법이 불안정해졌어.",
 
-      "루미: 언어 수정이 깨지면서 하늘길과 별 마법이 뒤엉켜 버렸어.",
-
-      "나: 이번에도 조각 세 개를 모으면 되는 거지?",
-
-      "루미: 응! 먼저 중앙의 별빛 분수부터 조사해 보자."
+      "루미: 먼저 중앙의 별빛 분수를 조사해 보자!"
 
     ]);
 
@@ -1397,11 +1177,6 @@ export default class Map05Scene extends Phaser.Scene {
 
   }
 
-
-  /* =====================================================
-     1. FOUNTAIN
-     WORD -> KOREAN
-  ====================================================== */
 
   async handleFountain() {
 
@@ -1427,7 +1202,7 @@ export default class Map05Scene extends Phaser.Scene {
     if (!quiz) {
 
       await GameUI.say(
-        "루미: MAP05 단어와 한국어 뜻 데이터가 부족해."
+        "루미: MAP05 단어 데이터가 부족해."
       );
 
 
@@ -1439,7 +1214,7 @@ export default class Map05Scene extends Phaser.Scene {
     this.state.questionsShown++;
 
 
-    const success =
+    const correct =
       await GameUI.choice(
         quiz.question,
         quiz.options,
@@ -1447,7 +1222,7 @@ export default class Map05Scene extends Phaser.Scene {
       );
 
 
-    if (!success) {
+    if (!correct) {
 
       this.markWrong(
         "fountain"
@@ -1455,7 +1230,7 @@ export default class Map05Scene extends Phaser.Scene {
 
 
       await GameUI.say(
-        "루미: 분수가 아직 반응하지 않아. 단어 뜻을 다시 생각해 봐!"
+        "루미: 단어 뜻을 다시 생각해 보자!"
       );
 
 
@@ -1487,19 +1262,16 @@ export default class Map05Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "별빛 분수에서 첫 번째 말의 조각이 떠올랐다.",
+      "별빛 분수가 다시 빛나기 시작했다.",
 
-      "루미: 좋아! 이제 왼쪽의 천체 관측대로 가자."
+      "루미: 첫 번째 말의 조각이야!",
+
+      "루미: 왼쪽 위 천체 관측대로 가자!"
 
     ]);
 
   }
 
-
-  /* =====================================================
-     2. OBSERVATORY
-     KOREAN -> WORD
-  ====================================================== */
 
   async handleObservatory() {
 
@@ -1537,7 +1309,7 @@ export default class Map05Scene extends Phaser.Scene {
     this.state.questionsShown++;
 
 
-    const success =
+    const correct =
       await GameUI.choice(
         quiz.question,
         quiz.options,
@@ -1545,7 +1317,7 @@ export default class Map05Scene extends Phaser.Scene {
       );
 
 
-    if (!success) {
+    if (!correct) {
 
       this.markWrong(
         "observatory"
@@ -1553,7 +1325,7 @@ export default class Map05Scene extends Phaser.Scene {
 
 
       await GameUI.say(
-        "루미: 한국어 뜻에 맞는 영어 단어를 다시 골라 보자!"
+        "루미: 뜻에 맞는 영어 단어를 다시 골라 보자!"
       );
 
 
@@ -1581,21 +1353,16 @@ export default class Map05Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "관측대의 렌즈가 빛나며 하늘 별자리가 움직였다.",
+      "관측대의 별자리가 움직이기 시작했다.",
 
-      "나: 저 빛이 오른쪽 서고를 가리켜!",
+      "나: 오른쪽 위 건물에서 빛이 보여!",
 
-      "루미: 공중 정원 서고로 가자."
+      "루미: 공중 서고로 가자!"
 
     ]);
 
   }
 
-
-  /* =====================================================
-     3. LIBRARY
-     EXPRESSION -> KOREAN
-  ====================================================== */
 
   async handleLibrary() {
 
@@ -1633,7 +1400,7 @@ export default class Map05Scene extends Phaser.Scene {
     this.state.questionsShown++;
 
 
-    const success =
+    const correct =
       await GameUI.choice(
         quiz.question,
         quiz.options,
@@ -1641,7 +1408,7 @@ export default class Map05Scene extends Phaser.Scene {
       );
 
 
-    if (!success) {
+    if (!correct) {
 
       this.markWrong(
         "library"
@@ -1649,7 +1416,7 @@ export default class Map05Scene extends Phaser.Scene {
 
 
       await GameUI.say(
-        "루미: 영어 표현 전체의 뜻을 다시 생각해 봐!"
+        "루미: 영어 표현의 뜻을 다시 생각해 보자!"
       );
 
 
@@ -1681,21 +1448,16 @@ export default class Map05Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "서고의 책장 사이에서 두 번째 말의 조각이 나타났다.",
+      "공중 서고의 마법책이 제자리로 돌아왔다.",
 
-      "루미: 아래쪽 하늘 선착장에 바람의 길이 열렸어!",
+      "루미: 두 번째 말의 조각을 찾았어!",
 
-      "나: 그쪽으로 내려가 보자."
+      "루미: 아래쪽 중앙의 하늘 선착장으로 가자!"
 
     ]);
 
   }
 
-
-  /* =====================================================
-     4. DOCK
-     WORD ORDER
-  ====================================================== */
 
   async handleDock() {
 
@@ -1738,16 +1500,21 @@ export default class Map05Scene extends Phaser.Scene {
     );
 
 
-    const success =
+    const correct =
       await GameUI.wordOrder(
         expression.english
       );
 
 
-    if (!success) {
+    if (!correct) {
 
       this.markWrong(
         "dock"
+      );
+
+
+      await GameUI.say(
+        "루미: 문장 순서를 다시 확인해 보자!"
       );
 
 
@@ -1775,21 +1542,16 @@ export default class Map05Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "선착장의 바람 돛이 펄럭이며 하늘길이 이어졌다.",
+      "하늘 선착장의 바람길이 다시 열렸다.",
 
-      "나: 오른쪽 위 제단에서 별빛이 솟아오르고 있어.",
+      "나: 오른쪽 아래에서 별 수정이 빛나!",
 
-      "루미: 마지막 시험이 남았어. 별 수정 제단으로 가자!"
+      "루미: 별 수정 제단으로 가자!"
 
     ]);
 
   }
 
-
-  /* =====================================================
-     5. ALTAR
-     RANDOM REVIEW
-  ====================================================== */
 
   async handleAltar() {
 
@@ -1828,7 +1590,7 @@ export default class Map05Scene extends Phaser.Scene {
     this.state.questionsShown++;
 
 
-    const success =
+    const correct =
       await GameUI.choice(
         `별 수정의 마지막 시험!\n${quiz.question}`,
         quiz.options,
@@ -1836,7 +1598,7 @@ export default class Map05Scene extends Phaser.Scene {
       );
 
 
-    if (!success) {
+    if (!correct) {
 
       this.markWrong(
         "altar"
@@ -1844,7 +1606,7 @@ export default class Map05Scene extends Phaser.Scene {
 
 
       await GameUI.say(
-        "루미: 제단의 봉인이 아직 풀리지 않았어. 다시 해 보자!"
+        "루미: 별 수정의 봉인이 아직 남아 있어. 다시 해 보자!"
       );
 
 
@@ -1871,22 +1633,18 @@ export default class Map05Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "별 수정 제단이 눈부시게 빛나며 세 번째 말의 조각이 나타났다.",
+      "별 수정에서 세 번째 말의 조각이 나타났다.",
 
-      "나: 세 조각을 다 모았어!",
+      "나: 세 조각을 모두 모았어!",
 
-      "루미: 좋아, 이제 상단 중앙의 차원의 문이 열릴 거야.",
+      "루미: 좋아! 가운데 위의 별빛 성문이 열렸어.",
 
-      "루미: 차원의 문으로 가자!"
+      "루미: 별빛 성문으로 가자!"
 
     ]);
 
   }
 
-
-  /* =====================================================
-     EXIT
-  ====================================================== */
 
   async handleExit() {
 
@@ -1907,10 +1665,6 @@ export default class Map05Scene extends Phaser.Scene {
   }
 
 
-  /* =====================================================
-     HINT
-  ====================================================== */
-
   async showHint() {
 
     this.state.hintsUsed++;
@@ -1922,22 +1676,22 @@ export default class Map05Scene extends Phaser.Scene {
     const hints = {
 
       fountain:
-        "루미: 맵 중앙의 별빛 분수 아래쪽에서 E를 눌러 봐!",
+        "루미: 중앙의 별빛 분수를 조사해 봐!",
 
       observatory:
-        "루미: 왼쪽 위의 천체 관측대로 가자!",
+        "루미: 왼쪽 위 천체 관측대로 가자!",
 
       library:
-        "루미: 오른쪽 중앙의 공중 정원 서고를 조사해 봐!",
+        "루미: 오른쪽 위 공중 서고로 가자!",
 
       dock:
         "루미: 아래쪽 중앙의 하늘 선착장으로 가자!",
 
       altar:
-        "루미: 오른쪽 위의 별 수정 제단을 조사해 봐!",
+        "루미: 오른쪽 아래 별 수정 제단으로 가자!",
 
       exit:
-        "루미: 위쪽 중앙의 차원의 문으로 가자!"
+        "루미: 가운데 위쪽의 큰 별빛 성문으로 가자!"
 
     };
 
@@ -1947,25 +1701,25 @@ export default class Map05Scene extends Phaser.Scene {
         this.state.phase
       ]
       ||
-      "루미: 별빛이 이끄는 방향을 따라가 보자!"
+      "루미: 별빛이 가리키는 곳을 따라가자!"
     );
 
   }
 
 
-  /* =====================================================
-     USED CONTENT
-  ====================================================== */
-
   rememberWord(
     english
   ) {
 
+    if (!english) {
+      return;
+    }
+
+
     if (
-      !this.state.usedWords
-        .includes(
-          english
-        )
+      !this.state.usedWords.includes(
+        english
+      )
     ) {
 
       this.state.usedWords.push(
@@ -1981,11 +1735,15 @@ export default class Map05Scene extends Phaser.Scene {
     english
   ) {
 
+    if (!english) {
+      return;
+    }
+
+
     if (
-      !this.state.usedExpressions
-        .includes(
-          english
-        )
+      !this.state.usedExpressions.includes(
+        english
+      )
     ) {
 
       this.state.usedExpressions.push(
@@ -1996,10 +1754,6 @@ export default class Map05Scene extends Phaser.Scene {
 
   }
 
-
-  /* =====================================================
-     SCORE
-  ====================================================== */
 
   markCorrect(
     id
@@ -2037,10 +1791,6 @@ export default class Map05Scene extends Phaser.Scene {
 
   }
 
-
-  /* =====================================================
-     COMPLETE
-  ====================================================== */
 
   async completeMap() {
 
@@ -2139,11 +1889,11 @@ export default class Map05Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "차원의 문이 열리며 하늘길이 다시 이어졌다.",
+      "별빛 성문이 열리며 구름길이 이어졌다.",
 
       "루미: 다섯 번째 언어 수정도 복원됐어!",
 
-      "나: 공중도시의 별빛도 원래대로 돌아왔어.",
+      "나: 다음 장소로 가자!",
 
       nextMap
         ? `루미: 다음 목적지는 ${nextMap}이야!`
@@ -2161,10 +1911,9 @@ export default class Map05Scene extends Phaser.Scene {
         )
     ) {
 
-      window.WisdomGame
-        .startMap(
-          nextMap
-        );
+      window.WisdomGame.startMap(
+        nextMap
+      );
 
 
       return;
@@ -2193,10 +1942,6 @@ export default class Map05Scene extends Phaser.Scene {
   }
 
 
-  /* =====================================================
-     SAVE
-  ====================================================== */
-
   save() {
 
     saveMapProgress(
@@ -2212,10 +1957,6 @@ export default class Map05Scene extends Phaser.Scene {
 
   }
 
-
-  /* =====================================================
-     HUD
-  ====================================================== */
 
   updateHUD() {
 
@@ -2268,13 +2009,13 @@ export default class Map05Scene extends Phaser.Scene {
     const objectives = {
 
       fountain:
-        "중앙 별빛 분수의 단어 문제를 풀자.",
+        "별빛 분수의 문제를 풀자.",
 
       observatory:
         "천체 관측대의 단어 문제를 풀자.",
 
       library:
-        "공중 정원 서고의 표현 문제를 풀자.",
+        "공중 서고의 표현 문제를 풀자.",
 
       dock:
         "하늘 선착장의 문장 배열 문제를 풀자.",
@@ -2283,7 +2024,7 @@ export default class Map05Scene extends Phaser.Scene {
         "별 수정 제단의 마지막 시험을 풀자.",
 
       exit:
-        "상단 중앙의 차원의 문으로 가자."
+        "가운데 위쪽의 별빛 성문으로 가자."
 
     };
 
