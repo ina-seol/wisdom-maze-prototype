@@ -2,7 +2,6 @@
 <html lang="ko">
 
 <head>
-
   <meta charset="UTF-8" />
 
   <meta
@@ -12,22 +11,19 @@
 
   <meta
     name="theme-color"
-    content="#0b1020"
+    content="#081120"
   />
 
-  <title>
-    지혜의 미로 탐험대
-  </title>
-
+  <title>지혜의 미로 탐험대</title>
 </head>
 
 
 <body>
 
 
-  <!-- ===================================================
-       TITLE SCREEN
-  ==================================================== -->
+  <!-- =====================================================
+       TITLE
+  ====================================================== -->
 
   <main
     id="title-screen"
@@ -39,29 +35,19 @@
       aria-hidden="true"
     ></div>
 
-
     <div
       class="title-overlay"
+      aria-hidden="true"
     ></div>
 
 
-    <section
-      class="title-panel"
-    >
+    <section class="title-panel">
 
-      <div
-        class="title-logo-space"
-        aria-hidden="true"
-      ></div>
-
-
-      <div
-        class="title-buttons"
-      >
+      <div class="title-buttons">
 
         <button
           id="start-btn"
-          class="big-gold"
+          class="big-gold title-main-button"
           type="button"
         >
           새 게임
@@ -70,29 +56,33 @@
 
         <button
           id="continue-btn"
-          class="big-blue"
+          class="big-blue title-main-button"
           type="button"
         >
           이어하기
         </button>
 
 
-        <button
-          id="admin-btn"
-          class="text-button"
-          type="button"
-        >
-          교사용 설정
-        </button>
+        <div class="title-small-buttons">
+
+          <button
+            id="admin-btn"
+            class="text-button"
+            type="button"
+          >
+            교사용 설정
+          </button>
 
 
-        <button
-          id="music-btn"
-          class="text-button"
-          type="button"
-        >
-          음악 켜기
-        </button>
+          <button
+            id="music-btn"
+            class="text-button"
+            type="button"
+          >
+            음악 켜기
+          </button>
+
+        </div>
 
       </div>
 
@@ -102,9 +92,9 @@
 
 
 
-  <!-- ===================================================
-       GAME SCREEN
-  ==================================================== -->
+  <!-- =====================================================
+       GAME
+  ====================================================== -->
 
   <main
     id="game-screen"
@@ -114,17 +104,12 @@
 
     <!-- HUD -->
 
-    <header
-      class="game-hud"
-    >
+    <header class="game-hud">
 
-      <div
-        class="hud-left"
-      >
 
-        <span
-          class="hud-label"
-        >
+      <div class="hud-section hud-player">
+
+        <span class="hud-label">
           플레이어
         </span>
 
@@ -137,27 +122,25 @@
       </div>
 
 
-      <div
-        class="hud-center"
-      >
+      <div class="hud-section hud-mission">
 
-        <div
+        <span class="hud-label">
+          현재 목표
+        </span>
+
+        <strong
           id="hud-objective"
           class="hud-objective"
         >
           모험을 시작하세요.
-        </div>
+        </strong>
 
       </div>
 
 
-      <div
-        class="hud-right"
-      >
+      <div class="hud-section hud-piece">
 
-        <span
-          class="hud-label"
-        >
+        <span class="hud-label">
           말의 조각
         </span>
 
@@ -170,34 +153,31 @@
 
       </div>
 
+
     </header>
+
 
 
     <!-- PHASER -->
 
-    <section
-      class="game-stage"
-    >
+    <section class="game-stage">
 
-      <div
-        id="phaser-root"
-      ></div>
+      <div id="phaser-root"></div>
 
     </section>
 
 
-    <!-- CONTROL HELP -->
 
-    <footer
-      class="game-controls"
-    >
+    <!-- CONTROL -->
+
+    <footer class="game-controls">
 
       <span>
-        이동: 방향키 / WASD
+        이동 : 방향키 / WASD
       </span>
 
       <span>
-        조사: E / Enter
+        조사 : E / Enter
       </span>
 
     </footer>
@@ -207,22 +187,23 @@
 
 
 
-  <!-- ===================================================
+  <!-- =====================================================
        NEW GAME / CHARACTER SELECT
-  ==================================================== -->
+  ====================================================== -->
 
   <div
     id="setup-modal"
     class="screen-modal hidden"
   >
 
-    <div
-      class="setup-card"
-    >
+    <section class="setup-card">
 
-      <div
-        class="setup-header"
-      >
+
+      <header class="setup-header">
+
+        <div class="setup-small-title">
+          WISDOM MAZE
+        </div>
 
         <h2>
           모험가 등록
@@ -232,128 +213,114 @@
           이름을 입력하고 캐릭터를 선택하세요.
         </p>
 
+      </header>
+
+
+
+      <!-- NAME -->
+
+      <div class="setup-field">
+
+        <label
+          class="setup-label"
+          for="student-name"
+        >
+          이름
+        </label>
+
+        <input
+          id="student-name"
+          class="setup-input"
+          type="text"
+          maxlength="20"
+          autocomplete="off"
+          placeholder="이름을 입력하세요"
+        />
+
       </div>
 
-
-      <!-- STUDENT NAME -->
-
-      <label
-        class="setup-label"
-        for="student-name"
-      >
-        이름
-      </label>
-
-
-      <input
-        id="student-name"
-        class="setup-input"
-        type="text"
-        maxlength="20"
-        autocomplete="off"
-        placeholder="이름을 입력하세요"
-      />
 
 
       <!-- CHARACTER -->
 
-      <div
-        class="setup-label character-select-title"
-      >
-        캐릭터 선택
-      </div>
+      <div class="character-section">
+
+        <div class="setup-label">
+          캐릭터 선택
+        </div>
 
 
-      <div
-        class="character-select"
-      >
+        <div class="character-select">
 
 
-        <!-- MALE -->
+          <!-- MALE -->
 
-        <button
-          class="character-card selected"
-          data-gender="male"
-          type="button"
-        >
-
-          <div
-            class="character-portrait-frame"
+          <button
+            class="character-card selected"
+            data-gender="male"
+            type="button"
           >
 
-            <img
-              id="male-preview"
-              class="character-portrait"
-              alt="남자 캐릭터 초상화"
-            />
+            <div class="character-portrait-frame">
 
-          </div>
+              <img
+                id="male-preview"
+                class="character-portrait"
+                alt="남자 캐릭터 초상화"
+              />
 
+            </div>
 
-          <div
-            class="character-name"
-          >
-            남자 캐릭터
-          </div>
+            <div class="character-name">
+              남자 캐릭터
+            </div>
 
+            <div class="character-select-label">
+              선택
+            </div>
 
-          <div
-            class="character-check"
-            aria-hidden="true"
-          >
-            ✓
-          </div>
-
-        </button>
+          </button>
 
 
 
-        <!-- FEMALE -->
+          <!-- FEMALE -->
 
-        <button
-          class="character-card"
-          data-gender="female"
-          type="button"
-        >
-
-          <div
-            class="character-portrait-frame"
+          <button
+            class="character-card"
+            data-gender="female"
+            type="button"
           >
 
-            <img
-              id="female-preview"
-              class="character-portrait"
-              alt="여자 캐릭터 초상화"
-            />
+            <div class="character-portrait-frame">
 
-          </div>
+              <img
+                id="female-preview"
+                class="character-portrait"
+                alt="여자 캐릭터 초상화"
+              />
+
+            </div>
+
+            <div class="character-name">
+              여자 캐릭터
+            </div>
+
+            <div class="character-select-label">
+              선택
+            </div>
+
+          </button>
 
 
-          <div
-            class="character-name"
-          >
-            여자 캐릭터
-          </div>
-
-
-          <div
-            class="character-check"
-            aria-hidden="true"
-          >
-            ✓
-          </div>
-
-        </button>
-
+        </div>
 
       </div>
 
 
-      <!-- BUTTONS -->
 
-      <div
-        class="setup-actions"
-      >
+      <!-- ACTION -->
+
+      <div class="setup-actions">
 
         <button
           id="setup-cancel"
@@ -374,24 +341,23 @@
 
       </div>
 
-    </div>
+
+    </section>
 
   </div>
 
 
 
-  <!-- ===================================================
-       DIALOGUE / QUIZ MODAL
-  ==================================================== -->
+  <!-- =====================================================
+       DIALOGUE / QUIZ
+  ====================================================== -->
 
   <div
     id="modal"
     class="game-modal hidden"
   >
 
-    <div
-      class="modal-window"
-    >
+    <div class="modal-window">
 
       <div
         id="modal-body"
@@ -405,9 +371,9 @@
 
 
 
-  <!-- ===================================================
-       BGM
-  ==================================================== -->
+  <!-- =====================================================
+       AUDIO
+  ====================================================== -->
 
   <audio
     id="bgm"
@@ -417,9 +383,9 @@
 
 
 
-  <!-- ===================================================
-       VITE ENTRY
-  ==================================================== -->
+  <!-- =====================================================
+       VITE
+  ====================================================== -->
 
   <script
     type="module"
