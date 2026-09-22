@@ -11,28 +11,77 @@ import {
 
 
 /* =====================================================
+   GLOBAL TOUCH INPUT
+
+   모든 Phaser Scene에서 이 객체를 읽는다.
+
+   window.WisdomTouchInput.up
+   window.WisdomTouchInput.down
+   window.WisdomTouchInput.left
+   window.WisdomTouchInput.right
+   window.WisdomTouchInput.interactPressed
+===================================================== */
+
+window.WisdomTouchInput = {
+
+  up: false,
+
+  down: false,
+
+  left: false,
+
+  right: false,
+
+  interactPressed: false
+
+};
+
+
+/* =====================================================
    HELPERS
 ===================================================== */
 
-function escapeHtml(value) {
+function escapeHtml(
+  value
+) {
 
   return String(
     value ?? ""
   )
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
+
 }
 
 
-function formatTime(seconds) {
+function formatTime(
+  seconds
+) {
 
   const value =
     Math.max(
       0,
-      Number(seconds) || 0
+      Number(
+        seconds
+      ) || 0
     );
 
 
@@ -44,7 +93,9 @@ function formatTime(seconds) {
 
   const minutes =
     Math.floor(
-      (value % 3600) / 60
+      (
+        value % 3600
+      ) / 60
     );
 
 
@@ -54,16 +105,24 @@ function formatTime(seconds) {
     );
 
 
-  if (hours > 0) {
+  if (
+    hours > 0
+  ) {
 
-    return `${hours}시간 ${minutes}분 ${secs}초`;
+    return (
+      `${hours}시간 ${minutes}분 ${secs}초`
+    );
 
   }
 
 
-  if (minutes > 0) {
+  if (
+    minutes > 0
+  ) {
 
-    return `${minutes}분 ${secs}초`;
+    return (
+      `${minutes}분 ${secs}초`
+    );
 
   }
 
@@ -74,187 +133,123 @@ function formatTime(seconds) {
 
 
 /* =====================================================
-   SYNTHETIC KEYBOARD
-   Phaser 기존 키보드 코드를 그대로 사용하기 위함
+   TOUCH INPUT HELPERS
 ===================================================== */
 
-const pressedKeys =
-  new Set();
+function getTouchInput() {
+
+  if (
+    !window.WisdomTouchInput
+  ) {
+
+    window.WisdomTouchInput = {
+
+      up: false,
+
+      down: false,
+
+      left: false,
+
+      right: false,
+
+      interactPressed: false
+
+    };
+
+  }
 
 
-function dispatchKeyboard(
-  type,
-  key,
-  code
+  return window.WisdomTouchInput;
+
+}
+
+
+function setDirection(
+  direction,
+  pressed
 ) {
 
-  const event =
-    new KeyboardEvent(
-      type,
-      {
-        key,
-        code,
+  const touch =
+    getTouchInput();
 
-        bubbles:
-          true,
 
-        cancelable:
-          true
+  if (
+    ![
+      "up",
+      "down",
+      "left",
+      "right"
+    ].includes(
+      direction
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  touch[direction] =
+    Boolean(
+      pressed
+    );
+
+}
+
+
+function pressInteract() {
+
+  const touch =
+    getTouchInput();
+
+
+  touch.interactPressed =
+    true;
+
+}
+
+
+function releaseAllTouchInput() {
+
+  const touch =
+    getTouchInput();
+
+
+  touch.up =
+    false;
+
+
+  touch.down =
+    false;
+
+
+  touch.left =
+    false;
+
+
+  touch.right =
+    false;
+
+
+  touch.interactPressed =
+    false;
+
+
+  document
+    .querySelectorAll(
+      "#mobile-game-controls .pressed"
+    )
+    .forEach(
+      button => {
+
+        button.classList.remove(
+          "pressed"
+        );
+
       }
     );
 
-
-  window.dispatchEvent(
-    event
-  );
-
 }
-
-
-function pressKey(
-  key,
-  code
-) {
-
-  if (
-    pressedKeys.has(
-      code
-    )
-  ) {
-
-    return;
-
-  }
-
-
-  pressedKeys.add(
-    code
-  );
-
-
-  dispatchKeyboard(
-    "keydown",
-    key,
-    code
-  );
-
-}
-
-
-function releaseKey(
-  key,
-  code
-) {
-
-  if (
-    !pressedKeys.has(
-      code
-    )
-  ) {
-
-    return;
-
-  }
-
-
-  pressedKeys.delete(
-    code
-  );
-
-
-  dispatchKeyboard(
-    "keyup",
-    key,
-    code
-  );
-
-}
-
-
-function tapKey(
-  key,
-  code
-) {
-
-  pressKey(
-    key,
-    code
-  );
-
-
-  window.setTimeout(
-    () => {
-
-      releaseKey(
-        key,
-        code
-      );
-
-    },
-    80
-  );
-
-}
-
-
-/* =====================================================
-   RELEASE ALL
-===================================================== */
-
-function releaseAllKeys() {
-
-  releaseKey(
-    "ArrowUp",
-    "ArrowUp"
-  );
-
-
-  releaseKey(
-    "ArrowDown",
-    "ArrowDown"
-  );
-
-
-  releaseKey(
-    "ArrowLeft",
-    "ArrowLeft"
-  );
-
-
-  releaseKey(
-    "ArrowRight",
-    "ArrowRight"
-  );
-
-
-  releaseKey(
-    "e",
-    "KeyE"
-  );
-
-}
-
-
-window.addEventListener(
-  "blur",
-  releaseAllKeys
-);
-
-
-document.addEventListener(
-  "visibilitychange",
-  () => {
-
-    if (
-      document.hidden
-    ) {
-
-      releaseAllKeys();
-
-    }
-
-  }
-);
 
 
 /* =====================================================
@@ -284,44 +279,57 @@ function createMobileControls() {
     "mobile-game-controls";
 
 
+  controls.setAttribute(
+    "aria-label",
+    "모바일 게임 조작"
+  );
+
+
   controls.innerHTML = `
 
-    <div class="mobile-dpad">
+    <div class="wisdom-mobile-dpad">
 
       <button
         type="button"
-        class="touch-key touch-up"
-        data-key="up"
+        class="wisdom-touch-key wisdom-touch-up"
+        data-direction="up"
         aria-label="위로 이동"
       >
         ▲
       </button>
 
+
       <button
         type="button"
-        class="touch-key touch-left"
-        data-key="left"
+        class="wisdom-touch-key wisdom-touch-left"
+        data-direction="left"
         aria-label="왼쪽으로 이동"
       >
         ◀
       </button>
 
-      <div class="touch-center">
+
+      <div
+        class="wisdom-touch-center"
+        aria-hidden="true"
+      >
       </div>
+
 
       <button
         type="button"
-        class="touch-key touch-right"
-        data-key="right"
+        class="wisdom-touch-key wisdom-touch-right"
+        data-direction="right"
         aria-label="오른쪽으로 이동"
       >
         ▶
       </button>
 
+
       <button
         type="button"
-        class="touch-key touch-down"
-        data-key="down"
+        class="wisdom-touch-key wisdom-touch-down"
+        data-direction="down"
         aria-label="아래로 이동"
       >
         ▼
@@ -330,74 +338,102 @@ function createMobileControls() {
     </div>
 
 
-    <button
-      type="button"
-      id="mobile-interact"
-      class="mobile-interact"
-      aria-label="조사하기"
-    >
-      조사
-    </button>
+    <div class="wisdom-mobile-action-area">
+
+      <button
+        type="button"
+        id="mobile-interact"
+        class="wisdom-mobile-interact"
+        aria-label="조사"
+      >
+        <span class="wisdom-interact-main">
+          조사
+        </span>
+
+        <span class="wisdom-interact-sub">
+          E
+        </span>
+      </button>
+
+    </div>
 
   `;
 
 
-  document.body.appendChild(
+  /*
+    중요:
+    body 끝에 붙이지 않고
+    게임 화면 바로 아래에 붙인다.
+  */
+
+  const gameScreen =
+    document.querySelector(
+      "#game-screen"
+    );
+
+
+  if (
+    gameScreen
+  ) {
+
+    gameScreen.insertAdjacentElement(
+      "afterend",
+      controls
+    );
+
+  }
+
+  else {
+
+    /*
+      game-screen을 못 찾는 경우에만
+      fallback
+    */
+
+    document.body.appendChild(
+      controls
+    );
+
+  }
+
+
+  setupDirectionButtons(
     controls
   );
 
 
-  const keyMap = {
+  setupInteractButton(
+    controls
+  );
 
-    up: {
-      key:
-        "ArrowUp",
 
-      code:
-        "ArrowUp"
-    },
+  updateMobileControlsVisibility();
 
-    down: {
-      key:
-        "ArrowDown",
+}
 
-      code:
-        "ArrowDown"
-    },
 
-    left: {
-      key:
-        "ArrowLeft",
+/* =====================================================
+   DIRECTION BUTTONS
+===================================================== */
 
-      code:
-        "ArrowLeft"
-    },
-
-    right: {
-      key:
-        "ArrowRight",
-
-      code:
-        "ArrowRight"
-    }
-
-  };
-
+function setupDirectionButtons(
+  controls
+) {
 
   controls
     .querySelectorAll(
-      ".touch-key"
+      ".wisdom-touch-key"
     )
     .forEach(
       button => {
 
-        const info =
-          keyMap[
-            button.dataset.key
-          ];
+        const direction =
+          button.dataset.direction;
 
 
-        if (!info) {
+        if (
+          !direction
+        ) {
 
           return;
 
@@ -409,16 +445,39 @@ function createMobileControls() {
 
             event.preventDefault();
 
+            event.stopPropagation();
 
-            pressKey(
-              info.key,
-              info.code
+
+            setDirection(
+              direction,
+              true
             );
 
 
             button.classList.add(
               "pressed"
             );
+
+
+            /*
+              pointer capture를 사용하면
+              손가락이 버튼 밖으로 약간 나가도
+              pointerup을 받을 수 있다.
+            */
+
+            try {
+
+              button.setPointerCapture(
+                event.pointerId
+              );
+
+            }
+
+            catch {
+
+              // 지원하지 않는 브라우저는 무시
+
+            }
 
           };
 
@@ -428,10 +487,12 @@ function createMobileControls() {
 
             event.preventDefault();
 
+            event.stopPropagation();
 
-            releaseKey(
-              info.key,
-              info.code
+
+            setDirection(
+              direction,
+              false
             );
 
 
@@ -439,40 +500,64 @@ function createMobileControls() {
               "pressed"
             );
 
+
+            try {
+
+              if (
+                button.hasPointerCapture(
+                  event.pointerId
+                )
+              ) {
+
+                button.releasePointerCapture(
+                  event.pointerId
+                );
+
+              }
+
+            }
+
+            catch {
+
+              // 무시
+
+            }
+
           };
 
 
         button.addEventListener(
           "pointerdown",
-          start
+          start,
+          {
+            passive: false
+          }
         );
 
 
         button.addEventListener(
           "pointerup",
-          end
+          end,
+          {
+            passive: false
+          }
         );
 
 
         button.addEventListener(
           "pointercancel",
-          end
+          end,
+          {
+            passive: false
+          }
         );
 
 
         button.addEventListener(
-          "pointerleave",
+          "contextmenu",
           event => {
 
-            if (
-              event.buttons !== 0
-            ) {
-
-              end(
-                event
-              );
-
-            }
+            event.preventDefault();
 
           }
         );
@@ -480,6 +565,16 @@ function createMobileControls() {
       }
     );
 
+}
+
+
+/* =====================================================
+   INTERACT BUTTON
+===================================================== */
+
+function setupInteractButton(
+  controls
+) {
 
   const interact =
     controls.querySelector(
@@ -487,58 +582,90 @@ function createMobileControls() {
     );
 
 
-  interact
-    ?.addEventListener(
-      "pointerdown",
-      event => {
+  if (
+    !interact
+  ) {
 
-        event.preventDefault();
+    return;
 
-
-        interact.classList.add(
-          "pressed"
-        );
+  }
 
 
-        tapKey(
-          "e",
-          "KeyE"
-        );
+  interact.addEventListener(
+    "pointerdown",
+    event => {
 
-      }
-    );
+      event.preventDefault();
+
+      event.stopPropagation();
 
 
-  [
-    "pointerup",
-    "pointercancel",
-    "pointerleave"
-  ].forEach(
-    name => {
+      /*
+        조사 입력은 Scene에서 한번 읽고
+        false로 돌려놓는다.
+      */
 
-      interact
-        ?.addEventListener(
-          name,
-          () => {
+      pressInteract();
 
-            interact.classList.remove(
-              "pressed"
-            );
 
-          }
-        );
+      interact.classList.add(
+        "pressed"
+      );
 
+    },
+    {
+      passive: false
     }
   );
 
 
-  updateMobileControlsVisibility();
+  const release =
+    event => {
+
+      event.preventDefault();
+
+      event.stopPropagation();
+
+
+      interact.classList.remove(
+        "pressed"
+      );
+
+    };
+
+
+  interact.addEventListener(
+    "pointerup",
+    release,
+    {
+      passive: false
+    }
+  );
+
+
+  interact.addEventListener(
+    "pointercancel",
+    release,
+    {
+      passive: false
+    }
+  );
+
+
+  interact.addEventListener(
+    "contextmenu",
+    event => {
+
+      event.preventDefault();
+
+    }
+  );
 
 }
 
 
 /* =====================================================
-   SHOW CONTROLS ONLY DURING GAME
+   MOBILE CONTROL VISIBILITY
 ===================================================== */
 
 function updateMobileControlsVisibility() {
@@ -557,9 +684,24 @@ function updateMobileControlsVisibility() {
 
   if (
     !controls
-    ||
+  ) {
+
+    return;
+
+  }
+
+
+  if (
     !gameScreen
   ) {
+
+    controls.classList.remove(
+      "mobile-controls-visible"
+    );
+
+
+    releaseAllTouchInput();
+
 
     return;
 
@@ -582,7 +724,7 @@ function updateMobileControlsVisibility() {
     !gameVisible
   ) {
 
-    releaseAllKeys();
+    releaseAllTouchInput();
 
   }
 
@@ -601,7 +743,9 @@ function observeGameScreen() {
     );
 
 
-  if (!gameScreen) {
+  if (
+    !gameScreen
+  ) {
 
     return;
 
@@ -621,17 +765,60 @@ function observeGameScreen() {
   observer.observe(
     gameScreen,
     {
+
       attributes:
         true,
 
       attributeFilter:
         [
-          "class"
+          "class",
+          "style"
         ]
+
     }
   );
 
 }
+
+
+/* =====================================================
+   SAFETY RELEASE
+===================================================== */
+
+window.addEventListener(
+  "blur",
+  () => {
+
+    releaseAllTouchInput();
+
+  }
+);
+
+
+document.addEventListener(
+  "visibilitychange",
+  () => {
+
+    if (
+      document.hidden
+    ) {
+
+      releaseAllTouchInput();
+
+    }
+
+  }
+);
+
+
+window.addEventListener(
+  "pagehide",
+  () => {
+
+    releaseAllTouchInput();
+
+  }
+);
 
 
 /* =====================================================
@@ -651,6 +838,7 @@ function normalizeRecord(
         ""
       ),
 
+
     studentName:
       String(
         record?.studentName
@@ -659,6 +847,7 @@ function normalizeRecord(
         ??
         "이름 없음"
       ),
+
 
     playTime:
       Number(
@@ -669,12 +858,14 @@ function normalizeRecord(
         0
       ),
 
+
     questionsShown:
       Number(
         record?.questionsShown
         ??
         0
       ),
+
 
     firstTryCorrect:
       Number(
@@ -685,6 +876,7 @@ function normalizeRecord(
         0
       ),
 
+
     wrongAttempts:
       Number(
         record?.wrongAttempts
@@ -694,6 +886,7 @@ function normalizeRecord(
         0
       ),
 
+
     hintsUsed:
       Number(
         record?.hintsUsed
@@ -701,9 +894,11 @@ function normalizeRecord(
         0
       ),
 
+
     completed:
       record?.completed !==
       false,
+
 
     completedAt:
       record?.completedAt
@@ -718,7 +913,7 @@ function normalizeRecord(
 
 
 /* =====================================================
-   BEST RECORD PER MAP
+   BUILD PLAYER RECORDS
 ===================================================== */
 
 function buildPlayerRanking() {
@@ -730,10 +925,15 @@ function buildPlayerRanking() {
       )
       .filter(
         record =>
+
           record.studentName
+
           &&
+
           record.completed
+
           &&
+
           record.mapId
       );
 
@@ -756,11 +956,13 @@ function buildPlayerRanking() {
       players.set(
         record.studentName,
         {
+
           name:
             record.studentName,
 
           maps:
             new Map()
+
         }
       );
 
@@ -780,15 +982,18 @@ function buildPlayerRanking() {
 
 
     /*
-      같은 맵을 여러 번 클리어했다면
+      같은 닉네임이
+      같은 맵을 여러 번 완료했다면
       가장 빠른 기록을 대표 기록으로 사용
     */
 
     if (
       !previous
+
       ||
+
       record.playTime <
-        previous.playTime
+      previous.playTime
     ) {
 
       player.maps.set(
@@ -822,8 +1027,10 @@ function buildPlayerRanking() {
           sum,
           record
         ) =>
+
           sum +
           record.playTime,
+
         0
       );
 
@@ -834,8 +1041,10 @@ function buildPlayerRanking() {
           sum,
           record
         ) =>
+
           sum +
           record.questionsShown,
+
         0
       );
 
@@ -846,8 +1055,10 @@ function buildPlayerRanking() {
           sum,
           record
         ) =>
+
           sum +
           record.firstTryCorrect,
+
         0
       );
 
@@ -858,8 +1069,10 @@ function buildPlayerRanking() {
           sum,
           record
         ) =>
+
           sum +
           record.wrongAttempts,
+
         0
       );
 
@@ -870,8 +1083,10 @@ function buildPlayerRanking() {
           sum,
           record
         ) =>
+
           sum +
           record.hintsUsed,
+
         0
       );
 
@@ -917,6 +1132,7 @@ function buildPlayerRanking() {
             a,
             b
           ) =>
+
             a.mapId.localeCompare(
               b.mapId
             )
@@ -983,7 +1199,9 @@ function createRecordButton() {
     );
 
 
-  if (!container) {
+  if (
+    !container
+  ) {
 
     return;
 
@@ -1031,6 +1249,15 @@ function createRecordButton() {
 
 function showRecordBoard() {
 
+  const existing =
+    document.querySelector(
+      "#record-overlay"
+    );
+
+
+  existing?.remove();
+
+
   const ranking =
     buildPlayerRanking();
 
@@ -1062,7 +1289,9 @@ function showRecordBoard() {
 
       <div class="record-empty">
 
-        아직 저장된 기록이 없습니다.<br>
+        아직 저장된 기록이 없습니다.
+
+        <br><br>
 
         모험을 완료하면
         이곳에 기록이 표시됩니다.
@@ -1102,27 +1331,41 @@ function showRecordBoard() {
               >
 
                 <span class="record-rank">
+
                   ${index + 1}
+
                 </span>
 
+
                 <span class="record-player-name">
+
                   ${escapeHtml(
                     player.name
                   )}
+
                 </span>
+
 
                 <span class="record-map-count">
+
                   ${completeText}
+
                 </span>
 
+
                 <span class="record-time">
+
                   ${formatTime(
                     player.totalTime
                   )}
+
                 </span>
 
+
                 <span class="record-accuracy">
+
                   ${player.accuracy}%
+
                 </span>
 
               </button>
@@ -1145,18 +1388,27 @@ function showRecordBoard() {
         <div>
 
           <div class="record-small-title">
+
             WISDOM MAZE RECORDS
+
           </div>
 
+
           <h2>
+
             모험 기록
+
           </h2>
 
+
           <p>
+
             이 기기에 저장된 닉네임별 최고 기록
+
           </p>
 
         </div>
+
 
         <button
           id="record-close"
@@ -1205,7 +1457,7 @@ function showRecordBoard() {
       <div class="record-note">
 
         같은 닉네임으로 같은 맵을 여러 번 완료한 경우
-        가장 빠른 클리어 기록을 사용합니다.
+        가장 빠른 클리어 기록을 표시합니다.
 
       </div>
 
@@ -1268,6 +1520,7 @@ function showRecordBoard() {
             const player =
               ranking.find(
                 item =>
+
                   item.name ===
                   button.dataset.player
               );
@@ -1343,23 +1596,31 @@ function showPlayerDetail(
               <div>
 
                 <strong>
+
                   ${escapeHtml(
                     record.mapId
                   )}
+
                 </strong>
 
+
                 <span>
+
                   ${escapeHtml(
                     mapName
                   )}
+
                 </span>
 
               </div>
 
+
               <strong>
+
                 ${formatTime(
                   record.playTime
                 )}
+
               </strong>
 
             </div>
@@ -1379,21 +1640,25 @@ function showPlayerDetail(
         type="button"
         id="record-detail-close"
         class="record-close"
+        aria-label="닫기"
       >
         ×
       </button>
 
 
       <h3>
+
         ${escapeHtml(
           player.name
         )}
+
       </h3>
 
 
       <div class="record-summary-grid">
 
         <div>
+
           <span>
             클리어
           </span>
@@ -1401,10 +1666,12 @@ function showPlayerDetail(
           <strong>
             ${player.clearedMaps}/12
           </strong>
+
         </div>
 
 
         <div>
+
           <span>
             총 해결시간
           </span>
@@ -1414,10 +1681,12 @@ function showPlayerDetail(
               player.totalTime
             )}
           </strong>
+
         </div>
 
 
         <div>
+
           <span>
             첫 시도 정답률
           </span>
@@ -1425,10 +1694,12 @@ function showPlayerDetail(
           <strong>
             ${player.accuracy}%
           </strong>
+
         </div>
 
 
         <div>
+
           <span>
             오답
           </span>
@@ -1436,10 +1707,12 @@ function showPlayerDetail(
           <strong>
             ${player.wrongAttempts}
           </strong>
+
         </div>
 
 
         <div>
+
           <span>
             힌트
           </span>
@@ -1447,6 +1720,7 @@ function showPlayerDetail(
           <strong>
             ${player.hintsUsed}
           </strong>
+
         </div>
 
       </div>
@@ -1530,12 +1804,13 @@ function injectStyle() {
 
   style.textContent = `
 
-    /* ==============================
+    /* =================================================
        MOBILE CONTROLS
-    ============================== */
+    ================================================= */
 
     #mobile-game-controls {
       display: none;
+      box-sizing: border-box;
     }
 
 
@@ -1547,88 +1822,192 @@ function injectStyle() {
 
 
       #mobile-game-controls.mobile-controls-visible {
-        width: min(768px, calc(100% - 12px));
 
         display: flex;
 
-        align-items: center;
+        width: min(
+          768px,
+          100%
+        );
 
-        justify-content: space-between;
+        margin:
+          0
+          auto
+          12px;
 
-        gap: 14px;
+        padding:
+          10px
+          16px
+          15px;
 
-        margin: 4px auto 14px;
+        box-sizing:
+          border-box;
 
-        padding: 8px 12px 12px;
+        align-items:
+          center;
 
-        touch-action: none;
+        justify-content:
+          space-between;
 
-        user-select: none;
-
-        -webkit-user-select: none;
-      }
-
-
-      .game-controls {
-        display: none !important;
-      }
-
-
-      .mobile-dpad {
-        width: 168px;
-        height: 168px;
-
-        display: grid;
-
-        grid-template-columns:
-          repeat(3, 52px);
-
-        grid-template-rows:
-          repeat(3, 52px);
-
-        gap: 6px;
-      }
-
-
-      .touch-key,
-      .mobile-interact {
-        border:
-          2px solid
-          rgba(
-            187,
-            216,
-            255,
-            0.9
-          );
-
-        color:
-          #ffffff;
-
-        font-weight:
-          900;
+        gap:
+          20px;
 
         background:
           linear-gradient(
             180deg,
-            rgba(
-              66,
-              101,
-              170,
-              0.96
-            ),
-            rgba(
-              24,
-              44,
-              84,
-              0.96
-            )
+            #111b31,
+            #08101f
+          );
+
+        border-top:
+          1px solid
+          rgba(
+            125,
+            158,
+            220,
+            0.34
+          );
+
+        border-bottom-left-radius:
+          14px;
+
+        border-bottom-right-radius:
+          14px;
+
+        touch-action:
+          manipulation;
+
+        user-select:
+          none;
+
+        -webkit-user-select:
+          none;
+
+        -webkit-touch-callout:
+          none;
+      }
+
+
+      /*
+        기존 PC 조작 안내가 있다면
+        모바일에서는 감춘다.
+      */
+
+      .game-controls {
+        display:
+          none
+          !important;
+      }
+
+
+      .wisdom-mobile-dpad {
+
+        width:
+          172px;
+
+        height:
+          172px;
+
+        flex:
+          0
+          0
+          172px;
+
+        display:
+          grid;
+
+        grid-template-columns:
+          repeat(
+            3,
+            52px
+          );
+
+        grid-template-rows:
+          repeat(
+            3,
+            52px
+          );
+
+        gap:
+          8px;
+
+        align-content:
+          center;
+
+        justify-content:
+          center;
+
+        touch-action:
+          none;
+      }
+
+
+      .wisdom-touch-key {
+
+        width:
+          52px;
+
+        height:
+          52px;
+
+        padding:
+          0;
+
+        display:
+          flex;
+
+        align-items:
+          center;
+
+        justify-content:
+          center;
+
+        border:
+          2px solid
+          #7599d7;
+
+        border-radius:
+          14px;
+
+        color:
+          #ffffff;
+
+        font-family:
+          Arial,
+          sans-serif;
+
+        font-size:
+          22px;
+
+        font-weight:
+          900;
+
+        line-height:
+          1;
+
+        background:
+          linear-gradient(
+            180deg,
+            #456aa7,
+            #243a69
           );
 
         box-shadow:
-          0 5px 0
-          #0b1730;
+          0
+          5px
+          0
+          #0a1429;
+
+        cursor:
+          pointer;
 
         touch-action:
+          none;
+
+        user-select:
+          none;
+
+        -webkit-user-select:
           none;
 
         -webkit-tap-highlight-color:
@@ -1636,49 +2015,67 @@ function injectStyle() {
       }
 
 
-      .touch-key {
-        width: 52px;
-        height: 52px;
+      .wisdom-touch-key.pressed {
 
-        border-radius: 14px;
-
-        font-size: 21px;
-      }
-
-
-      .touch-key.pressed,
-      .mobile-interact.pressed {
         transform:
           translateY(
             4px
           );
 
         box-shadow:
-          0 1px 0
-          #0b1730;
+          0
+          1px
+          0
+          #0a1429;
 
-        filter:
-          brightness(
-            1.2
+        color:
+          #ffffff;
+
+        background:
+          linear-gradient(
+            180deg,
+            #6f9fec,
+            #365990
           );
       }
 
 
-      .touch-up {
-        grid-column: 2;
-        grid-row: 1;
+      .wisdom-touch-up {
+
+        grid-column:
+          2;
+
+        grid-row:
+          1;
       }
 
 
-      .touch-left {
-        grid-column: 1;
-        grid-row: 2;
+      .wisdom-touch-left {
+
+        grid-column:
+          1;
+
+        grid-row:
+          2;
       }
 
 
-      .touch-center {
-        grid-column: 2;
-        grid-row: 2;
+      .wisdom-touch-center {
+
+        grid-column:
+          2;
+
+        grid-row:
+          2;
+
+        border:
+          1px solid
+          rgba(
+            128,
+            158,
+            211,
+            0.16
+          );
 
         border-radius:
           50%;
@@ -1688,73 +2085,284 @@ function injectStyle() {
             255,
             255,
             255,
-            0.04
+            0.025
           );
       }
 
 
-      .touch-right {
-        grid-column: 3;
-        grid-row: 2;
+      .wisdom-touch-right {
+
+        grid-column:
+          3;
+
+        grid-row:
+          2;
       }
 
 
-      .touch-down {
-        grid-column: 2;
-        grid-row: 3;
+      .wisdom-touch-down {
+
+        grid-column:
+          2;
+
+        grid-row:
+          3;
       }
 
 
-      .mobile-interact {
-        width: 92px;
-        height: 92px;
+      .wisdom-mobile-action-area {
+
+        min-width:
+          105px;
+
+        flex:
+          1;
+
+        display:
+          flex;
+
+        align-items:
+          center;
+
+        justify-content:
+          flex-end;
+
+        padding-right:
+          5px;
+
+        touch-action:
+          none;
+      }
+
+
+      .wisdom-mobile-interact {
+
+        width:
+          96px;
+
+        height:
+          96px;
+
+        padding:
+          0;
+
+        display:
+          flex;
+
+        flex-direction:
+          column;
+
+        align-items:
+          center;
+
+        justify-content:
+          center;
+
+        gap:
+          2px;
+
+        border:
+          3px solid
+          #ffdf78;
 
         border-radius:
           50%;
 
-        border-color:
-          #ffe49a;
-
         color:
-          #3a2500;
+          #372300;
 
-        font-size:
-          18px;
+        font-family:
+          Arial,
+          sans-serif;
+
+        font-weight:
+          900;
 
         background:
           linear-gradient(
             180deg,
-            #fff2a7,
-            #f4b83e
+            #fff3a6,
+            #f4b840
           );
 
         box-shadow:
-          0 6px 0
-          #875313;
+          0
+          6px
+          0
+          #815011;
+
+        cursor:
+          pointer;
+
+        touch-action:
+          none;
+
+        user-select:
+          none;
+
+        -webkit-user-select:
+          none;
+
+        -webkit-tap-highlight-color:
+          transparent;
+      }
+
+
+      .wisdom-mobile-interact.pressed {
+
+        transform:
+          translateY(
+            5px
+          );
+
+        box-shadow:
+          0
+          1px
+          0
+          #815011;
+
+        background:
+          linear-gradient(
+            180deg,
+            #fff8c9,
+            #ffd15a
+          );
+      }
+
+
+      .wisdom-interact-main {
+
+        font-size:
+          18px;
+
+        line-height:
+          1.1;
+      }
+
+
+      .wisdom-interact-sub {
+
+        font-size:
+          10px;
+
+        opacity:
+          0.7;
       }
 
     }
 
 
-    /* ==============================
+    /*
+      아주 작은 휴대폰
+    */
+
+    @media (max-width: 390px) {
+
+      #mobile-game-controls.mobile-controls-visible {
+
+        padding:
+          8px
+          10px
+          12px;
+
+        gap:
+          10px;
+      }
+
+
+      .wisdom-mobile-dpad {
+
+        width:
+          151px;
+
+        height:
+          151px;
+
+        flex-basis:
+          151px;
+
+        grid-template-columns:
+          repeat(
+            3,
+            46px
+          );
+
+        grid-template-rows:
+          repeat(
+            3,
+            46px
+          );
+
+        gap:
+          6px;
+      }
+
+
+      .wisdom-touch-key {
+
+        width:
+          46px;
+
+        height:
+          46px;
+
+        font-size:
+          19px;
+
+        border-radius:
+          12px;
+      }
+
+
+      .wisdom-mobile-interact {
+
+        width:
+          84px;
+
+        height:
+          84px;
+      }
+
+
+      .wisdom-interact-main {
+
+        font-size:
+          16px;
+      }
+
+    }
+
+
+    /* =================================================
        RECORD BOARD
-    ============================== */
+    ================================================= */
 
     .record-overlay,
     .record-detail {
-      position: fixed;
 
-      inset: 0;
+      position:
+        fixed;
 
-      z-index: 20000;
+      inset:
+        0;
 
-      display: flex;
+      z-index:
+        20000;
 
-      align-items: center;
+      display:
+        flex;
 
-      justify-content: center;
+      align-items:
+        center;
 
-      padding: 18px;
+      justify-content:
+        center;
+
+      padding:
+        18px;
+
+      box-sizing:
+        border-box;
 
       background:
         rgba(
@@ -1768,12 +2376,15 @@ function injectStyle() {
         blur(
           8px
         );
+
     }
 
 
     .record-panel,
     .record-detail-card {
-      position: relative;
+
+      position:
+        relative;
 
       width:
         min(
@@ -1793,6 +2404,9 @@ function injectStyle() {
       padding:
         24px;
 
+      box-sizing:
+        border-box;
+
       border:
         2px solid
         #445b8b;
@@ -1811,7 +2425,9 @@ function injectStyle() {
         );
 
       box-shadow:
-        0 30px 100px
+        0
+        30px
+        100px
         rgba(
           0,
           0,
@@ -1822,7 +2438,9 @@ function injectStyle() {
 
 
     .record-header {
-      display: flex;
+
+      display:
+        flex;
 
       align-items:
         flex-start;
@@ -1840,8 +2458,10 @@ function injectStyle() {
 
     .record-header h2,
     .record-detail-card h3 {
+
       margin:
-        4px 0;
+        4px
+        0;
 
       font-size:
         28px;
@@ -1849,8 +2469,11 @@ function injectStyle() {
 
 
     .record-header p {
+
       margin:
-        5px 0 0;
+        5px
+        0
+        0;
 
       color:
         #9fb2d8;
@@ -1858,6 +2481,7 @@ function injectStyle() {
 
 
     .record-small-title {
+
       color:
         #ffd966;
 
@@ -1873,6 +2497,7 @@ function injectStyle() {
 
 
     .record-close {
+
       width:
         42px;
 
@@ -1880,7 +2505,12 @@ function injectStyle() {
         42px;
 
       flex:
-        0 0 42px;
+        0
+        0
+        42px;
+
+      padding:
+        0;
 
       border:
         1px solid
@@ -1905,7 +2535,9 @@ function injectStyle() {
 
     .record-columns,
     .record-player-row {
-      display: grid;
+
+      display:
+        grid;
 
       grid-template-columns:
         55px
@@ -1926,8 +2558,10 @@ function injectStyle() {
 
 
     .record-columns {
+
       padding:
-        8px 12px;
+        8px
+        12px;
 
       color:
         #91a7cf;
@@ -1938,6 +2572,7 @@ function injectStyle() {
 
 
     .record-player-row {
+
       width:
         100%;
 
@@ -1945,7 +2580,8 @@ function injectStyle() {
         7px;
 
       padding:
-        13px 12px;
+        13px
+        12px;
 
       border:
         1px solid
@@ -1969,6 +2605,7 @@ function injectStyle() {
 
 
     .record-player-row:hover {
+
       border-color:
         #7aa7ff;
 
@@ -1978,6 +2615,7 @@ function injectStyle() {
 
 
     .record-rank {
+
       color:
         #ffe179;
 
@@ -1990,6 +2628,7 @@ function injectStyle() {
 
 
     .record-player-name {
+
       overflow:
         hidden;
 
@@ -2007,6 +2646,7 @@ function injectStyle() {
     .record-map-count,
     .record-time,
     .record-accuracy {
+
       color:
         #c6d8fa;
 
@@ -2016,6 +2656,7 @@ function injectStyle() {
 
 
     .record-note {
+
       margin-top:
         18px;
 
@@ -2031,8 +2672,10 @@ function injectStyle() {
 
 
     .record-empty {
+
       padding:
-        45px 20px;
+        45px
+        20px;
 
       color:
         #aebddb;
@@ -2046,12 +2689,14 @@ function injectStyle() {
 
 
     .record-detail {
+
       z-index:
         21000;
     }
 
 
     .record-detail-card {
+
       width:
         min(
           650px,
@@ -2062,6 +2707,7 @@ function injectStyle() {
 
     .record-detail-card
     > .record-close {
+
       position:
         absolute;
 
@@ -2074,6 +2720,7 @@ function injectStyle() {
 
 
     .record-summary-grid {
+
       display:
         grid;
 
@@ -2087,13 +2734,16 @@ function injectStyle() {
         10px;
 
       margin:
-        20px 0;
+        20px
+        0;
     }
 
 
     .record-summary-grid div {
+
       padding:
-        13px 8px;
+        13px
+        8px;
 
       border:
         1px solid
@@ -2111,6 +2761,7 @@ function injectStyle() {
 
 
     .record-summary-grid span {
+
       display:
         block;
 
@@ -2126,6 +2777,7 @@ function injectStyle() {
 
 
     .record-summary-grid strong {
+
       color:
         #ffe178;
 
@@ -2135,6 +2787,7 @@ function injectStyle() {
 
 
     .record-map-row {
+
       display:
         flex;
 
@@ -2148,7 +2801,8 @@ function injectStyle() {
         12px;
 
       padding:
-        12px 4px;
+        12px
+        4px;
 
       border-bottom:
         1px solid
@@ -2162,6 +2816,7 @@ function injectStyle() {
 
 
     .record-map-row div {
+
       display:
         flex;
 
@@ -2174,6 +2829,7 @@ function injectStyle() {
 
 
     .record-map-row span {
+
       color:
         #9eb1d5;
 
@@ -2182,20 +2838,20 @@ function injectStyle() {
     }
 
 
-    @media (
-      max-width:
-        620px
-    ) {
+    @media (max-width: 620px) {
 
       .record-columns {
+
         display:
           none;
       }
 
 
       .record-player-row {
+
         grid-template-columns:
-          38px 1fr
+          38px
+          1fr
           auto;
 
         gap:
@@ -2204,25 +2860,30 @@ function injectStyle() {
 
 
       .record-time {
+
         grid-column:
           2 / 3;
       }
 
 
       .record-accuracy {
+
         grid-column:
           3 / 4;
       }
 
 
       .record-summary-grid {
+
         grid-template-columns:
-          1fr 1fr;
+          1fr
+          1fr;
       }
 
 
       .record-panel,
       .record-detail-card {
+
         padding:
           18px;
       }
@@ -2230,6 +2891,7 @@ function injectStyle() {
 
       .record-header h2,
       .record-detail-card h3 {
+
         font-size:
           23px;
       }
@@ -2254,16 +2916,24 @@ function initMobileRecords() {
 
   injectStyle();
 
+
   createMobileControls();
+
 
   createRecordButton();
 
+
   observeGameScreen();
+
 
   updateMobileControlsVisibility();
 
 }
 
+
+/* =====================================================
+   DOM READY
+===================================================== */
 
 if (
   document.readyState ===
