@@ -3,24 +3,27 @@ import Phaser from "phaser";
 import "./style.css";
 
 
-import Map01Scene
-  from "./game/Map01Scene.js";
+/* =====================================================
+   MAP SCENES
+===================================================== */
 
-import Map02Scene
-  from "./game/Map02Scene.js";
+import Map01Scene from "./game/Map01Scene.js";
+import Map02Scene from "./game/Map02Scene.js";
+import Map03Scene from "./game/Map03Scene.js";
+import Map04Scene from "./game/Map04Scene.js";
+import Map05Scene from "./game/Map05Scene.js";
+import Map06Scene from "./game/Map06Scene.js";
+import Map07Scene from "./game/Map07Scene.js";
+import Map08Scene from "./game/Map08Scene.js";
+import Map09Scene from "./game/Map09Scene.js";
+import Map10Scene from "./game/Map10Scene.js";
+import Map11Scene from "./game/Map11Scene.js";
+import Map12Scene from "./game/Map12Scene.js";
 
-import Map03Scene
-  from "./game/Map03Scene.js";
 
-import Map04Scene
-  from "./game/Map04Scene.js";
-
-import Map05Scene
-  from "./game/Map05Scene.js";
-
-import Map06Scene
-  from "./game/Map06Scene.js";
-
+/* =====================================================
+   DATA
+===================================================== */
 
 import {
   saveProfile,
@@ -32,7 +35,7 @@ import {
 
 
 /* =====================================================
-   SCENES
+   ALL GAME SCENES
 ===================================================== */
 
 const GAME_SCENES = [
@@ -41,12 +44,18 @@ const GAME_SCENES = [
   Map03Scene,
   Map04Scene,
   Map05Scene,
-  Map06Scene
+  Map06Scene,
+  Map07Scene,
+  Map08Scene,
+  Map09Scene,
+  Map10Scene,
+  Map11Scene,
+  Map12Scene
 ];
 
 
 /* =====================================================
-   BASE
+   BASE PATH
 ===================================================== */
 
 const base =
@@ -62,80 +71,96 @@ const titleScreen =
     "#title-screen"
   );
 
+
 const titleBg =
   document.querySelector(
     ".title-bg"
   );
+
 
 const gameScreen =
   document.querySelector(
     "#game-screen"
   );
 
+
 const setupModal =
   document.querySelector(
     "#setup-modal"
   );
+
 
 const modal =
   document.querySelector(
     "#modal"
   );
 
+
 const modalBody =
   document.querySelector(
     "#modal-body"
   );
+
 
 const startBtn =
   document.querySelector(
     "#start-btn"
   );
 
+
 const continueBtn =
   document.querySelector(
     "#continue-btn"
   );
+
 
 const adminBtn =
   document.querySelector(
     "#admin-btn"
   );
 
+
 const musicBtn =
   document.querySelector(
     "#music-btn"
   );
+
 
 const beginBtn =
   document.querySelector(
     "#begin-btn"
   );
 
+
 const cancelBtn =
   document.querySelector(
     "#setup-cancel"
   );
+
 
 const studentNameInput =
   document.querySelector(
     "#student-name"
   );
 
+
 const hudName =
   document.querySelector(
     "#hud-name"
   );
+
 
 const bgm =
   document.querySelector(
     "#bgm"
   );
 
+
 const malePreview =
   document.querySelector(
     "#male-preview"
   );
+
 
 const femalePreview =
   document.querySelector(
@@ -158,6 +183,9 @@ const ASSETS = {
   lumiPortrait:
     `${base}assets/portraits/lumi_portrait.png`,
 
+  bossPortrait:
+    `${base}assets/portraits/boss_portrait.png`,
+
   maleSprite:
     `${base}assets/male.png`,
 
@@ -168,7 +196,7 @@ const ASSETS = {
 
 
 /* =====================================================
-   TITLE
+   TITLE IMAGE
 ===================================================== */
 
 if (
@@ -180,6 +208,10 @@ if (
 
 }
 
+
+/* =====================================================
+   CHARACTER PREVIEW
+===================================================== */
 
 if (
   malePreview
@@ -201,6 +233,10 @@ if (
 }
 
 
+/* =====================================================
+   MUSIC
+===================================================== */
+
 if (
   bgm
 ) {
@@ -214,10 +250,6 @@ if (
 
 }
 
-
-/* =====================================================
-   MUSIC
-===================================================== */
 
 musicBtn
   ?.addEventListener(
@@ -273,7 +305,7 @@ musicBtn
 
 
 /* =====================================================
-   CHARACTER
+   CHARACTER SELECT
 ===================================================== */
 
 let selectedGender =
@@ -435,13 +467,18 @@ beginBtn
       };
 
 
-      saveProfile(
-        profile
-      );
-
+      /*
+        같은 이름으로 새 게임 시작 시
+        기존 맵 진행도 초기화
+      */
 
       clearAllProgress(
         name
+      );
+
+
+      saveProfile(
+        profile
       );
 
 
@@ -544,7 +581,7 @@ adminBtn
 
 
 /* =====================================================
-   PHASER
+   PHASER GAME
 ===================================================== */
 
 let phaserGame =
@@ -555,6 +592,10 @@ async function launchGame(
   profile,
   startMapId = "MAP01"
 ) {
+
+  /*
+    이미 게임이 떠 있다면 완전히 종료
+  */
 
   if (
     phaserGame
@@ -571,6 +612,10 @@ async function launchGame(
   }
 
 
+  /*
+    캐릭터 방향별 이미지 준비
+  */
+
   const spriteUrls =
     await prepareCharacterSprites(
       profile.gender
@@ -586,6 +631,10 @@ async function launchGame(
       : ASSETS.malePortrait;
 
 
+  /*
+    모든 Scene이 사용하는 전역 프로필
+  */
+
   window.WISDOM_PROFILE = {
 
     ...profile,
@@ -595,7 +644,10 @@ async function launchGame(
 
     spriteUrls,
 
-    portraitUrl
+    portraitUrl,
+
+    bossPortraitUrl:
+      ASSETS.bossPortrait
 
   };
 
@@ -623,6 +675,10 @@ async function launchGame(
 
   }
 
+
+  /*
+    Phaser 생성
+  */
 
   phaserGame =
     new Phaser.Game({
@@ -673,7 +729,8 @@ async function launchGame(
 
 
   /*
-    Phaser 준비 후 저장 맵으로 이동
+    Phaser가 완전히 준비된 뒤
+    원하는 MAP으로 이동.
   */
 
   phaserGame.events.once(
@@ -691,7 +748,7 @@ async function launchGame(
 
 
 /* =====================================================
-   START MAP
+   START REGISTERED MAP
 ===================================================== */
 
 function startRegisteredMap(
@@ -724,9 +781,14 @@ function startRegisteredMap(
 
 
   console.warn(
-    `${mapId} Scene이 없습니다. MAP01으로 이동합니다.`
+    `${mapId} Scene이 등록되어 있지 않습니다.`
   );
 
+
+  /*
+    혹시 맵 파일이 누락돼도
+    MAP01로 복구
+  */
 
   if (
     phaserGame.scene.keys.MAP01
@@ -805,6 +867,10 @@ window.WisdomGame = {
     }
 
 
+    /*
+      프로필 현재 맵 저장
+    */
+
     const profile =
       getProfile();
 
@@ -813,14 +879,19 @@ window.WisdomGame = {
       profile
     ) {
 
-      saveProfile({
+      const updatedProfile = {
 
         ...profile,
 
         currentMap:
           mapId
 
-      });
+      };
+
+
+      saveProfile(
+        updatedProfile
+      );
 
     }
 
@@ -831,6 +902,29 @@ window.WisdomGame = {
 
       window.WISDOM_PROFILE.currentMap =
         mapId;
+
+    }
+
+
+    /*
+      혹시 실행 중인 다른 Scene이 있다면 정리
+    */
+
+    for (
+      const scene of
+      phaserGame.scene.getScenes(
+        true
+      )
+    ) {
+
+      if (
+        scene.scene.key !==
+        mapId
+      ) {
+
+        scene.scene.stop();
+
+      }
 
     }
 
@@ -862,6 +956,9 @@ window.WisdomGame = {
     }
 
 
+    closeModal();
+
+
     gameScreen
       ?.classList
       .add(
@@ -875,13 +972,23 @@ window.WisdomGame = {
         "hidden"
       );
 
+
+    if (
+      hudName
+    ) {
+
+      hudName.textContent =
+        "";
+
+    }
+
   }
 
 };
 
 
 /* =====================================================
-   CHARACTER SPRITES
+   CHARACTER SPRITE PREPARATION
 ===================================================== */
 
 async function prepareCharacterSprites(
@@ -904,6 +1011,13 @@ async function prepareCharacterSprites(
         sourceUrl
       );
 
+
+    /*
+      현재 male.png / female.png는
+      4방향이 가로로 붙어 있는 구조.
+
+      FRONT | BACK | LEFT | RIGHT
+    */
 
     const frameWidth =
       Math.floor(
@@ -972,6 +1086,10 @@ async function prepareCharacterSprites(
 }
 
 
+/* =====================================================
+   LOAD IMAGE
+===================================================== */
+
 function loadImage(
   src
 ) {
@@ -1016,6 +1134,10 @@ function loadImage(
 
 }
 
+
+/* =====================================================
+   CROP CHARACTER FRAME
+===================================================== */
 
 function cropCharacter(
   image,
@@ -1087,7 +1209,7 @@ function cropCharacter(
 
 
 /* =====================================================
-   PORTRAITS
+   PORTRAIT HELPERS
 ===================================================== */
 
 function getPlayerPortrait() {
@@ -1123,6 +1245,13 @@ function getLumiPortrait() {
 }
 
 
+function getBossPortrait() {
+
+  return ASSETS.bossPortrait;
+
+}
+
+
 function getPlayerName() {
 
   return (
@@ -1142,6 +1271,12 @@ function getPlayerName() {
 window.QuizEngine = {
 
 
+  /*
+    영어 단어
+    →
+    한국어 뜻
+  */
+
   wordToKorean(
     words,
     used = []
@@ -1160,7 +1295,9 @@ window.QuizEngine = {
       );
 
 
-    if (!target) {
+    if (
+      !target
+    ) {
 
       return null;
 
@@ -1200,6 +1337,12 @@ window.QuizEngine = {
   },
 
 
+  /*
+    한국어 뜻
+    →
+    영어 단어
+  */
+
   koreanToWord(
     words,
     used = []
@@ -1218,7 +1361,9 @@ window.QuizEngine = {
       );
 
 
-    if (!target) {
+    if (
+      !target
+    ) {
 
       return null;
 
@@ -1258,6 +1403,12 @@ window.QuizEngine = {
   },
 
 
+  /*
+    영어 표현
+    →
+    한국어 뜻
+  */
+
   expressionToKorean(
     expressions,
     used = []
@@ -1276,7 +1427,9 @@ window.QuizEngine = {
       );
 
 
-    if (!target) {
+    if (
+      !target
+    ) {
 
       return null;
 
@@ -1316,6 +1469,12 @@ window.QuizEngine = {
   },
 
 
+  /*
+    한국어 뜻
+    →
+    영어 표현
+  */
+
   koreanToExpression(
     expressions,
     used = []
@@ -1334,7 +1493,9 @@ window.QuizEngine = {
       );
 
 
-    if (!target) {
+    if (
+      !target
+    ) {
 
       return null;
 
@@ -1374,6 +1535,10 @@ window.QuizEngine = {
   },
 
 
+  /*
+    문장 배열용 표현 하나 선택
+  */
+
   pickExpression(
     expressions,
     used = []
@@ -1388,6 +1553,10 @@ window.QuizEngine = {
 
   },
 
+
+  /*
+    랜덤 복습
+  */
 
   randomReview(
     content,
@@ -1460,9 +1629,13 @@ window.QuizEngine = {
     }
 
 
-    return shuffle(
-      makers
-    )[0]();
+    const maker =
+      shuffle(
+        makers
+      )[0];
+
+
+    return maker();
 
   }
 
@@ -1498,6 +1671,10 @@ function usablePairs(
 }
 
 
+/* =====================================================
+   UNUSED-FIRST PICK
+===================================================== */
+
 function pickUnused(
   items,
   used = []
@@ -1521,14 +1698,22 @@ function pickUnused(
     );
 
 
-  return shuffle(
+  const source =
     unused.length
       ? unused
-      : items
+      : items;
+
+
+  return shuffle(
+    source
   )[0];
 
 }
 
+
+/* =====================================================
+   BUILD MULTIPLE CHOICE OPTIONS
+===================================================== */
 
 function buildOptions(
   correct,
@@ -1536,11 +1721,13 @@ function buildOptions(
 ) {
 
   const values =
-    [...new Set(
-      pool.filter(
-        Boolean
+    [
+      ...new Set(
+        pool.filter(
+          Boolean
+        )
       )
-    )];
+    ];
 
 
   const wrong =
@@ -1554,11 +1741,14 @@ function buildOptions(
 
 
   return shuffle([
+
     correct,
+
     ...wrong.slice(
       0,
       3
     )
+
   ]);
 
 }
@@ -1571,6 +1761,10 @@ function buildOptions(
 window.GameUI = {
 
 
+  /* ===================================================
+     DIALOGUE
+  =================================================== */
+
   async say(
     messages
   ) {
@@ -1579,7 +1773,9 @@ window.GameUI = {
       Array.isArray(
         messages
       )
+
         ? messages
+
         : [messages];
 
 
@@ -1596,6 +1792,10 @@ window.GameUI = {
 
   },
 
+
+  /* ===================================================
+     MULTIPLE CHOICE
+  =================================================== */
 
   async choice(
     question,
@@ -1620,7 +1820,9 @@ window.GameUI = {
           </div>
 
           <p class="dialogue-text">
-            ${escapeHtml(question)}
+            ${escapeHtml(
+              question
+            )}
           </p>
 
           <div
@@ -1652,6 +1854,23 @@ window.GameUI = {
           );
 
 
+        if (
+          !optionArea
+          ||
+          !submit
+        ) {
+
+          closeModal();
+
+          resolve(
+            false
+          );
+
+          return;
+
+        }
+
+
         options.forEach(
           (
             option,
@@ -1673,7 +1892,9 @@ window.GameUI = {
 
 
             button.textContent =
-              String(option);
+              String(
+                option
+              );
 
 
             button.addEventListener(
@@ -1689,10 +1910,13 @@ window.GameUI = {
                     ".quiz-option"
                   )
                   .forEach(
-                    item =>
+                    item => {
+
                       item.classList.remove(
                         "selected"
-                      )
+                      );
+
+                    }
                   );
 
 
@@ -1755,14 +1979,14 @@ window.GameUI = {
   },
 
 
-  /*
-    문장 배열
+  /* ===================================================
+     WORD ORDER
 
-    중요:
-    오답이어도 Promise를 끝냄.
-    그래서 Scene의 finally가 실행되고
-    키보드가 다시 풀림.
-  */
+     중요:
+     오답이어도 반드시 resolve(false)
+     → Scene finally 실행
+     → 방향키 잠금 복구
+  =================================================== */
 
   async wordOrder(
     sentence
@@ -1772,10 +1996,30 @@ window.GameUI = {
       resolve => {
 
         const words =
-          String(sentence)
+          String(
+            sentence
+          )
             .trim()
-            .split(/\s+/)
-            .filter(Boolean);
+            .split(
+              /\s+/
+            )
+            .filter(
+              Boolean
+            );
+
+
+        if (
+          words.length <
+          1
+        ) {
+
+          resolve(
+            false
+          );
+
+          return;
+
+        }
 
 
         const mixed =
@@ -1860,6 +2104,25 @@ window.GameUI = {
           );
 
 
+        if (
+          !tokenArea
+          ||
+          !answerArea
+          ||
+          !submitButton
+        ) {
+
+          closeModal();
+
+          resolve(
+            false
+          );
+
+          return;
+
+        }
+
+
         function renderAnswer() {
 
           answerArea.textContent =
@@ -1868,7 +2131,9 @@ window.GameUI = {
                 item =>
                   item.word
               )
-              .join(" ")
+              .join(
+                " "
+              )
             ||
             " ";
 
@@ -1876,7 +2141,10 @@ window.GameUI = {
 
 
         mixed.forEach(
-          word => {
+          (
+            word,
+            index
+          ) => {
 
             const button =
               document.createElement(
@@ -1894,6 +2162,12 @@ window.GameUI = {
 
             button.textContent =
               word;
+
+
+            button.dataset.index =
+              String(
+                index
+              );
 
 
             button.addEventListener(
@@ -1961,49 +2235,62 @@ window.GameUI = {
           );
 
 
-        submitButton
-          ?.addEventListener(
-            "click",
-            () => {
+        submitButton.addEventListener(
+          "click",
+          () => {
 
-              const result =
-                selected
-                  .map(
-                    item =>
-                      item.word
-                  )
-                  .join(" ");
-
-
-              const correct =
-                normalizeSentence(
-                  result
+            const result =
+              selected
+                .map(
+                  item =>
+                    item.word
                 )
-                ===
-                normalizeSentence(
-                  sentence
+                .join(
+                  " "
                 );
 
 
-              closeModal();
-
-
-              resolve(
-                correct
+            const correct =
+              normalizeSentence(
+                result
+              )
+              ===
+              normalizeSentence(
+                sentence
               );
 
-            },
-            {
-              once:
-                true
-            }
-          );
+
+            /*
+              반드시 모달 닫기
+            */
+
+            closeModal();
+
+
+            /*
+              정답 / 오답 모두 Promise 종료
+            */
+
+            resolve(
+              correct
+            );
+
+          },
+          {
+            once:
+              true
+          }
+        );
 
       }
     );
 
   },
 
+
+  /* ===================================================
+     SIMPLE ENGLISH DISPLAY
+  =================================================== */
 
   async english(
     description,
@@ -2019,11 +2306,15 @@ window.GameUI = {
         modalBody.innerHTML = `
 
           <p class="dialogue-text">
-            ${escapeHtml(description)}
+            ${escapeHtml(
+              description
+            )}
           </p>
 
           <div class="english-box">
-            ${escapeHtml(englishText)}
+            ${escapeHtml(
+              englishText
+            )}
           </div>
 
           <button
@@ -2037,33 +2328,54 @@ window.GameUI = {
         `;
 
 
-        document
-          .querySelector(
+        const button =
+          document.querySelector(
             "#english-ok"
-          )
-          ?.addEventListener(
-            "click",
-            () => {
-
-              closeModal();
-
-
-              resolve(
-                true
-              );
-
-            },
-            {
-              once:
-                true
-            }
           );
+
+
+        if (
+          !button
+        ) {
+
+          closeModal();
+
+          resolve(
+            true
+          );
+
+          return;
+
+        }
+
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            closeModal();
+
+
+            resolve(
+              true
+            );
+
+          },
+          {
+            once:
+              true
+          }
+        );
 
       }
     );
 
   },
 
+
+  /* ===================================================
+     NORMAL MAP CLEAR
+  =================================================== */
 
   async finish(
     result
@@ -2078,38 +2390,71 @@ window.GameUI = {
         modalBody.innerHTML = `
 
           <h2 class="clear-title">
-            ${escapeHtml(result.mapId ?? "MAP")} CLEAR!
+            ${escapeHtml(
+              result.mapId
+              ??
+              "MAP"
+            )}
+            CLEAR!
           </h2>
 
           <p class="dialogue-text">
-            ${escapeHtml(result.name)}의 모험 완료!
+            ${escapeHtml(
+              result.name
+            )}의 모험 완료!
           </p>
 
           <div class="result-box">
 
             <div>
-              <span>플레이 시간</span>
+              <span>
+                플레이 시간
+              </span>
+
               <strong>
-                ${formatTime(result.seconds)}
+                ${formatTime(
+                  result.seconds
+                )}
               </strong>
             </div>
 
             <div>
-              <span>첫 시도 정답</span>
+              <span>
+                첫 시도 정답
+              </span>
+
               <strong>
-                ${Number(result.firstTry) || 0}
+                ${
+                  Number(
+                    result.firstTry
+                  )
+                  ||
+                  0
+                }
               </strong>
             </div>
 
             <div>
-              <span>오답 횟수</span>
+              <span>
+                오답 횟수
+              </span>
+
               <strong>
-                ${Number(result.wrong) || 0}
+                ${
+                  Number(
+                    result.wrong
+                  )
+                  ||
+                  0
+                }
               </strong>
             </div>
 
             <div>
-              <span>말의 조각</span>
+              <span>
+                말의 조각
+              </span>
+
               <strong>
                 ◆ ◆ ◆
               </strong>
@@ -2128,31 +2473,48 @@ window.GameUI = {
         `;
 
 
-        document
-          .querySelector(
+        const button =
+          document.querySelector(
             "#finish-home"
-          )
-          ?.addEventListener(
-            "click",
-            () => {
-
-              closeModal();
-
-
-              window.WisdomGame
-                ?.goTitle();
-
-
-              resolve(
-                true
-              );
-
-            },
-            {
-              once:
-                true
-            }
           );
+
+
+        if (
+          !button
+        ) {
+
+          closeModal();
+
+          resolve(
+            true
+          );
+
+          return;
+
+        }
+
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            closeModal();
+
+
+            window.WisdomGame
+              ?.goTitle();
+
+
+            resolve(
+              true
+            );
+
+          },
+          {
+            once:
+              true
+          }
+        );
 
       }
     );
@@ -2163,7 +2525,7 @@ window.GameUI = {
 
 
 /* =====================================================
-   DIALOGUE
+   STANDARD DIALOGUE
 ===================================================== */
 
 function showDialogue(
@@ -2178,7 +2540,9 @@ function showDialogue(
 
       let text =
         String(
-          rawText ?? ""
+          rawText
+          ??
+          ""
         );
 
 
@@ -2189,6 +2553,10 @@ function showDialogue(
       let portrait =
         null;
 
+
+      /*
+        루미
+      */
 
       if (
         text.startsWith(
@@ -2211,6 +2579,47 @@ function showDialogue(
           );
 
       }
+
+
+      /*
+        최종 보스도 공용 대화에서 사용 가능
+      */
+
+      else if (
+        text.startsWith(
+          "침묵의 군주:"
+        )
+        ||
+        text.startsWith(
+          "보스:"
+        )
+      ) {
+
+        speaker =
+          "침묵의 군주";
+
+
+        portrait =
+          getBossPortrait();
+
+
+        text =
+          text
+            .replace(
+              /^침묵의 군주:\s*/,
+              ""
+            )
+            .replace(
+              /^보스:\s*/,
+              ""
+            );
+
+      }
+
+
+      /*
+        플레이어
+      */
 
       else if (
         text.startsWith(
@@ -2256,18 +2665,23 @@ function showDialogue(
         portrait
 
           ? `
+
             <div class="dialogue-portrait-box">
 
               <img
                 class="dialogue-portrait"
                 src="${portrait}"
-                alt="${escapeHtml(speaker)}"
+                alt="${escapeHtml(
+                  speaker
+                )}"
               />
 
             </div>
+
           `
 
           : `
+
             <div class="dialogue-system-box">
 
               <div class="dialogue-system-icon">
@@ -2275,6 +2689,7 @@ function showDialogue(
               </div>
 
             </div>
+
           `;
 
 
@@ -2290,16 +2705,22 @@ function showDialogue(
               speaker
 
                 ? `
+
                   <div class="dialogue-speaker">
-                    ${escapeHtml(speaker)}
+                    ${escapeHtml(
+                      speaker
+                    )}
                   </div>
+
                 `
 
                 : ""
             }
 
             <p class="dialogue-text">
-              ${escapeHtml(text)}
+              ${escapeHtml(
+                text
+              )}
             </p>
 
             <button
@@ -2317,27 +2738,44 @@ function showDialogue(
       `;
 
 
-      document
-        .querySelector(
+      const button =
+        document.querySelector(
           "#dialog-next"
-        )
-        ?.addEventListener(
-          "click",
-          () => {
-
-            closeModal();
-
-
-            resolve(
-              true
-            );
-
-          },
-          {
-            once:
-              true
-          }
         );
+
+
+      if (
+        !button
+      ) {
+
+        closeModal();
+
+        resolve(
+          true
+        );
+
+        return;
+
+      }
+
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          closeModal();
+
+
+          resolve(
+            true
+          );
+
+        },
+        {
+          once:
+            true
+        }
+      );
 
     }
   );
@@ -2346,7 +2784,7 @@ function showDialogue(
 
 
 /* =====================================================
-   ENTER / SPACE
+   GLOBAL ENTER / SPACE CONTROL
 ===================================================== */
 
 document.addEventListener(
@@ -2375,12 +2813,17 @@ document.addEventListener(
     }
 
 
+    /*
+      모달이 없거나 닫혀 있으면
+      게임 Scene 키 입력에 맡긴다.
+    */
+
     if (
-      modal
-        ?.classList
-        .contains(
-          "hidden"
-        )
+      !modal
+      ||
+      modal.classList.contains(
+        "hidden"
+      )
     ) {
 
       return;
@@ -2391,9 +2834,16 @@ document.addEventListener(
     event.preventDefault();
 
 
+    /*
+      현재 열려 있는 UI에서
+      사용할 수 있는 버튼 하나만 클릭
+    */
+
     const selectors = [
 
       "#dialog-next",
+
+      "#boss-dialog-next",
 
       "#english-ok",
 
@@ -2401,7 +2851,9 @@ document.addEventListener(
 
       "#sentence-submit",
 
-      "#finish-home"
+      "#finish-home",
+
+      "#map12-ending-home"
 
     ];
 
@@ -2463,7 +2915,7 @@ function closeModal() {
 
 
 /* =====================================================
-   HELPERS
+   ESCAPE HTML
 ===================================================== */
 
 function escapeHtml(
@@ -2471,7 +2923,9 @@ function escapeHtml(
 ) {
 
   return String(
-    value ?? ""
+    value
+    ??
+    ""
   )
 
     .replaceAll(
@@ -2502,37 +2956,69 @@ function escapeHtml(
 }
 
 
+/* =====================================================
+   SENTENCE NORMALIZER
+===================================================== */
+
 function normalizeSentence(
   value
 ) {
 
   return String(
-    value ?? ""
+    value
+    ??
+    ""
   )
+
     .trim()
+
     .replace(
       /\s+/g,
       " "
     )
+
     .toLowerCase();
 
 }
 
+
+/* =====================================================
+   TIME FORMAT
+===================================================== */
 
 function formatTime(
   seconds
 ) {
 
   const safeSeconds =
-    Number(seconds)
-    ||
-    0;
+    Math.max(
+      0,
+      Number(
+        seconds
+      )
+      ||
+      0
+    );
+
+
+  const minutes =
+    Math.floor(
+      safeSeconds /
+      60
+    );
+
+
+  const remainingSeconds =
+    Math.floor(
+      safeSeconds %
+      60
+    );
 
 
   return (
-    `${Math.floor(safeSeconds / 60)}분 `
+    `${minutes}분 `
     +
-    `${Math.floor(safeSeconds % 60)}초`
+    `${remainingSeconds}초`
   );
 
 }
