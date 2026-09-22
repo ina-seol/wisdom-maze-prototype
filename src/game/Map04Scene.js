@@ -13,6 +13,7 @@ import {
 
 
 const MAP_ID = "MAP04";
+const FLOW_VERSION = 3;
 
 
 export default class Map04Scene extends Phaser.Scene {
@@ -107,10 +108,6 @@ export default class Map04Scene extends Phaser.Scene {
       Date.now();
 
 
-    this.interactables =
-      [];
-
-
     this.add.image(
       384,
       288,
@@ -150,12 +147,8 @@ export default class Map04Scene extends Phaser.Scene {
 
         try {
 
-          if (
-            !this.state.introDone
-          ) {
-
+          if (!this.state.introDone) {
             await this.playIntro();
-
           }
 
         }
@@ -181,7 +174,68 @@ export default class Map04Scene extends Phaser.Scene {
   }
 
 
+  /* =====================================================
+     STATE
+  ====================================================== */
+
   prepareState() {
+
+    /*
+      예전 MAP04 저장값이 이미 꼬여 있을 수 있으므로
+      새 진행 구조 최초 적용 시 MAP04만 초기화.
+    */
+
+    if (
+      this.state.flowVersion !==
+      FLOW_VERSION
+    ) {
+
+      this.state.flowVersion =
+        FLOW_VERSION;
+
+      this.state.introDone =
+        false;
+
+      this.state.phase =
+        "fountain";
+
+      this.state.shards =
+        0;
+
+      this.state.questionsShown =
+        0;
+
+      this.state.firstTryCorrect =
+        0;
+
+      this.state.wrongAttempts =
+        0;
+
+      this.state.hintsUsed =
+        0;
+
+      this.state.mistakes =
+        {};
+
+      this.state.usedWords =
+        [];
+
+      this.state.usedExpressions =
+        [];
+
+      this.state.completed =
+        false;
+
+      this.state.sessionStartedAt =
+        Date.now();
+
+
+      this.saveRaw();
+
+      return;
+
+    }
+
 
     const validPhases = [
       "fountain",
@@ -197,6 +251,8 @@ export default class Map04Scene extends Phaser.Scene {
       !validPhases.includes(
         this.state.phase
       )
+      &&
+      !this.state.completed
     ) {
 
       this.state.phase =
@@ -208,42 +264,32 @@ export default class Map04Scene extends Phaser.Scene {
     this.state.introDone ??=
       false;
 
-
     this.state.shards ??=
       0;
-
 
     this.state.questionsShown ??=
       0;
 
-
     this.state.firstTryCorrect ??=
       0;
-
 
     this.state.wrongAttempts ??=
       0;
 
-
     this.state.hintsUsed ??=
       0;
-
 
     this.state.mistakes ??=
       {};
 
-
     this.state.usedWords ??=
       [];
-
 
     this.state.usedExpressions ??=
       [];
 
-
     this.state.completed ??=
       false;
-
 
     this.state.sessionStartedAt ??=
       Date.now();
@@ -251,23 +297,23 @@ export default class Map04Scene extends Phaser.Scene {
   }
 
 
+  /* =====================================================
+     INPUT
+  ====================================================== */
+
   lockInput() {
 
     this.inputLocked =
       true;
 
-
     this.interactionRunning =
       true;
-
 
     this.lockStartedAt =
       Date.now();
 
 
-    if (
-      this.player?.body
-    ) {
+    if (this.player?.body) {
 
       this.player.body.setVelocity(
         0,
@@ -290,18 +336,14 @@ export default class Map04Scene extends Phaser.Scene {
     this.inputLocked =
       false;
 
-
     this.interactionRunning =
       false;
-
 
     this.lockStartedAt =
       0;
 
 
-    if (
-      this.input?.keyboard
-    ) {
+    if (this.input?.keyboard) {
 
       this.input.keyboard.enabled =
         true;
@@ -309,13 +351,10 @@ export default class Map04Scene extends Phaser.Scene {
     }
 
 
-    if (
-      this.player?.body
-    ) {
+    if (this.player?.body) {
 
       this.player.body.enable =
         true;
-
 
       this.player.body.setVelocity(
         0,
@@ -329,12 +368,8 @@ export default class Map04Scene extends Phaser.Scene {
 
   recoverStuckInput() {
 
-    if (
-      !this.inputLocked
-    ) {
-
+    if (!this.inputLocked) {
       return;
-
     }
 
 
@@ -346,37 +381,26 @@ export default class Map04Scene extends Phaser.Scene {
 
     const modalVisible =
       Boolean(
-        modal
-        &&
+        modal &&
         !modal.classList.contains(
           "hidden"
         )
       );
 
 
-    if (
-      modalVisible
-    ) {
-
+    if (modalVisible) {
       return;
+    }
 
+
+    if (!this.lockStartedAt) {
+      return;
     }
 
 
     if (
-      !this.lockStartedAt
-    ) {
-
-      return;
-
-    }
-
-
-    if (
-      Date.now()
-      -
-      this.lockStartedAt
-      <
+      Date.now() -
+      this.lockStartedAt <
       200
     ) {
 
@@ -386,7 +410,7 @@ export default class Map04Scene extends Phaser.Scene {
 
 
     console.warn(
-      "MAP04 input lock 자동 복구"
+      "MAP04 입력 잠금 자동 복구"
     );
 
 
@@ -395,121 +419,130 @@ export default class Map04Scene extends Phaser.Scene {
   }
 
 
+  /* =====================================================
+     OBJECTS
+  ====================================================== */
+
   createInteractables() {
 
-    this.interactables = [
+    this.interactables = {
 
-      {
-        id:
-          "fountain",
-
-        label:
-          "푸른 수정 분수",
-
-        x:
-          385,
-
-        y:
-          310,
-
-        radius:
-          80
+      fountain: {
+        id: "fountain",
+        label: "푸른 수정 분수",
+        x: 385,
+        y: 310,
+        radius: 90
       },
 
-
-      {
-        id:
-          "observatory",
-
-        label:
-          "고대 천문대",
-
-        x:
-          145,
-
-        y:
-          160,
-
-        radius:
-          85
+      observatory: {
+        id: "observatory",
+        label: "고대 천문대",
+        x: 145,
+        y: 160,
+        radius: 95
       },
 
-
-      {
-        id:
-          "library",
-
-        label:
-          "푸른 서재",
-
-        x:
-          650,
-
-        y:
-          160,
-
-        radius:
-          85
+      library: {
+        id: "library",
+        label: "푸른 서재",
+        x: 650,
+        y: 160,
+        radius: 95
       },
 
-
-      {
-        id:
-          "time_circle",
-
-        label:
-          "시간 마법진",
-
-        x:
-          385,
-
-        y:
-          465,
-
-        radius:
-          88
+      time_circle: {
+        id: "time_circle",
+        label: "시간 마법진",
+        x: 385,
+        y: 465,
+        radius: 100
       },
 
-
-      {
-        id:
-          "crystal",
-
-        label:
-          "보라 수정 제단",
-
-        x:
-          625,
-
-        y:
-          490,
-
-        radius:
-          88
+      crystal: {
+        id: "crystal",
+        label: "보라 수정 제단",
+        x: 625,
+        y: 490,
+        radius: 100
       },
 
-
-      {
-        id:
-          "exit",
-
-        label:
-          "고대 사원 문",
-
-        x:
-          385,
-
-        y:
-          140,
-
-        radius:
-          95
+      exit: {
+        id: "exit",
+        label: "고대 사원 문",
+        x: 385,
+        y: 140,
+        radius: 105
       }
 
-    ];
+    };
 
   }
 
+
+  /*
+    핵심.
+
+    현재 phase에 해당하는 오브젝트 하나만 반환.
+    다른 물건 근처에서 E를 눌러도 아무 일도 안 일어남.
+  */
+
+  currentTarget() {
+
+    return (
+      this.interactables[
+        this.state.phase
+      ]
+      ||
+      null
+    );
+
+  }
+
+
+  targetInRange() {
+
+    const target =
+      this.currentTarget();
+
+
+    if (
+      !target ||
+      !this.player
+    ) {
+
+      return null;
+
+    }
+
+
+    const distance =
+      Phaser.Math.Distance.Between(
+        this.player.x,
+        this.player.y,
+        target.x,
+        target.y
+      );
+
+
+    if (
+      distance <=
+      target.radius
+    ) {
+
+      return target;
+
+    }
+
+
+    return null;
+
+  }
+
+
+  /* =====================================================
+     GUIDE
+  ====================================================== */
 
   createGuide() {
 
@@ -600,44 +633,19 @@ export default class Map04Scene extends Phaser.Scene {
 
   updateGuide() {
 
-    const points = {
-
-      fountain:
-        [385, 310],
-
-      observatory:
-        [145, 160],
-
-      library:
-        [650, 160],
-
-      time_circle:
-        [385, 465],
-
-      crystal:
-        [625, 490],
-
-      exit:
-        [385, 140]
-
-    };
-
-
-    const point =
-      points[
-        this.state.phase
-      ];
+    const target =
+      this.currentTarget();
 
 
     if (
-      !point
+      !target ||
+      this.state.completed
     ) {
 
       this.guide
         ?.setVisible(
           false
         );
-
 
       return;
 
@@ -649,12 +657,16 @@ export default class Map04Scene extends Phaser.Scene {
         true
       )
       .setPosition(
-        point[0],
-        point[1]
+        target.x,
+        target.y
       );
 
   }
 
+
+  /* =====================================================
+     PLAYER
+  ====================================================== */
 
   createPlayer() {
 
@@ -735,23 +747,12 @@ export default class Map04Scene extends Phaser.Scene {
     this.keys =
       this.input.keyboard.addKeys({
 
-        up:
-          "W",
-
-        down:
-          "S",
-
-        left:
-          "A",
-
-        right:
-          "D",
-
-        interact:
-          "E",
-
-        enter:
-          "ENTER"
+        up: "W",
+        down: "S",
+        left: "A",
+        right: "D",
+        interact: "E",
+        enter: "ENTER"
 
       });
 
@@ -760,27 +761,20 @@ export default class Map04Scene extends Phaser.Scene {
 
   update() {
 
-    if (
-      !this.player?.body
-    ) {
-
+    if (!this.player?.body) {
       return;
-
     }
 
 
     this.recoverStuckInput();
 
 
-    if (
-      this.inputLocked
-    ) {
+    if (this.inputLocked) {
 
       this.player.body.setVelocity(
         0,
         0
       );
-
 
       return;
 
@@ -794,14 +788,12 @@ export default class Map04Scene extends Phaser.Scene {
     let vx =
       0;
 
-
     let vy =
       0;
 
 
     if (
-      this.cursors.left.isDown
-      ||
+      this.cursors.left.isDown ||
       this.keys.left.isDown
     ) {
 
@@ -811,8 +803,7 @@ export default class Map04Scene extends Phaser.Scene {
     }
 
     else if (
-      this.cursors.right.isDown
-      ||
+      this.cursors.right.isDown ||
       this.keys.right.isDown
     ) {
 
@@ -823,8 +814,7 @@ export default class Map04Scene extends Phaser.Scene {
 
 
     if (
-      this.cursors.up.isDown
-      ||
+      this.cursors.up.isDown ||
       this.keys.up.isDown
     ) {
 
@@ -834,8 +824,7 @@ export default class Map04Scene extends Phaser.Scene {
     }
 
     else if (
-      this.cursors.down.isDown
-      ||
+      this.cursors.down.isDown ||
       this.keys.down.isDown
     ) {
 
@@ -846,14 +835,12 @@ export default class Map04Scene extends Phaser.Scene {
 
 
     if (
-      vx !== 0
-      &&
+      vx !== 0 &&
       vy !== 0
     ) {
 
       vx *=
         0.707;
-
 
       vy *=
         0.707;
@@ -899,14 +886,12 @@ export default class Map04Scene extends Phaser.Scene {
   ) {
 
     if (
-      Math.abs(vx)
-      >
+      Math.abs(vx) >
       Math.abs(vy)
     ) {
 
       if (
-        vx < 0
-        &&
+        vx < 0 &&
         this.textures.exists(
           "map04_left"
         )
@@ -919,8 +904,7 @@ export default class Map04Scene extends Phaser.Scene {
       }
 
       else if (
-        vx > 0
-        &&
+        vx > 0 &&
         this.textures.exists(
           "map04_right"
         )
@@ -939,8 +923,7 @@ export default class Map04Scene extends Phaser.Scene {
 
 
     if (
-      vy < 0
-      &&
+      vy < 0 &&
       this.textures.exists(
         "map04_back"
       )
@@ -953,8 +936,7 @@ export default class Map04Scene extends Phaser.Scene {
     }
 
     else if (
-      vy > 0
-      &&
+      vy > 0 &&
       this.textures.exists(
         "map04_front"
       )
@@ -969,70 +951,18 @@ export default class Map04Scene extends Phaser.Scene {
   }
 
 
-  nearestObject() {
-
-    let nearest =
-      null;
-
-
-    let shortest =
-      Infinity;
-
-
-    for (
-      const object of
-      this.interactables
-    ) {
-
-      const distance =
-        Phaser.Math.Distance.Between(
-          this.player.x,
-          this.player.y,
-          object.x,
-          object.y
-        );
-
-
-      if (
-        distance <=
-          object.radius
-        &&
-        distance <
-          shortest
-      ) {
-
-        nearest =
-          object;
-
-
-        shortest =
-          distance;
-
-      }
-
-    }
-
-
-    return nearest;
-
-  }
-
-
   updatePrompt() {
 
-    const object =
-      this.nearestObject();
+    const target =
+      this.targetInRange();
 
 
-    if (
-      !object
-    ) {
+    if (!target) {
 
       this.prompt
         ?.setVisible(
           false
         );
-
 
       return;
 
@@ -1041,7 +971,7 @@ export default class Map04Scene extends Phaser.Scene {
 
     this.prompt
       ?.setText(
-        `[E] ${object.label} 조사`
+        `[E] ${target.label} 조사`
       )
       .setVisible(
         true
@@ -1050,11 +980,14 @@ export default class Map04Scene extends Phaser.Scene {
   }
 
 
+  /* =====================================================
+     INTERACTION
+  ====================================================== */
+
   async interact() {
 
     if (
-      this.inputLocked
-      ||
+      this.inputLocked ||
       this.interactionRunning
     ) {
 
@@ -1063,13 +996,15 @@ export default class Map04Scene extends Phaser.Scene {
     }
 
 
-    const object =
-      this.nearestObject();
+    /*
+      현재 미션 대상만 조사 가능.
+    */
+
+    const target =
+      this.targetInRange();
 
 
-    if (
-      !object
-    ) {
+    if (!target) {
 
       return;
 
@@ -1082,7 +1017,7 @@ export default class Map04Scene extends Phaser.Scene {
     try {
 
       switch (
-        object.id
+        this.state.phase
       ) {
 
         case "fountain":
@@ -1150,6 +1085,10 @@ export default class Map04Scene extends Phaser.Scene {
   }
 
 
+  /* =====================================================
+     INTRO
+  ====================================================== */
+
   async playIntro() {
 
     await GameUI.say([
@@ -1158,9 +1097,11 @@ export default class Map04Scene extends Phaser.Scene {
 
       "나: 여긴 시간이 멈춘 것 같아.",
 
-      "루미: 네 번째 언어 수정의 힘 때문에 유적의 시간이 엉켜 버렸어.",
+      "루미: 네 번째 언어 수정 때문에 유적의 시간이 엉켜 버렸어.",
 
-      "루미: 먼저 중앙의 푸른 수정 분수를 조사해 보자!"
+      "루미: 순서대로 장치를 복구해야 해.",
+
+      "루미: 먼저 중앙의 푸른 수정 분수를 조사하자!"
 
     ]);
 
@@ -1178,14 +1119,16 @@ export default class Map04Scene extends Phaser.Scene {
   }
 
 
+  /* =====================================================
+     1. FOUNTAIN
+  ====================================================== */
+
   async handleFountain() {
 
     if (
       this.state.phase !==
       "fountain"
     ) {
-
-      await this.showHint();
 
       return;
 
@@ -1204,7 +1147,6 @@ export default class Map04Scene extends Phaser.Scene {
       await GameUI.say(
         "루미: MAP04 단어 데이터가 부족해."
       );
-
 
       return;
 
@@ -1230,7 +1172,7 @@ export default class Map04Scene extends Phaser.Scene {
 
 
       await GameUI.say(
-        "루미: 단어의 뜻을 다시 생각해 보자!"
+        "루미: 수정 분수가 반응하지 않아. 다시 해 보자!"
       );
 
 
@@ -1253,6 +1195,11 @@ export default class Map04Scene extends Phaser.Scene {
       1;
 
 
+    /*
+      오직 여기서만
+      fountain → observatory
+    */
+
     this.state.phase =
       "observatory";
 
@@ -1266,12 +1213,16 @@ export default class Map04Scene extends Phaser.Scene {
 
       "루미: 첫 번째 말의 조각이야!",
 
-      "루미: 왼쪽 위의 고대 천문대로 가자!"
+      "루미: 이제 왼쪽 위의 고대 천문대로 가자!"
 
     ]);
 
   }
 
+
+  /* =====================================================
+     2. OBSERVATORY
+  ====================================================== */
 
   async handleObservatory() {
 
@@ -1279,8 +1230,6 @@ export default class Map04Scene extends Phaser.Scene {
       this.state.phase !==
       "observatory"
     ) {
-
-      await this.showHint();
 
       return;
 
@@ -1299,7 +1248,6 @@ export default class Map04Scene extends Phaser.Scene {
       await GameUI.say(
         "루미: MAP04 단어 데이터가 부족해."
       );
-
 
       return;
 
@@ -1325,7 +1273,7 @@ export default class Map04Scene extends Phaser.Scene {
 
 
       await GameUI.say(
-        "루미: 한국어 뜻에 맞는 영어 단어를 다시 골라 보자!"
+        "루미: 천문대가 아직 반응하지 않아. 다시 해 보자!"
       );
 
 
@@ -1344,6 +1292,10 @@ export default class Map04Scene extends Phaser.Scene {
     );
 
 
+    /*
+      observatory → library
+    */
+
     this.state.phase =
       "library";
 
@@ -1357,12 +1309,16 @@ export default class Map04Scene extends Phaser.Scene {
 
       "나: 오른쪽 위에서 푸른 빛이 보여!",
 
-      "루미: 좋아! 이제 푸른 서재로 가자!"
+      "루미: 좋아! 이제 오른쪽 위 푸른 서재로 가자!"
 
     ]);
 
   }
 
+
+  /* =====================================================
+     3. LIBRARY
+  ====================================================== */
 
   async handleLibrary() {
 
@@ -1370,8 +1326,6 @@ export default class Map04Scene extends Phaser.Scene {
       this.state.phase !==
       "library"
     ) {
-
-      await this.showHint();
 
       return;
 
@@ -1390,7 +1344,6 @@ export default class Map04Scene extends Phaser.Scene {
       await GameUI.say(
         "루미: MAP04 영어 표현 데이터가 부족해."
       );
-
 
       return;
 
@@ -1416,7 +1369,7 @@ export default class Map04Scene extends Phaser.Scene {
 
 
       await GameUI.say(
-        "루미: 영어 표현 전체의 뜻을 다시 생각해 보자!"
+        "루미: 서재의 봉인이 풀리지 않았어. 다시 해 보자!"
       );
 
 
@@ -1439,6 +1392,10 @@ export default class Map04Scene extends Phaser.Scene {
       2;
 
 
+    /*
+      library → time_circle
+    */
+
     this.state.phase =
       "time_circle";
 
@@ -1452,14 +1409,16 @@ export default class Map04Scene extends Phaser.Scene {
 
       "루미: 두 번째 말의 조각을 찾았어!",
 
-      "나: 아래쪽에서 거대한 문양이 빛나고 있어.",
-
-      "루미: 중앙 아래의 시간 마법진으로 가자!"
+      "루미: 이제 중앙 아래쪽 시간 마법진으로 가자!"
 
     ]);
 
   }
 
+
+  /* =====================================================
+     4. TIME CIRCLE
+  ====================================================== */
 
   async handleTimeCircle() {
 
@@ -1467,8 +1426,6 @@ export default class Map04Scene extends Phaser.Scene {
       this.state.phase !==
       "time_circle"
     ) {
-
-      await this.showHint();
 
       return;
 
@@ -1485,9 +1442,8 @@ export default class Map04Scene extends Phaser.Scene {
     if (!expression) {
 
       await GameUI.say(
-        "루미: 문장 배열에 사용할 MAP04 영어 표현이 부족해."
+        "루미: 문장 배열에 사용할 MAP04 표현 데이터가 부족해."
       );
-
 
       return;
 
@@ -1516,7 +1472,7 @@ export default class Map04Scene extends Phaser.Scene {
 
 
       await GameUI.say(
-        "루미: 문장 순서를 다시 확인해 보자!"
+        "루미: 시간 마법진이 반응하지 않아. 문장 순서를 다시 확인해 보자!"
       );
 
 
@@ -1535,6 +1491,10 @@ export default class Map04Scene extends Phaser.Scene {
     );
 
 
+    /*
+      time_circle → crystal
+    */
+
     this.state.phase =
       "crystal";
 
@@ -1544,9 +1504,9 @@ export default class Map04Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "시간 마법진의 바늘이 다시 움직이기 시작했다.",
+      "시간 마법진이 다시 회전하기 시작했다.",
 
-      "나: 오른쪽 아래의 보라 수정이 깨어났어!",
+      "나: 오른쪽 아래 보라 수정이 빛나!",
 
       "루미: 보라 수정 제단으로 가자!"
 
@@ -1555,14 +1515,16 @@ export default class Map04Scene extends Phaser.Scene {
   }
 
 
+  /* =====================================================
+     5. CRYSTAL
+  ====================================================== */
+
   async handleCrystal() {
 
     if (
       this.state.phase !==
       "crystal"
     ) {
-
-      await this.showHint();
 
       return;
 
@@ -1580,9 +1542,8 @@ export default class Map04Scene extends Phaser.Scene {
     if (!quiz) {
 
       await GameUI.say(
-        "루미: 마지막 문제를 만들 MAP04 학습 데이터가 부족해."
+        "루미: 마지막 문제를 만들 MAP04 데이터가 부족해."
       );
-
 
       return;
 
@@ -1608,7 +1569,7 @@ export default class Map04Scene extends Phaser.Scene {
 
 
       await GameUI.say(
-        "루미: 수정의 봉인이 아직 풀리지 않았어. 다시 해 보자!"
+        "루미: 마지막 봉인이 아직 남아 있어. 다시 해 보자!"
       );
 
 
@@ -1626,6 +1587,11 @@ export default class Map04Scene extends Phaser.Scene {
       3;
 
 
+    /*
+      crystal 단계에서만
+      exit로 이동 가능.
+    */
+
     this.state.phase =
       "exit";
 
@@ -1639,14 +1605,18 @@ export default class Map04Scene extends Phaser.Scene {
 
       "나: 세 조각을 모두 모았어!",
 
-      "루미: 좋아! 가운데 위쪽의 큰 사원 문이 열렸어.",
+      "루미: 가운데 위쪽의 큰 고대 사원 문이 열렸어!",
 
-      "루미: 고대 사원 문으로 가자!"
+      "루미: 이제 고대 사원 문으로 가자!"
 
     ]);
 
   }
 
+
+  /* =====================================================
+     6. EXIT
+  ====================================================== */
 
   async handleExit() {
 
@@ -1654,8 +1624,6 @@ export default class Map04Scene extends Phaser.Scene {
       this.state.phase !==
       "exit"
     ) {
-
-      await this.showHint();
 
       return;
 
@@ -1667,47 +1635,9 @@ export default class Map04Scene extends Phaser.Scene {
   }
 
 
-  async showHint() {
-
-    this.state.hintsUsed++;
-
-
-    this.save();
-
-
-    const hints = {
-
-      fountain:
-        "루미: 중앙의 푸른 수정 분수를 조사해 봐!",
-
-      observatory:
-        "루미: 왼쪽 위의 고대 천문대로 가자!",
-
-      library:
-        "루미: 오른쪽 위의 푸른 서재로 가자!",
-
-      time_circle:
-        "루미: 중앙 아래의 시간 마법진으로 가자!",
-
-      crystal:
-        "루미: 오른쪽 아래 보라 수정 제단으로 가자!",
-
-      exit:
-        "루미: 가운데 위쪽의 큰 고대 사원 문으로 가자!"
-
-    };
-
-
-    await GameUI.say(
-      hints[
-        this.state.phase
-      ]
-      ||
-      "루미: 시간의 흐름을 따라가 보자!"
-    );
-
-  }
-
+  /* =====================================================
+     MEMORY / SCORE
+  ====================================================== */
 
   rememberWord(
     english
@@ -1794,6 +1724,10 @@ export default class Map04Scene extends Phaser.Scene {
   }
 
 
+  /* =====================================================
+     CLEAR
+  ====================================================== */
+
   async completeMap() {
 
     if (
@@ -1869,9 +1803,7 @@ export default class Map04Scene extends Phaser.Scene {
       );
 
 
-    if (
-      nextMap
-    ) {
+    if (nextMap) {
 
       setCurrentMap(
         nextMap
@@ -1891,13 +1823,11 @@ export default class Map04Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "가운데 위쪽의 고대 사원 문이 천천히 열렸다.",
+      "가운데 위의 고대 사원 문이 열렸다.",
 
       "유적 전체의 시간이 다시 흐르기 시작했다.",
 
       "루미: 네 번째 언어 수정도 복원됐어!",
-
-      "나: 이제 다음 세계로 가자!",
 
       nextMap
         ? `루미: 다음 목적지는 ${nextMap}이야!`
@@ -1907,8 +1837,7 @@ export default class Map04Scene extends Phaser.Scene {
 
 
     if (
-      nextMap
-      &&
+      nextMap &&
       window.WisdomGame
         ?.hasMap(
           nextMap
@@ -1918,7 +1847,6 @@ export default class Map04Scene extends Phaser.Scene {
       window.WisdomGame.startMap(
         nextMap
       );
-
 
       return;
 
@@ -1946,7 +1874,11 @@ export default class Map04Scene extends Phaser.Scene {
   }
 
 
-  save() {
+  /* =====================================================
+     SAVE
+  ====================================================== */
+
+  saveRaw() {
 
     saveMapProgress(
       MAP_ID,
@@ -1954,6 +1886,12 @@ export default class Map04Scene extends Phaser.Scene {
       this.state
     );
 
+  }
+
+
+  save() {
+
+    this.saveRaw();
 
     this.updateHUD();
 
@@ -1961,6 +1899,10 @@ export default class Map04Scene extends Phaser.Scene {
 
   }
 
+
+  /* =====================================================
+     HUD
+  ====================================================== */
 
   updateHUD() {
 
@@ -1970,9 +1912,7 @@ export default class Map04Scene extends Phaser.Scene {
       );
 
 
-    if (
-      shards
-    ) {
+    if (shards) {
 
       shards.textContent = [
 
@@ -2001,34 +1941,30 @@ export default class Map04Scene extends Phaser.Scene {
       );
 
 
-    if (
-      !objective
-    ) {
-
+    if (!objective) {
       return;
-
     }
 
 
     const objectives = {
 
       fountain:
-        "푸른 수정 분수의 문제를 풀자.",
+        "중앙 푸른 수정 분수를 조사하자.",
 
       observatory:
-        "고대 천문대의 단어 문제를 풀자.",
+        "왼쪽 위 고대 천문대를 조사하자.",
 
       library:
-        "푸른 서재의 표현 문제를 풀자.",
+        "오른쪽 위 푸른 서재를 조사하자.",
 
       time_circle:
-        "시간 마법진의 문장 배열 문제를 풀자.",
+        "중앙 아래 시간 마법진을 조사하자.",
 
       crystal:
-        "보라 수정 제단의 마지막 시험을 풀자.",
+        "오른쪽 아래 보라 수정 제단을 조사하자.",
 
       exit:
-        "가운데 위쪽의 큰 고대 사원 문으로 가자."
+        "가운데 위 큰 고대 사원 문으로 가자."
 
     };
 
@@ -2038,7 +1974,7 @@ export default class Map04Scene extends Phaser.Scene {
         this.state.phase
       ]
       ||
-      "시간 유적을 탐험하자.";
+      "시간 유적을 복원하자.";
 
   }
 
