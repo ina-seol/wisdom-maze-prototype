@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 
 import "./style.css";
+import "./mobile-records.js";
 
 
 /* =====================================================
