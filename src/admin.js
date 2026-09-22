@@ -1,15 +1,31 @@
 import "./style.css";
 
 import {
+
   MAP_IDS,
+
   MAP_NAMES,
+
   getTeacherPin,
+
   getAllMapContent,
+
   getMapContent,
+
   saveMapContent,
+
   saveAllMapContent,
+
   parseAllMapsTxt,
-  serializeAllMapsTxt
+
+  serializeAllMapsTxt,
+
+  parseAllMapsCsv,
+
+  serializeAllMapsCsv,
+
+  serializeCsvTemplate
+
 } from "./data.js";
 
 
@@ -26,75 +42,90 @@ const loginScreen =
     "#admin-login"
   );
 
+
 const adminApp =
   document.querySelector(
     "#admin-app"
   );
+
 
 const pinInput =
   document.querySelector(
     "#teacher-pin"
   );
 
+
 const loginButton =
   document.querySelector(
     "#teacher-login"
   );
+
 
 const backTitle =
   document.querySelector(
     "#back-title"
   );
 
+
 const adminHome =
   document.querySelector(
     "#admin-home"
   );
+
 
 const mapSelect =
   document.querySelector(
     "#map-select"
   );
 
+
 const txtUpload =
   document.querySelector(
     "#txt-upload"
   );
+
 
 const wordsEditor =
   document.querySelector(
     "#words-editor"
   );
 
+
 const expressionsEditor =
   document.querySelector(
     "#expressions-editor"
   );
+
 
 const wordCount =
   document.querySelector(
     "#word-count"
   );
 
+
 const expressionCount =
   document.querySelector(
     "#expression-count"
   );
+
 
 const saveButton =
   document.querySelector(
     "#save-content"
   );
 
-const downloadButton =
+
+const downloadTxtButton =
   document.querySelector(
     "#download-txt"
   );
+
 
 const saveTitle =
   document.querySelector(
     "#save-title"
   );
+
 
 const status =
   document.querySelector(
@@ -104,6 +135,281 @@ const status =
 
 let currentMap =
   "MAP01";
+
+
+/* =====================================================
+   CSV UI
+===================================================== */
+
+let csvUpload =
+  null;
+
+
+let downloadCsvButton =
+  null;
+
+
+let templateCsvButton =
+  null;
+
+
+function createCsvControls() {
+
+  if (
+    document.querySelector(
+      "#csv-tools"
+    )
+  ) {
+
+    csvUpload =
+      document.querySelector(
+        "#csv-upload"
+      );
+
+
+    downloadCsvButton =
+      document.querySelector(
+        "#download-csv"
+      );
+
+
+    templateCsvButton =
+      document.querySelector(
+        "#download-csv-template"
+      );
+
+
+    return;
+
+  }
+
+
+  const tools =
+    document.createElement(
+      "div"
+    );
+
+
+  tools.id =
+    "csv-tools";
+
+
+  tools.style.cssText = `
+
+    margin:
+      14px 0;
+
+    padding:
+      16px;
+
+    border:
+      1px solid
+      rgba(
+        110,
+        145,
+        220,
+        0.35
+      );
+
+    border-radius:
+      14px;
+
+    background:
+      rgba(
+        14,
+        25,
+        50,
+        0.75
+      );
+
+  `;
+
+
+  tools.innerHTML = `
+
+    <div
+      style="
+        margin-bottom:10px;
+        color:#ffe188;
+        font-weight:900;
+        font-size:15px;
+      "
+    >
+      CSV / Excel 학습자료
+    </div>
+
+
+    <div
+      style="
+        margin-bottom:12px;
+        color:#adbfdf;
+        font-size:12px;
+        line-height:1.7;
+      "
+    >
+      Excel 또는 Google Sheets에서
+      <strong>CSV UTF-8</strong> 형식으로 저장한 뒤 업로드할 수 있습니다.<br>
+
+      열 순서:
+      <strong>map, type, english, korean</strong>
+    </div>
+
+
+    <div
+      style="
+        display:flex;
+        flex-wrap:wrap;
+        gap:8px;
+        align-items:center;
+      "
+    >
+
+      <label
+        for="csv-upload"
+        class="admin-secondary"
+        style="
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          min-height:40px;
+          padding:0 14px;
+          border:1px solid #556f9f;
+          border-radius:9px;
+          color:white;
+          background:#20365c;
+          cursor:pointer;
+          font-weight:800;
+        "
+      >
+        CSV 업로드
+      </label>
+
+
+      <input
+        id="csv-upload"
+        type="file"
+        accept=".csv,text/csv"
+        hidden
+      >
+
+
+      <button
+        id="download-csv-template"
+        type="button"
+        style="
+          min-height:40px;
+          padding:0 14px;
+          border:1px solid #556f9f;
+          border-radius:9px;
+          color:white;
+          background:#20365c;
+          cursor:pointer;
+          font-weight:800;
+        "
+      >
+        CSV 템플릿
+      </button>
+
+
+      <button
+        id="download-csv"
+        type="button"
+        style="
+          min-height:40px;
+          padding:0 14px;
+          border:1px solid #d6aa46;
+          border-radius:9px;
+          color:#302000;
+          background:#ffd96c;
+          cursor:pointer;
+          font-weight:900;
+        "
+      >
+        전체 CSV 다운로드
+      </button>
+
+    </div>
+
+
+    <div
+      style="
+        margin-top:10px;
+        color:#7f96bf;
+        font-size:11px;
+        line-height:1.6;
+      "
+    >
+      type에는
+      <strong>word</strong>
+      또는
+      <strong>expression</strong>을 입력하세요.
+      한 맵당 단어 20개, 표현 20개까지 사용합니다.
+    </div>
+
+  `;
+
+
+  const target =
+    txtUpload
+      ?.closest(
+        "section"
+      )
+    ??
+    txtUpload
+      ?.parentElement
+    ??
+    mapSelect
+      ?.parentElement
+    ??
+    adminApp;
+
+
+  if (
+    target
+  ) {
+
+    if (
+      txtUpload?.parentElement
+    ) {
+
+      txtUpload
+        .parentElement
+        .insertAdjacentElement(
+          "afterend",
+          tools
+        );
+
+    }
+
+    else {
+
+      target.appendChild(
+        tools
+      );
+
+    }
+
+  }
+
+
+  csvUpload =
+    tools.querySelector(
+      "#csv-upload"
+    );
+
+
+  downloadCsvButton =
+    tools.querySelector(
+      "#download-csv"
+    );
+
+
+  templateCsvButton =
+    tools.querySelector(
+      "#download-csv-template"
+    );
+
+}
 
 
 /* =====================================================
@@ -157,9 +463,6 @@ function buildMapSelect() {
 }
 
 
-buildMapSelect();
-
-
 /* =====================================================
    LOGIN
 ===================================================== */
@@ -182,7 +485,8 @@ function login() {
     );
 
 
-    pinInput?.focus();
+    pinInput
+      ?.focus();
 
 
     return;
@@ -283,7 +587,7 @@ mapSelect
 
 
 /* =====================================================
-   LOAD MAP
+   LOAD CURRENT MAP
 ===================================================== */
 
 function loadCurrentMap() {
@@ -336,14 +640,9 @@ function loadCurrentMap() {
   }
 
 
-  if (
-    status
-  ) {
-
-    status.textContent =
-      `${currentMap} 편집 중`;
-
-  }
+  setStatus(
+    `${currentMap} 편집 중`
+  );
 
 
   updateCounts();
@@ -352,7 +651,7 @@ function loadCurrentMap() {
 
 
 /* =====================================================
-   EDITOR PARSER
+   EDITOR
 ===================================================== */
 
 function parseEditor(
@@ -370,14 +669,18 @@ function parseEditor(
 
   return textarea.value
 
-    .split(/\r?\n/)
+    .split(
+      /\r?\n/
+    )
 
     .map(
       line =>
         line.trim()
     )
 
-    .filter(Boolean)
+    .filter(
+      Boolean
+    )
 
     .slice(
       0,
@@ -516,6 +819,26 @@ expressionsEditor
 
 
 /* =====================================================
+   STATUS
+===================================================== */
+
+function setStatus(
+  message
+) {
+
+  if (
+    status
+  ) {
+
+    status.textContent =
+      message;
+
+  }
+
+}
+
+
+/* =====================================================
    VALIDATION
 ===================================================== */
 
@@ -523,11 +846,6 @@ function validateCurrentMap(
   words,
   expressions
 ) {
-
-  /*
-    4지선다를 위해
-    최소 4단어 권장
-  */
 
   if (
     words.length <
@@ -607,7 +925,58 @@ function validateCurrentMap(
 
 
 /* =====================================================
-   SAVE CURRENT MAP
+   SAVE CURRENT EDITOR
+===================================================== */
+
+function saveCurrentEditor(
+  validate = true
+) {
+
+  const words =
+    parseEditor(
+      wordsEditor
+    );
+
+
+  const expressions =
+    parseEditor(
+      expressionsEditor
+    );
+
+
+  if (
+    validate
+    &&
+    !validateCurrentMap(
+      words,
+      expressions
+    )
+  ) {
+
+    return false;
+
+  }
+
+
+  saveMapContent(
+    currentMap,
+    {
+
+      words,
+
+      expressions
+
+    }
+  );
+
+
+  return true;
+
+}
+
+
+/* =====================================================
+   SAVE BUTTON
 ===================================================== */
 
 saveButton
@@ -642,23 +1011,92 @@ saveButton
       saveMapContent(
         currentMap,
         {
+
           words,
+
           expressions
+
         }
       );
 
 
-      if (
-        status
-      ) {
-
-        status.textContent =
-          `${currentMap} 저장 완료 · 단어 ${words.length}개 · 표현 ${expressions.length}개`;
-
-      }
+      setStatus(
+        `${currentMap} 저장 완료 · 단어 ${words.length}개 · 표현 ${expressions.length}개`
+      );
 
     }
   );
+
+
+/* =====================================================
+   IMPORT VALIDATION
+===================================================== */
+
+function countImportedContent(
+  maps
+) {
+
+  let wordTotal =
+    0;
+
+
+  let expressionTotal =
+    0;
+
+
+  let activeMaps =
+    0;
+
+
+  for (
+    const mapId of
+    MAP_IDS
+  ) {
+
+    const words =
+      maps?.[mapId]?.words
+      ??
+      [];
+
+
+    const expressions =
+      maps?.[mapId]?.expressions
+      ??
+      [];
+
+
+    wordTotal +=
+      words.length;
+
+
+    expressionTotal +=
+      expressions.length;
+
+
+    if (
+      words.length > 0
+      ||
+      expressions.length > 0
+    ) {
+
+      activeMaps++;
+
+    }
+
+  }
+
+
+  return {
+
+    wordTotal,
+
+    expressionTotal,
+
+    activeMaps
+
+  };
+
+}
 
 
 /* =====================================================
@@ -675,7 +1113,9 @@ txtUpload
           .files?.[0];
 
 
-      if (!file) {
+      if (
+        !file
+      ) {
 
         return;
 
@@ -694,6 +1134,50 @@ txtUpload
           );
 
 
+        const counts =
+          countImportedContent(
+            maps
+          );
+
+
+        if (
+          counts.wordTotal ===
+          0
+          &&
+          counts.expressionTotal ===
+          0
+        ) {
+
+          throw new Error(
+            "TXT에 사용할 수 있는 학습자료가 없습니다."
+          );
+
+        }
+
+
+        const ok =
+          confirm(
+            `TXT 학습자료를 불러옵니다.\n\n`
+            +
+            `맵: ${counts.activeMaps}개\n`
+            +
+            `단어: ${counts.wordTotal}개\n`
+            +
+            `표현: ${counts.expressionTotal}개\n\n`
+            +
+            `현재 저장된 MAP01~MAP12 학습자료를 교체할까요?`
+          );
+
+
+        if (
+          !ok
+        ) {
+
+          return;
+
+        }
+
+
         saveAllMapContent(
           maps
         );
@@ -702,18 +1186,15 @@ txtUpload
         loadCurrentMap();
 
 
-        if (
-          status
-        ) {
-
-          status.textContent =
-            "MAP01~MAP12 전체 TXT를 불러왔습니다.";
-
-        }
+        setStatus(
+          `TXT 불러오기 완료 · ${counts.activeMaps}개 맵 · 단어 ${counts.wordTotal}개 · 표현 ${counts.expressionTotal}개`
+        );
 
       }
 
-      catch (error) {
+      catch (
+        error
+      ) {
 
         console.error(
           "TXT 불러오기 실패:",
@@ -722,18 +1203,19 @@ txtUpload
 
 
         alert(
+          error?.message
+          ||
           "TXT 파일을 읽지 못했습니다."
         );
 
       }
 
+      finally {
 
-      /*
-        같은 파일을 다시 선택할 수 있게
-      */
+        event.target.value =
+          "";
 
-      event.target.value =
-        "";
+      }
 
     }
   );
@@ -743,34 +1225,17 @@ txtUpload
    TXT EXPORT
 ===================================================== */
 
-downloadButton
+downloadTxtButton
   ?.addEventListener(
     "click",
     () => {
 
       /*
-        다운로드 전에
-        현재 편집 화면을 먼저 저장
+        다운로드 직전 현재 편집 내용도 반영
       */
 
-      const words =
-        parseEditor(
-          wordsEditor
-        );
-
-
-      const expressions =
-        parseEditor(
-          expressionsEditor
-        );
-
-
-      saveMapContent(
-        currentMap,
-        {
-          words,
-          expressions
-        }
+      saveCurrentEditor(
+        false
       );
 
 
@@ -784,61 +1249,354 @@ downloadButton
         );
 
 
-      const blob =
-        new Blob(
-          [text],
-          {
-            type:
-              "text/plain;charset=utf-8"
+      downloadTextFile({
+
+        filename:
+          "wisdom-maze-map01-map12.txt",
+
+        content:
+          text,
+
+        type:
+          "text/plain;charset=utf-8",
+
+        bom:
+          false
+
+      });
+
+
+      setStatus(
+        "MAP01~MAP12 전체 TXT를 다운로드했습니다."
+      );
+
+    }
+  );
+
+
+/* =====================================================
+   CSV IMPORT
+===================================================== */
+
+function setupCsvImport() {
+
+  csvUpload
+    ?.addEventListener(
+      "change",
+      async event => {
+
+        const file =
+          event.target
+            .files?.[0];
+
+
+        if (
+          !file
+        ) {
+
+          return;
+
+        }
+
+
+        try {
+
+          const text =
+            await file.text();
+
+
+          const maps =
+            parseAllMapsCsv(
+              text
+            );
+
+
+          const counts =
+            countImportedContent(
+              maps
+            );
+
+
+          if (
+            counts.wordTotal ===
+            0
+            &&
+            counts.expressionTotal ===
+            0
+          ) {
+
+            throw new Error(
+              "CSV에서 사용할 수 있는 학습자료를 찾지 못했습니다.\n\n열 이름을 확인해 주세요:\nmap,type,english,korean"
+            );
+
           }
+
+
+          const ok =
+            confirm(
+              `CSV 학습자료를 불러옵니다.\n\n`
+              +
+              `맵: ${counts.activeMaps}개\n`
+              +
+              `단어: ${counts.wordTotal}개\n`
+              +
+              `표현: ${counts.expressionTotal}개\n\n`
+              +
+              `현재 저장된 MAP01~MAP12 학습자료를 교체할까요?`
+            );
+
+
+          if (
+            !ok
+          ) {
+
+            return;
+
+          }
+
+
+          saveAllMapContent(
+            maps
+          );
+
+
+          loadCurrentMap();
+
+
+          setStatus(
+            `CSV 불러오기 완료 · ${counts.activeMaps}개 맵 · 단어 ${counts.wordTotal}개 · 표현 ${counts.expressionTotal}개`
+          );
+
+
+          alert(
+            "CSV 학습자료를 성공적으로 불러왔습니다."
+          );
+
+        }
+
+        catch (
+          error
+        ) {
+
+          console.error(
+            "CSV 불러오기 실패:",
+            error
+          );
+
+
+          alert(
+            error?.message
+            ||
+            "CSV 파일을 읽지 못했습니다."
+          );
+
+        }
+
+        finally {
+
+          event.target.value =
+            "";
+
+        }
+
+      }
+    );
+
+}
+
+
+/* =====================================================
+   CSV EXPORT
+===================================================== */
+
+function setupCsvExport() {
+
+  downloadCsvButton
+    ?.addEventListener(
+      "click",
+      () => {
+
+        /*
+          현재 화면에서 수정 중인 내용도
+          CSV에 포함
+        */
+
+        saveCurrentEditor(
+          false
         );
 
 
-      const url =
-        URL.createObjectURL(
-          blob
+        const maps =
+          getAllMapContent();
+
+
+        const csv =
+          serializeAllMapsCsv(
+            maps
+          );
+
+
+        downloadTextFile({
+
+          filename:
+            "wisdom-maze-map01-map12.csv",
+
+          content:
+            csv,
+
+          type:
+            "text/csv;charset=utf-8",
+
+          bom:
+            true
+
+        });
+
+
+        setStatus(
+          "MAP01~MAP12 전체 CSV를 다운로드했습니다."
         );
 
+      }
+    );
 
-      const anchor =
-        document.createElement(
-          "a"
+
+  templateCsvButton
+    ?.addEventListener(
+      "click",
+      () => {
+
+        const csv =
+          serializeCsvTemplate();
+
+
+        downloadTextFile({
+
+          filename:
+            "wisdom-maze-csv-template.csv",
+
+          content:
+            csv,
+
+          type:
+            "text/csv;charset=utf-8",
+
+          bom:
+            true
+
+        });
+
+
+        setStatus(
+          "CSV 입력 템플릿을 다운로드했습니다."
         );
 
+      }
+    );
 
-      anchor.href =
-        url;
-
-
-      anchor.download =
-        "wisdom-maze-map01-map12.txt";
+}
 
 
-      document.body
-        .appendChild(
-          anchor
-        );
+/* =====================================================
+   DOWNLOAD HELPER
+===================================================== */
+
+function downloadTextFile({
+
+  filename,
+
+  content,
+
+  type,
+
+  bom =
+    false
+
+}) {
+
+  const data =
+    bom
+
+      ? "\uFEFF" +
+        content
+
+      : content;
 
 
-      anchor.click();
+  const blob =
+    new Blob(
+      [
+        data
+      ],
+      {
+        type
+      }
+    );
 
 
-      anchor.remove();
+  const url =
+    URL.createObjectURL(
+      blob
+    );
 
+
+  const anchor =
+    document.createElement(
+      "a"
+    );
+
+
+  anchor.href =
+    url;
+
+
+  anchor.download =
+    filename;
+
+
+  document.body
+    .appendChild(
+      anchor
+    );
+
+
+  anchor.click();
+
+
+  anchor.remove();
+
+
+  window.setTimeout(
+    () => {
 
       URL.revokeObjectURL(
         url
       );
 
-
-      if (
-        status
-      ) {
-
-        status.textContent =
-          "MAP01~MAP12 전체 TXT를 저장했습니다.";
-
-      }
-
-    }
+    },
+    1000
   );
+
+}
+
+
+/* =====================================================
+   INITIALIZE
+===================================================== */
+
+function init() {
+
+  buildMapSelect();
+
+  createCsvControls();
+
+  setupCsvImport();
+
+  setupCsvExport();
+
+  loadCurrentMap();
+
+}
+
+
+init();
