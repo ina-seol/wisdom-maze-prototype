@@ -18,7 +18,11 @@ const MAP_ID = "MAP03";
 export default class Map03Scene extends Phaser.Scene {
 
   constructor() {
-    super(MAP_ID);
+
+    super(
+      MAP_ID
+    );
+
   }
 
 
@@ -38,32 +42,51 @@ export default class Map03Scene extends Phaser.Scene {
       window.WISDOM_PROFILE?.spriteUrls;
 
 
-    if (sprites?.front) {
+    if (
+      sprites?.front
+    ) {
+
       this.load.image(
         "map03_front",
         sprites.front
       );
+
     }
 
-    if (sprites?.back) {
+
+    if (
+      sprites?.back
+    ) {
+
       this.load.image(
         "map03_back",
         sprites.back
       );
+
     }
 
-    if (sprites?.left) {
+
+    if (
+      sprites?.left
+    ) {
+
       this.load.image(
         "map03_left",
         sprites.left
       );
+
     }
 
-    if (sprites?.right) {
+
+    if (
+      sprites?.right
+    ) {
+
       this.load.image(
         "map03_right",
         sprites.right
       );
+
     }
 
   }
@@ -160,7 +183,9 @@ export default class Map03Scene extends Phaser.Scene {
 
         }
 
-        catch (error) {
+        catch (
+          error
+        ) {
 
           console.error(
             "MAP03 intro error:",
@@ -184,12 +209,14 @@ export default class Map03Scene extends Phaser.Scene {
   prepareState() {
 
     const validPhases = [
+
       "sign",
       "well",
       "house",
       "shrine",
       "barn",
       "exit"
+
     ];
 
 
@@ -197,6 +224,8 @@ export default class Map03Scene extends Phaser.Scene {
       !validPhases.includes(
         this.state.phase
       )
+      &&
+      !this.state.completed
     ) {
 
       this.state.phase =
@@ -422,7 +451,7 @@ export default class Map03Scene extends Phaser.Scene {
           "well",
 
         label:
-          "마을 우물",
+          "오래된 우물",
 
         x:
           382,
@@ -440,7 +469,7 @@ export default class Map03Scene extends Phaser.Scene {
           "house",
 
         label:
-          "안개 낀 집",
+          "작은 집",
 
         x:
           557,
@@ -458,7 +487,7 @@ export default class Map03Scene extends Phaser.Scene {
           "shrine",
 
         label:
-          "고대 석상",
+          "안개 속 제단",
 
         x:
           145,
@@ -476,7 +505,7 @@ export default class Map03Scene extends Phaser.Scene {
           "barn",
 
         label:
-          "낡은 창고",
+          "낡은 헛간",
 
         x:
           625,
@@ -517,13 +546,13 @@ export default class Map03Scene extends Phaser.Scene {
       this.add.circle(
         292,
         270,
-        21,
-        0xb9d8ff,
-        0.18
+        20,
+        0x9de7c0,
+        0.2
       )
         .setStrokeStyle(
           4,
-          0xe6f3ff,
+          0xe5fff0,
           1
         )
         .setDepth(
@@ -573,7 +602,7 @@ export default class Map03Scene extends Phaser.Scene {
             "#ffffff",
 
           backgroundColor:
-            "#1c2230dd",
+            "#12251ddd",
 
           padding: {
             x: 10,
@@ -758,269 +787,64 @@ export default class Map03Scene extends Phaser.Scene {
   }
 
 
- update() {
+  update() {
 
-  if (
-    !this.player?.body
-  ) {
+    if (
+      !this.player?.body
+    ) {
 
-    return;
+      return;
 
-  }
+    }
 
-
-  /*
-    MAP02 이후처럼 recoverStuckInput()이 있는 Scene에서는
-    자동 복구도 같이 실행.
-    없는 Scene에서는 그냥 넘어감.
-  */
-
-  if (
-    typeof this.recoverStuckInput ===
-    "function"
-  ) {
 
     this.recoverStuckInput();
 
-  }
+
+    const touch =
+      window.WisdomTouchInput
+      ||
+      {
+
+        up: false,
+        down: false,
+        left: false,
+        right: false,
+        interactPressed: false
+
+      };
 
 
-  const touch =
-    window.WisdomTouchInput
-    ||
-    {
-      up: false,
-      down: false,
-      left: false,
-      right: false,
-      interactPressed: false
-    };
+    if (
+      this.inputLocked
+    ) {
 
-
-  /*
-    대화/퀴즈 중에는 이동 금지.
-    이때 눌린 조사 입력도 버린다.
-  */
-
-  if (
-    this.inputLocked
-  ) {
-
-    this.player.body.setVelocity(
-      0,
-      0
-    );
-
-
-    this.prompt
-      ?.setVisible(
-        false
+      this.player.body.setVelocity(
+        0,
+        0
       );
 
 
-    if (
-      window.WisdomTouchInput
-    ) {
-
-      window.WisdomTouchInput.interactPressed =
-        false;
-
-    }
+      this.prompt
+        ?.setVisible(
+          false
+        );
 
 
-    return;
+      if (
+        window.WisdomTouchInput
+      ) {
 
-  }
+        window.WisdomTouchInput.interactPressed =
+          false;
 
-
-  /*
-    MAP12 보스전에서는 이동하지 않음.
-    다른 맵에서는 phase가 boss가 아니므로 영향 없음.
-  */
-
-  if (
-    this.state?.phase ===
-    "boss"
-  ) {
-
-    this.player.body.setVelocity(
-      0,
-      0
-    );
+      }
 
 
-    if (
-      window.WisdomTouchInput
-    ) {
-
-      window.WisdomTouchInput.interactPressed =
-        false;
+      return;
 
     }
 
-
-    return;
-
-  }
-
-
-  const speed =
-    145;
-
-
-  let vx =
-    0;
-
-
-  let vy =
-    0;
-
-
-  /* =========================
-     LEFT / RIGHT
-  ========================= */
-
-  if (
-    this.cursors.left.isDown
-    ||
-    this.keys.left.isDown
-    ||
-    touch.left
-  ) {
-
-    vx =
-      -speed;
-
-  }
-
-  else if (
-    this.cursors.right.isDown
-    ||
-    this.keys.right.isDown
-    ||
-    touch.right
-  ) {
-
-    vx =
-      speed;
-
-  }
-
-
-  /* =========================
-     UP / DOWN
-  ========================= */
-
-  if (
-    this.cursors.up.isDown
-    ||
-    this.keys.up.isDown
-    ||
-    touch.up
-  ) {
-
-    vy =
-      -speed;
-
-  }
-
-  else if (
-    this.cursors.down.isDown
-    ||
-    this.keys.down.isDown
-    ||
-    touch.down
-  ) {
-
-    vy =
-      speed;
-
-  }
-
-
-  /*
-    대각선 이동 속도 보정
-  */
-
-  if (
-    vx !== 0
-    &&
-    vy !== 0
-  ) {
-
-    vx *=
-      0.707;
-
-
-    vy *=
-      0.707;
-
-  }
-
-
-  this.player.body.setVelocity(
-    vx,
-    vy
-  );
-
-
-  this.updateDirection(
-    vx,
-    vy
-  );
-
-
-  this.updatePrompt();
-
-
-  /* =========================
-     INTERACT
-  ========================= */
-
-  const keyboardInteract =
-    Phaser.Input.Keyboard.JustDown(
-      this.keys.interact
-    )
-    ||
-    Phaser.Input.Keyboard.JustDown(
-      this.keys.enter
-    );
-
-
-  const touchInteract =
-    Boolean(
-      touch.interactPressed
-    );
-
-
-  /*
-    터치 조사 버튼은 1회 입력이므로
-    읽은 직후 반드시 false 처리
-  */
-
-  if (
-    touchInteract
-    &&
-    window.WisdomTouchInput
-  ) {
-
-    window.WisdomTouchInput.interactPressed =
-      false;
-
-  }
-
-
-  if (
-    keyboardInteract
-    ||
-    touchInteract
-  ) {
-
-    this.interact();
-
-  }
-
-}
 
     const speed =
       145;
@@ -1038,6 +862,8 @@ export default class Map03Scene extends Phaser.Scene {
       this.cursors.left.isDown
       ||
       this.keys.left.isDown
+      ||
+      touch.left
     ) {
 
       vx =
@@ -1049,6 +875,8 @@ export default class Map03Scene extends Phaser.Scene {
       this.cursors.right.isDown
       ||
       this.keys.right.isDown
+      ||
+      touch.right
     ) {
 
       vx =
@@ -1061,6 +889,8 @@ export default class Map03Scene extends Phaser.Scene {
       this.cursors.up.isDown
       ||
       this.keys.up.isDown
+      ||
+      touch.up
     ) {
 
       vy =
@@ -1072,6 +902,8 @@ export default class Map03Scene extends Phaser.Scene {
       this.cursors.down.isDown
       ||
       this.keys.down.isDown
+      ||
+      touch.down
     ) {
 
       vy =
@@ -1111,14 +943,38 @@ export default class Map03Scene extends Phaser.Scene {
     this.updatePrompt();
 
 
-    if (
+    const keyboardInteract =
       Phaser.Input.Keyboard.JustDown(
         this.keys.interact
       )
       ||
       Phaser.Input.Keyboard.JustDown(
         this.keys.enter
-      )
+      );
+
+
+    const touchInteract =
+      Boolean(
+        touch.interactPressed
+      );
+
+
+    if (
+      touchInteract
+      &&
+      window.WisdomTouchInput
+    ) {
+
+      window.WisdomTouchInput.interactPressed =
+        false;
+
+    }
+
+
+    if (
+      keyboardInteract
+      ||
+      touchInteract
     ) {
 
       this.interact();
@@ -1365,7 +1221,9 @@ export default class Map03Scene extends Phaser.Scene {
 
     }
 
-    catch (error) {
+    catch (
+      error
+    ) {
 
       console.error(
         "MAP03 interaction error:",
@@ -1389,11 +1247,13 @@ export default class Map03Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "짙은 안개가 마을 전체를 덮고 있다.",
+      "도서관을 빠져나오자 짙은 안개가 낀 작은 마을이 나타났다.",
 
       "나: 앞이 잘 안 보여.",
 
-      "루미: 세 번째 언어 수정 때문에 마을의 길이 사라져 버렸어.",
+      "루미: 세 번째 언어 수정의 힘 때문에 마을 전체가 안개에 갇힌 것 같아.",
+
+      "루미: 마을 곳곳의 단서를 따라가면 안개를 걷어낼 수 있을 거야.",
 
       "루미: 먼저 앞쪽의 낡은 표지판을 조사해 보자!"
 
@@ -1434,7 +1294,9 @@ export default class Map03Scene extends Phaser.Scene {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
         "루미: MAP03 단어 데이터가 부족해."
@@ -1457,7 +1319,9 @@ export default class Map03Scene extends Phaser.Scene {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "sign"
@@ -1465,7 +1329,7 @@ export default class Map03Scene extends Phaser.Scene {
 
 
       await GameUI.say(
-        "루미: 단어의 뜻을 다시 생각해 보자!"
+        "루미: 표지판의 글자가 흐릿해. 단어 뜻을 다시 생각해 보자!"
       );
 
 
@@ -1497,11 +1361,11 @@ export default class Map03Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "표지판의 글자가 다시 나타났다.",
+      "표지판의 글자가 선명하게 빛났다.",
 
       "루미: 첫 번째 말의 조각이야!",
 
-      "루미: 이제 마을 중앙의 우물로 가자!"
+      "루미: 다음은 가운데의 오래된 우물을 조사해 보자."
 
     ]);
 
@@ -1529,7 +1393,9 @@ export default class Map03Scene extends Phaser.Scene {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
         "루미: MAP03 단어 데이터가 부족해."
@@ -1552,7 +1418,9 @@ export default class Map03Scene extends Phaser.Scene {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "well"
@@ -1560,7 +1428,7 @@ export default class Map03Scene extends Phaser.Scene {
 
 
       await GameUI.say(
-        "루미: 뜻에 맞는 영어 단어를 다시 골라 보자!"
+        "루미: 우물 속에서 아무 반응이 없어. 영어 단어를 다시 골라 보자!"
       );
 
 
@@ -1590,9 +1458,9 @@ export default class Map03Scene extends Phaser.Scene {
 
       "우물 속에서 푸른 빛이 올라왔다.",
 
-      "나: 오른쪽 집 쪽으로 빛이 이어지고 있어.",
+      "나: 오른쪽의 작은 집에서도 빛이 보여.",
 
-      "루미: 안개 낀 집으로 가자!"
+      "루미: 그 집을 조사해 보자!"
 
     ]);
 
@@ -1620,7 +1488,9 @@ export default class Map03Scene extends Phaser.Scene {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
         "루미: MAP03 영어 표현 데이터가 부족해."
@@ -1643,7 +1513,9 @@ export default class Map03Scene extends Phaser.Scene {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "house"
@@ -1651,7 +1523,7 @@ export default class Map03Scene extends Phaser.Scene {
 
 
       await GameUI.say(
-        "루미: 영어 표현 전체의 뜻을 다시 생각해 보자!"
+        "루미: 집 안의 문장이 아직 흐릿해. 표현의 뜻을 다시 생각해 보자!"
       );
 
 
@@ -1683,13 +1555,11 @@ export default class Map03Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "집 안의 창문에 빛이 돌아왔다.",
+      "작은 집의 창문에서 따뜻한 빛이 퍼졌다.",
 
-      "루미: 두 번째 말의 조각을 찾았어!",
+      "루미: 두 번째 말의 조각이야!",
 
-      "나: 왼쪽 위 석상에서 이상한 빛이 나.",
-
-      "루미: 고대 석상으로 가자!"
+      "루미: 이제 왼쪽 위 안개 속 제단으로 가자!"
 
     ]);
 
@@ -1717,10 +1587,12 @@ export default class Map03Scene extends Phaser.Scene {
       );
 
 
-    if (!expression) {
+    if (
+      !expression
+    ) {
 
       await GameUI.say(
-        "루미: 문장 배열에 사용할 MAP03 영어 표현이 부족해."
+        "루미: MAP03 문장 데이터가 부족해."
       );
 
 
@@ -1743,7 +1615,9 @@ export default class Map03Scene extends Phaser.Scene {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "shrine"
@@ -1751,7 +1625,7 @@ export default class Map03Scene extends Phaser.Scene {
 
 
       await GameUI.say(
-        "루미: 문장 순서를 다시 확인해 보자!"
+        "루미: 제단의 빛이 꺼졌어. 문장 순서를 다시 맞춰 보자!"
       );
 
 
@@ -1779,11 +1653,11 @@ export default class Map03Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "고대 석상 주위의 안개가 걷히기 시작했다.",
+      "제단에서 밝은 빛이 퍼지며 안개가 조금 걷혔다.",
 
-      "나: 오른쪽 아래 창고가 보이기 시작했어!",
+      "나: 오른쪽 아래 헛간이 보이기 시작했어.",
 
-      "루미: 낡은 창고로 가자!"
+      "루미: 마지막 단서가 그곳에 있을 거야!"
 
     ]);
 
@@ -1812,10 +1686,12 @@ export default class Map03Scene extends Phaser.Scene {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
-        "루미: 마지막 문제를 만들 MAP03 학습 데이터가 부족해."
+        "루미: 마지막 문제를 만들 학습 데이터가 부족해."
       );
 
 
@@ -1829,13 +1705,15 @@ export default class Map03Scene extends Phaser.Scene {
 
     const correct =
       await GameUI.choice(
-        `안개의 마지막 시험!\n${quiz.question}`,
+        quiz.question,
         quiz.options,
         quiz.correctIndex
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "barn"
@@ -1843,7 +1721,7 @@ export default class Map03Scene extends Phaser.Scene {
 
 
       await GameUI.say(
-        "루미: 창고의 봉인이 아직 풀리지 않았어. 다시 해 보자!"
+        "루미: 안개가 다시 짙어졌어. 마지막 문제를 다시 풀어 보자!"
       );
 
 
@@ -1870,13 +1748,13 @@ export default class Map03Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "창고 안에서 세 번째 말의 조각이 나타났다.",
+      "헛간 안에서 마지막 말의 조각이 나타났다.",
 
-      "나: 세 조각을 모두 모았어!",
+      "마을을 덮고 있던 안개가 빠르게 사라졌다.",
 
-      "루미: 좋아! 마을 위쪽의 출구가 다시 나타났어.",
+      "나: 세 조각을 모두 찾았어!",
 
-      "루미: 마을 출구로 가자!"
+      "루미: 좋아! 이제 위쪽 중앙의 마을 출구로 가자!"
 
     ]);
 
@@ -1916,16 +1794,16 @@ export default class Map03Scene extends Phaser.Scene {
         "루미: 앞쪽의 낡은 표지판을 조사해 봐!",
 
       well:
-        "루미: 마을 중앙의 우물로 가자!",
+        "루미: 가운데의 오래된 우물로 가자!",
 
       house:
-        "루미: 오른쪽의 안개 낀 집으로 가자!",
+        "루미: 오른쪽 위쪽의 작은 집을 조사해 보자!",
 
       shrine:
-        "루미: 왼쪽 위 고대 석상으로 가자!",
+        "루미: 왼쪽 위의 안개 속 제단으로 가자!",
 
       barn:
-        "루미: 오른쪽 아래의 낡은 창고로 가자!",
+        "루미: 오른쪽 아래의 낡은 헛간을 조사해 봐!",
 
       exit:
         "루미: 위쪽 중앙의 마을 출구로 가자!"
@@ -1938,7 +1816,7 @@ export default class Map03Scene extends Phaser.Scene {
         this.state.phase
       ]
       ||
-      "루미: 안개 속의 빛을 따라가 보자!"
+      "루미: 안개 사이로 빛나는 곳을 따라가자!"
     );
 
   }
@@ -1948,8 +1826,12 @@ export default class Map03Scene extends Phaser.Scene {
     english
   ) {
 
-    if (!english) {
+    if (
+      !english
+    ) {
+
       return;
+
     }
 
 
@@ -1972,8 +1854,12 @@ export default class Map03Scene extends Phaser.Scene {
     english
   ) {
 
-    if (!english) {
+    if (
+      !english
+    ) {
+
       return;
+
     }
 
 
@@ -2126,15 +2012,15 @@ export default class Map03Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "마을을 뒤덮었던 안개가 천천히 사라졌다.",
+      "안개가 완전히 사라지고 마을에 다시 햇빛이 들어왔다.",
 
-      "루미: 세 번째 언어 수정도 복원됐어!",
+      "세 번째 언어 수정이 원래의 빛을 되찾았다.",
 
-      "나: 이제 길이 제대로 보여!",
+      "루미: 좋아! 세 번째 미로도 해결했어!",
 
       nextMap
         ? `루미: 다음 목적지는 ${nextMap}이야!`
-        : "루미: 모든 언어 수정을 복원했어!"
+        : "루미: 모든 모험이 끝났어!"
 
     ]);
 
@@ -2246,19 +2132,19 @@ export default class Map03Scene extends Phaser.Scene {
     const objectives = {
 
       sign:
-        "낡은 표지판의 문제를 풀자.",
+        "낡은 표지판을 조사하자.",
 
       well:
-        "마을 우물의 단어 문제를 풀자.",
+        "오래된 우물을 조사하자.",
 
       house:
-        "안개 낀 집의 표현 문제를 풀자.",
+        "오른쪽의 작은 집을 조사하자.",
 
       shrine:
-        "고대 석상의 문장 배열 문제를 풀자.",
+        "안개 속 제단을 활성화하자.",
 
       barn:
-        "낡은 창고의 마지막 시험을 풀자.",
+        "낡은 헛간에서 마지막 단서를 찾자.",
 
       exit:
         "위쪽 중앙의 마을 출구로 가자."
@@ -2271,7 +2157,7 @@ export default class Map03Scene extends Phaser.Scene {
         this.state.phase
       ]
       ||
-      "안개 낀 숲속 마을을 탐험하자.";
+      "안개 낀 숲속 마을의 언어 수정을 복원하자.";
 
   }
 
