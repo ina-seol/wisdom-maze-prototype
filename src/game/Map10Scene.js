@@ -18,7 +18,11 @@ const MAP_ID = "MAP10";
 export default class Map10Scene extends Phaser.Scene {
 
   constructor() {
-    super(MAP_ID);
+
+    super(
+      MAP_ID
+    );
+
   }
 
 
@@ -38,35 +42,51 @@ export default class Map10Scene extends Phaser.Scene {
       window.WISDOM_PROFILE?.spriteUrls;
 
 
-    if (sprites?.front) {
+    if (
+      sprites?.front
+    ) {
+
       this.load.image(
         "map10_front",
         sprites.front
       );
+
     }
 
 
-    if (sprites?.back) {
+    if (
+      sprites?.back
+    ) {
+
       this.load.image(
         "map10_back",
         sprites.back
       );
+
     }
 
 
-    if (sprites?.left) {
+    if (
+      sprites?.left
+    ) {
+
       this.load.image(
         "map10_left",
         sprites.left
       );
+
     }
 
 
-    if (sprites?.right) {
+    if (
+      sprites?.right
+    ) {
+
       this.load.image(
         "map10_right",
         sprites.right
       );
+
     }
 
   }
@@ -163,7 +183,9 @@ export default class Map10Scene extends Phaser.Scene {
 
         }
 
-        catch (error) {
+        catch (
+          error
+        ) {
 
           console.error(
             "MAP10 intro error:",
@@ -187,6 +209,7 @@ export default class Map10Scene extends Phaser.Scene {
   prepareState() {
 
     const validPhases = [
+
       "core",
       "control",
       "power",
@@ -194,6 +217,7 @@ export default class Map10Scene extends Phaser.Scene {
       "assembly",
       "server",
       "exit"
+
     ];
 
 
@@ -201,6 +225,8 @@ export default class Map10Scene extends Phaser.Scene {
       !validPhases.includes(
         this.state.phase
       )
+      &&
+      !this.state.completed
     ) {
 
       this.state.phase =
@@ -559,8 +585,11 @@ export default class Map10Scene extends Phaser.Scene {
         this.guide,
 
       alpha: {
-        from: 0.25,
-        to: 1
+        from:
+          0.25,
+
+        to:
+          1
       },
 
       duration:
@@ -598,8 +627,13 @@ export default class Map10Scene extends Phaser.Scene {
             "#101820dd",
 
           padding: {
-            x: 10,
-            y: 6
+
+            x:
+              10,
+
+            y:
+              6
+
           }
 
         }
@@ -783,269 +817,72 @@ export default class Map10Scene extends Phaser.Scene {
   }
 
 
-update() {
+  update() {
 
-  if (
-    !this.player?.body
-  ) {
+    if (
+      !this.player?.body
+    ) {
 
-    return;
+      return;
 
-  }
+    }
 
-
-  /*
-    MAP02 이후처럼 recoverStuckInput()이 있는 Scene에서는
-    자동 복구도 같이 실행.
-    없는 Scene에서는 그냥 넘어감.
-  */
-
-  if (
-    typeof this.recoverStuckInput ===
-    "function"
-  ) {
 
     this.recoverStuckInput();
 
-  }
+
+    const touch =
+      window.WisdomTouchInput
+      ||
+      {
+
+        up:
+          false,
+
+        down:
+          false,
+
+        left:
+          false,
+
+        right:
+          false,
+
+        interactPressed:
+          false
+
+      };
 
 
-  const touch =
-    window.WisdomTouchInput
-    ||
-    {
-      up: false,
-      down: false,
-      left: false,
-      right: false,
-      interactPressed: false
-    };
+    if (
+      this.inputLocked
+    ) {
 
-
-  /*
-    대화/퀴즈 중에는 이동 금지.
-    이때 눌린 조사 입력도 버린다.
-  */
-
-  if (
-    this.inputLocked
-  ) {
-
-    this.player.body.setVelocity(
-      0,
-      0
-    );
-
-
-    this.prompt
-      ?.setVisible(
-        false
+      this.player.body.setVelocity(
+        0,
+        0
       );
 
 
-    if (
-      window.WisdomTouchInput
-    ) {
-
-      window.WisdomTouchInput.interactPressed =
-        false;
-
-    }
+      this.prompt
+        ?.setVisible(
+          false
+        );
 
 
-    return;
+      if (
+        window.WisdomTouchInput
+      ) {
 
-  }
+        window.WisdomTouchInput.interactPressed =
+          false;
 
-
-  /*
-    MAP12 보스전에서는 이동하지 않음.
-    다른 맵에서는 phase가 boss가 아니므로 영향 없음.
-  */
-
-  if (
-    this.state?.phase ===
-    "boss"
-  ) {
-
-    this.player.body.setVelocity(
-      0,
-      0
-    );
+      }
 
 
-    if (
-      window.WisdomTouchInput
-    ) {
-
-      window.WisdomTouchInput.interactPressed =
-        false;
+      return;
 
     }
-
-
-    return;
-
-  }
-
-
-  const speed =
-    145;
-
-
-  let vx =
-    0;
-
-
-  let vy =
-    0;
-
-
-  /* =========================
-     LEFT / RIGHT
-  ========================= */
-
-  if (
-    this.cursors.left.isDown
-    ||
-    this.keys.left.isDown
-    ||
-    touch.left
-  ) {
-
-    vx =
-      -speed;
-
-  }
-
-  else if (
-    this.cursors.right.isDown
-    ||
-    this.keys.right.isDown
-    ||
-    touch.right
-  ) {
-
-    vx =
-      speed;
-
-  }
-
-
-  /* =========================
-     UP / DOWN
-  ========================= */
-
-  if (
-    this.cursors.up.isDown
-    ||
-    this.keys.up.isDown
-    ||
-    touch.up
-  ) {
-
-    vy =
-      -speed;
-
-  }
-
-  else if (
-    this.cursors.down.isDown
-    ||
-    this.keys.down.isDown
-    ||
-    touch.down
-  ) {
-
-    vy =
-      speed;
-
-  }
-
-
-  /*
-    대각선 이동 속도 보정
-  */
-
-  if (
-    vx !== 0
-    &&
-    vy !== 0
-  ) {
-
-    vx *=
-      0.707;
-
-
-    vy *=
-      0.707;
-
-  }
-
-
-  this.player.body.setVelocity(
-    vx,
-    vy
-  );
-
-
-  this.updateDirection(
-    vx,
-    vy
-  );
-
-
-  this.updatePrompt();
-
-
-  /* =========================
-     INTERACT
-  ========================= */
-
-  const keyboardInteract =
-    Phaser.Input.Keyboard.JustDown(
-      this.keys.interact
-    )
-    ||
-    Phaser.Input.Keyboard.JustDown(
-      this.keys.enter
-    );
-
-
-  const touchInteract =
-    Boolean(
-      touch.interactPressed
-    );
-
-
-  /*
-    터치 조사 버튼은 1회 입력이므로
-    읽은 직후 반드시 false 처리
-  */
-
-  if (
-    touchInteract
-    &&
-    window.WisdomTouchInput
-  ) {
-
-    window.WisdomTouchInput.interactPressed =
-      false;
-
-  }
-
-
-  if (
-    keyboardInteract
-    ||
-    touchInteract
-  ) {
-
-    this.interact();
-
-  }
-
-}
 
 
     const speed =
@@ -1064,6 +901,8 @@ update() {
       this.cursors.left.isDown
       ||
       this.keys.left.isDown
+      ||
+      touch.left
     ) {
 
       vx =
@@ -1075,6 +914,8 @@ update() {
       this.cursors.right.isDown
       ||
       this.keys.right.isDown
+      ||
+      touch.right
     ) {
 
       vx =
@@ -1087,6 +928,8 @@ update() {
       this.cursors.up.isDown
       ||
       this.keys.up.isDown
+      ||
+      touch.up
     ) {
 
       vy =
@@ -1098,6 +941,8 @@ update() {
       this.cursors.down.isDown
       ||
       this.keys.down.isDown
+      ||
+      touch.down
     ) {
 
       vy =
@@ -1137,14 +982,38 @@ update() {
     this.updatePrompt();
 
 
-    if (
+    const keyboardInteract =
       Phaser.Input.Keyboard.JustDown(
         this.keys.interact
       )
       ||
       Phaser.Input.Keyboard.JustDown(
         this.keys.enter
-      )
+      );
+
+
+    const touchInteract =
+      Boolean(
+        touch.interactPressed
+      );
+
+
+    if (
+      touchInteract
+      &&
+      window.WisdomTouchInput
+    ) {
+
+      window.WisdomTouchInput.interactPressed =
+        false;
+
+    }
+
+
+    if (
+      keyboardInteract
+      ||
+      touchInteract
     ) {
 
       this.interact();
@@ -1160,9 +1029,13 @@ update() {
   ) {
 
     if (
-      Math.abs(vx)
+      Math.abs(
+        vx
+      )
       >
-      Math.abs(vy)
+      Math.abs(
+        vy
+      )
     ) {
 
       if (
@@ -1398,7 +1271,9 @@ update() {
 
     }
 
-    catch (error) {
+    catch (
+      error
+    ) {
 
       console.error(
         "MAP10 interaction error:",
@@ -1469,7 +1344,9 @@ update() {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
         "루미: MAP10 단어 데이터가 부족해."
@@ -1492,7 +1369,9 @@ update() {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "core"
@@ -1558,7 +1437,9 @@ update() {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
         "루미: MAP10 단어 데이터가 부족해."
@@ -1581,7 +1462,9 @@ update() {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "control"
@@ -1653,7 +1536,9 @@ update() {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
         "루미: MAP10 영어 표현 데이터가 부족해."
@@ -1676,7 +1561,9 @@ update() {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "power"
@@ -1744,7 +1631,9 @@ update() {
       );
 
 
-    if (!expression) {
+    if (
+      !expression
+    ) {
 
       await GameUI.say(
         "루미: 문장 배열에 사용할 MAP10 영어 표현이 부족해."
@@ -1770,7 +1659,9 @@ update() {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "conveyor"
@@ -1844,7 +1735,9 @@ update() {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
         "루미: MAP10 영어 표현 데이터가 부족해."
@@ -1867,7 +1760,9 @@ update() {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "assembly"
@@ -1936,7 +1831,9 @@ update() {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
         "루미: 마지막 문제를 만들 MAP10 학습 데이터가 부족해."
@@ -1959,7 +1856,9 @@ update() {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "server"
@@ -2075,8 +1974,12 @@ update() {
     english
   ) {
 
-    if (!english) {
+    if (
+      !english
+    ) {
+
       return;
+
     }
 
 
@@ -2099,8 +2002,12 @@ update() {
     english
   ) {
 
-    if (!english) {
+    if (
+      !english
+    ) {
+
       return;
+
     }
 
 
