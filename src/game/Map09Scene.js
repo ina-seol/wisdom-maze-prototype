@@ -11,9 +11,7 @@ import {
   setCurrentMap
 } from "../data.js";
 
-
 const MAP_ID = "MAP09";
-
 
 export default class Map09Scene extends Phaser.Scene {
 
@@ -21,22 +19,17 @@ export default class Map09Scene extends Phaser.Scene {
     super(MAP_ID);
   }
 
-
   preload() {
-
     const base =
       import.meta.env.BASE_URL;
-
 
     this.load.image(
       "map09_background",
       `${base}assets/maps/map09.png`
     );
 
-
     const sprites =
       window.WISDOM_PROFILE?.spriteUrls;
-
 
     if (sprites?.front) {
       this.load.image(
@@ -65,21 +58,16 @@ export default class Map09Scene extends Phaser.Scene {
         sprites.right
       );
     }
-
   }
 
-
   create() {
-
     this.profile =
       window.WISDOM_PROFILE;
-
 
     this.content =
       getMapContent(
         MAP_ID
       );
-
 
     this.state =
       loadMapProgress(
@@ -91,25 +79,19 @@ export default class Map09Scene extends Phaser.Scene {
         MAP_ID
       );
 
-
     this.prepareState();
-
 
     this.inputLocked =
       true;
 
-
     this.interactionRunning =
       false;
-
 
     this.lockStartedAt =
       Date.now();
 
-
     this.interactables =
       [];
-
 
     this.add.image(
       384,
@@ -124,7 +106,6 @@ export default class Map09Scene extends Phaser.Scene {
         -100
       );
 
-
     this.physics.world.setBounds(
       0,
       0,
@@ -132,17 +113,11 @@ export default class Map09Scene extends Phaser.Scene {
       576
     );
 
-
     this.createInteractables();
-
     this.createGuide();
-
     this.createPlayer();
-
     this.createInput();
-
     this.updateHUD();
-
 
     this.time.delayedCall(
       250,
@@ -159,7 +134,6 @@ export default class Map09Scene extends Phaser.Scene {
           }
 
         }
-
         catch (error) {
 
           console.error(
@@ -168,7 +142,6 @@ export default class Map09Scene extends Phaser.Scene {
           );
 
         }
-
         finally {
 
           this.forceUnlock();
@@ -177,173 +150,129 @@ export default class Map09Scene extends Phaser.Scene {
 
       }
     );
-
   }
 
-
   prepareState() {
-
     const validPhases = [
-      "core",
-      "prehistoric",
-      "ancient",
-      "medieval",
-      "industrial",
-      "future",
+      "clock",
+      "gallery",
+      "archive",
+      "statue",
+      "hourglass",
       "exit"
     ];
-
 
     if (
       !validPhases.includes(
         this.state.phase
       )
+      &&
+      !this.state.completed
     ) {
-
       this.state.phase =
-        "core";
-
+        "clock";
     }
-
 
     this.state.introDone ??=
       false;
 
-
     this.state.shards ??=
       0;
-
 
     this.state.questionsShown ??=
       0;
 
-
     this.state.firstTryCorrect ??=
       0;
-
 
     this.state.wrongAttempts ??=
       0;
 
-
     this.state.hintsUsed ??=
       0;
-
 
     this.state.mistakes ??=
       {};
 
-
     this.state.usedWords ??=
       [];
-
 
     this.state.usedExpressions ??=
       [];
 
-
     this.state.completed ??=
       false;
 
-
     this.state.sessionStartedAt ??=
       Date.now();
-
   }
 
-
   lockInput() {
-
     this.inputLocked =
       true;
-
 
     this.interactionRunning =
       true;
 
-
     this.lockStartedAt =
       Date.now();
-
 
     if (
       this.player?.body
     ) {
-
       this.player.body.setVelocity(
         0,
         0
       );
-
     }
-
 
     this.prompt
       ?.setVisible(
         false
       );
-
   }
 
-
   forceUnlock() {
-
     this.inputLocked =
       false;
-
 
     this.interactionRunning =
       false;
 
-
     this.lockStartedAt =
       0;
-
 
     if (
       this.input?.keyboard
     ) {
-
       this.input.keyboard.enabled =
         true;
-
     }
-
 
     if (
       this.player?.body
     ) {
-
       this.player.body.enable =
         true;
-
 
       this.player.body.setVelocity(
         0,
         0
       );
-
     }
-
   }
 
-
   recoverStuckInput() {
-
     if (
       !this.inputLocked
     ) {
-
       return;
-
     }
-
 
     const modal =
       document.querySelector(
         "#modal"
       );
-
 
     const modalVisible =
       Boolean(
@@ -354,24 +283,17 @@ export default class Map09Scene extends Phaser.Scene {
         )
       );
 
-
     if (
       modalVisible
     ) {
-
       return;
-
     }
-
 
     if (
       !this.lockStartedAt
     ) {
-
       return;
-
     }
-
 
     if (
       Date.now()
@@ -380,133 +302,102 @@ export default class Map09Scene extends Phaser.Scene {
       <
       200
     ) {
-
       return;
-
     }
-
 
     console.warn(
       "MAP09 input lock 자동 복구"
     );
 
-
     this.forceUnlock();
-
   }
 
-
   createInteractables() {
-
     this.interactables = [
-
       {
         id:
-          "core",
+          "clock",
 
         label:
-          "시간 코어",
+          "중앙 대형 시계",
 
         x:
           385,
 
         y:
-          270,
-
-        radius:
-          90
-      },
-
-
-      {
-        id:
-          "prehistoric",
-
-        label:
-          "선사시대 전시관",
-
-        x:
-          150,
-
-        y:
-          120,
-
-        radius:
-          90
-      },
-
-
-      {
-        id:
-          "ancient",
-
-        label:
-          "고대 문명 전시관",
-
-        x:
-          625,
-
-        y:
-          120,
-
-        radius:
-          90
-      },
-
-
-      {
-        id:
-          "medieval",
-
-        label:
-          "왕국 전시관",
-
-        x:
-          150,
-
-        y:
-          320,
-
-        radius:
-          90
-      },
-
-
-      {
-        id:
-          "industrial",
-
-        label:
-          "산업혁명 전시관",
-
-        x:
-          620,
-
-        y:
-          320,
-
-        radius:
-          90
-      },
-
-
-      {
-        id:
-          "future",
-
-        label:
-          "우주 미래 전시관",
-
-        x:
-          385,
-
-        y:
-          455,
+          285,
 
         radius:
           95
       },
 
+      {
+        id:
+          "gallery",
+
+        label:
+          "과거 전시관",
+
+        x:
+          150,
+
+        y:
+          155,
+
+        radius:
+          95
+      },
+
+      {
+        id:
+          "archive",
+
+        label:
+          "시간 기록 보관소",
+
+        x:
+          620,
+
+        y:
+          155,
+
+        radius:
+          95
+      },
+
+      {
+        id:
+          "statue",
+
+        label:
+          "멈춘 시간 조각상",
+
+        x:
+          155,
+
+        y:
+          380,
+
+        radius:
+          95
+      },
+
+      {
+        id:
+          "hourglass",
+
+        label:
+          "거대한 모래시계",
+
+        x:
+          620,
+
+        y:
+          380,
+
+        radius:
+          95
+      },
 
       {
         id:
@@ -519,45 +410,42 @@ export default class Map09Scene extends Phaser.Scene {
           385,
 
         y:
-          85,
+          500,
 
         radius:
-          95
+          100
       }
-
     ];
-
   }
 
-
   createGuide() {
-
     this.guide =
       this.add.circle(
         385,
-        270,
-        21,
-        0x6acaff,
+        285,
+        22,
+        0xffd66a,
         0.18
       )
         .setStrokeStyle(
           4,
-          0xd2f5ff,
+          0xfff1b8,
           1
         )
         .setDepth(
           50
         );
 
-
     this.tweens.add({
-
       targets:
         this.guide,
 
       alpha: {
-        from: 0.25,
-        to: 1
+        from:
+          0.25,
+
+        to:
+          1
       },
 
       duration:
@@ -568,9 +456,7 @@ export default class Map09Scene extends Phaser.Scene {
 
       repeat:
         -1
-
     });
-
 
     this.prompt =
       this.add.text(
@@ -578,7 +464,6 @@ export default class Map09Scene extends Phaser.Scene {
         535,
         "",
         {
-
           fontFamily:
             "Arial",
 
@@ -592,13 +477,15 @@ export default class Map09Scene extends Phaser.Scene {
             "#ffffff",
 
           backgroundColor:
-            "#15213bdd",
+            "#2a2314dd",
 
           padding: {
-            x: 10,
-            y: 6
-          }
+            x:
+              10,
 
+            y:
+              6
+          }
         }
       )
         .setOrigin(
@@ -611,60 +498,45 @@ export default class Map09Scene extends Phaser.Scene {
           false
         );
 
-
     this.updateGuide();
-
   }
 
-
   updateGuide() {
-
     const points = {
+      clock:
+        [385, 285],
 
-      core:
-        [385, 270],
+      gallery:
+        [150, 155],
 
-      prehistoric:
-        [150, 120],
+      archive:
+        [620, 155],
 
-      ancient:
-        [625, 120],
+      statue:
+        [155, 380],
 
-      medieval:
-        [150, 320],
-
-      industrial:
-        [620, 320],
-
-      future:
-        [385, 455],
+      hourglass:
+        [620, 380],
 
       exit:
-        [385, 85]
-
+        [385, 500]
     };
-
 
     const point =
       points[
         this.state.phase
       ];
 
-
     if (
       !point
     ) {
-
       this.guide
         ?.setVisible(
           false
         );
 
-
       return;
-
     }
-
 
     this.guide
       ?.setVisible(
@@ -674,18 +546,14 @@ export default class Map09Scene extends Phaser.Scene {
         point[0],
         point[1]
       );
-
   }
 
-
   createPlayer() {
-
     if (
       this.textures.exists(
         "map09_front"
       )
     ) {
-
       this.player =
         this.physics.add.image(
           384,
@@ -693,25 +561,19 @@ export default class Map09Scene extends Phaser.Scene {
           "map09_front"
         );
 
-
       const targetHeight =
         64;
-
 
       const ratio =
         this.player.width /
         this.player.height;
 
-
       this.player.setDisplaySize(
         targetHeight * ratio,
         targetHeight
       );
-
     }
-
     else {
-
       this.player =
         this.add.rectangle(
           384,
@@ -721,42 +583,32 @@ export default class Map09Scene extends Phaser.Scene {
           0x386ed0
         );
 
-
       this.physics.add.existing(
         this.player
       );
-
     }
-
 
     this.player.setDepth(
       100
     );
-
 
     this.player.body.setSize(
       20,
       20
     );
 
-
     this.player.body.setCollideWorldBounds(
       true
     );
-
   }
 
-
   createInput() {
-
     this.cursors =
       this.input.keyboard
         .createCursorKeys();
 
-
     this.keys =
       this.input.keyboard.addKeys({
-
         up:
           "W",
 
@@ -774,393 +626,181 @@ export default class Map09Scene extends Phaser.Scene {
 
         enter:
           "ENTER"
-
       });
-
   }
 
-
-update() {
-
-  if (
-    !this.player?.body
-  ) {
-
-    return;
-
-  }
-
-
-  /*
-    MAP02 이후처럼 recoverStuckInput()이 있는 Scene에서는
-    자동 복구도 같이 실행.
-    없는 Scene에서는 그냥 넘어감.
-  */
-
-  if (
-    typeof this.recoverStuckInput ===
-    "function"
-  ) {
+  update() {
+    if (
+      !this.player?.body
+    ) {
+      return;
+    }
 
     this.recoverStuckInput();
 
-  }
+    const touch =
+      window.WisdomTouchInput
+      ||
+      {
+        up:
+          false,
 
+        down:
+          false,
 
-  const touch =
-    window.WisdomTouchInput
-    ||
-    {
-      up: false,
-      down: false,
-      left: false,
-      right: false,
-      interactPressed: false
-    };
+        left:
+          false,
 
+        right:
+          false,
 
-  /*
-    대화/퀴즈 중에는 이동 금지.
-    이때 눌린 조사 입력도 버린다.
-  */
+        interactPressed:
+          false
+      };
 
-  if (
-    this.inputLocked
-  ) {
-
-    this.player.body.setVelocity(
-      0,
-      0
-    );
-
-
-    this.prompt
-      ?.setVisible(
-        false
+    if (
+      this.inputLocked
+    ) {
+      this.player.body.setVelocity(
+        0,
+        0
       );
 
+      this.prompt
+        ?.setVisible(
+          false
+        );
 
-    if (
-      window.WisdomTouchInput
-    ) {
+      if (
+        window.WisdomTouchInput
+      ) {
+        window.WisdomTouchInput.interactPressed =
+          false;
+      }
 
-      window.WisdomTouchInput.interactPressed =
-        false;
-
+      return;
     }
-
-
-    return;
-
-  }
-
-
-  /*
-    MAP12 보스전에서는 이동하지 않음.
-    다른 맵에서는 phase가 boss가 아니므로 영향 없음.
-  */
-
-  if (
-    this.state?.phase ===
-    "boss"
-  ) {
-
-    this.player.body.setVelocity(
-      0,
-      0
-    );
-
-
-    if (
-      window.WisdomTouchInput
-    ) {
-
-      window.WisdomTouchInput.interactPressed =
-        false;
-
-    }
-
-
-    return;
-
-  }
-
-
-  const speed =
-    145;
-
-
-  let vx =
-    0;
-
-
-  let vy =
-    0;
-
-
-  /* =========================
-     LEFT / RIGHT
-  ========================= */
-
-  if (
-    this.cursors.left.isDown
-    ||
-    this.keys.left.isDown
-    ||
-    touch.left
-  ) {
-
-    vx =
-      -speed;
-
-  }
-
-  else if (
-    this.cursors.right.isDown
-    ||
-    this.keys.right.isDown
-    ||
-    touch.right
-  ) {
-
-    vx =
-      speed;
-
-  }
-
-
-  /* =========================
-     UP / DOWN
-  ========================= */
-
-  if (
-    this.cursors.up.isDown
-    ||
-    this.keys.up.isDown
-    ||
-    touch.up
-  ) {
-
-    vy =
-      -speed;
-
-  }
-
-  else if (
-    this.cursors.down.isDown
-    ||
-    this.keys.down.isDown
-    ||
-    touch.down
-  ) {
-
-    vy =
-      speed;
-
-  }
-
-
-  /*
-    대각선 이동 속도 보정
-  */
-
-  if (
-    vx !== 0
-    &&
-    vy !== 0
-  ) {
-
-    vx *=
-      0.707;
-
-
-    vy *=
-      0.707;
-
-  }
-
-
-  this.player.body.setVelocity(
-    vx,
-    vy
-  );
-
-
-  this.updateDirection(
-    vx,
-    vy
-  );
-
-
-  this.updatePrompt();
-
-
-  /* =========================
-     INTERACT
-  ========================= */
-
-  const keyboardInteract =
-    Phaser.Input.Keyboard.JustDown(
-      this.keys.interact
-    )
-    ||
-    Phaser.Input.Keyboard.JustDown(
-      this.keys.enter
-    );
-
-
-  const touchInteract =
-    Boolean(
-      touch.interactPressed
-    );
-
-
-  /*
-    터치 조사 버튼은 1회 입력이므로
-    읽은 직후 반드시 false 처리
-  */
-
-  if (
-    touchInteract
-    &&
-    window.WisdomTouchInput
-  ) {
-
-    window.WisdomTouchInput.interactPressed =
-      false;
-
-  }
-
-
-  if (
-    keyboardInteract
-    ||
-    touchInteract
-  ) {
-
-    this.interact();
-
-  }
-
-}
 
     const speed =
       145;
 
-
     let vx =
       0;
 
-
     let vy =
       0;
-
 
     if (
       this.cursors.left.isDown
       ||
       this.keys.left.isDown
+      ||
+      touch.left
     ) {
-
       vx =
         -speed;
-
     }
-
     else if (
       this.cursors.right.isDown
       ||
       this.keys.right.isDown
+      ||
+      touch.right
     ) {
-
       vx =
         speed;
-
     }
-
 
     if (
       this.cursors.up.isDown
       ||
       this.keys.up.isDown
+      ||
+      touch.up
     ) {
-
       vy =
         -speed;
-
     }
-
     else if (
       this.cursors.down.isDown
       ||
       this.keys.down.isDown
+      ||
+      touch.down
     ) {
-
       vy =
         speed;
-
     }
-
 
     if (
       vx !== 0
       &&
       vy !== 0
     ) {
-
       vx *=
         0.707;
 
-
       vy *=
         0.707;
-
     }
-
 
     this.player.body.setVelocity(
       vx,
       vy
     );
 
-
     this.updateDirection(
       vx,
       vy
     );
 
-
     this.updatePrompt();
 
-
-    if (
+    const keyboardInteract =
       Phaser.Input.Keyboard.JustDown(
         this.keys.interact
       )
       ||
       Phaser.Input.Keyboard.JustDown(
         this.keys.enter
-      )
+      );
+
+    const touchInteract =
+      Boolean(
+        touch.interactPressed
+      );
+
+    if (
+      touchInteract
+      &&
+      window.WisdomTouchInput
     ) {
-
-      this.interact();
-
+      window.WisdomTouchInput.interactPressed =
+        false;
     }
 
+    if (
+      keyboardInteract
+      ||
+      touchInteract
+    ) {
+      this.interact();
+    }
   }
-
 
   updateDirection(
     vx,
     vy
   ) {
-
     if (
-      Math.abs(vx)
+      Math.abs(
+        vx
+      )
       >
-      Math.abs(vy)
+      Math.abs(
+        vy
+      )
     ) {
-
       if (
         vx < 0
         &&
@@ -1168,13 +808,10 @@ update() {
           "map09_left"
         )
       ) {
-
         this.player.setTexture(
           "map09_left"
         );
-
       }
-
       else if (
         vx > 0
         &&
@@ -1182,18 +819,13 @@ update() {
           "map09_right"
         )
       ) {
-
         this.player.setTexture(
           "map09_right"
         );
-
       }
 
-
       return;
-
     }
-
 
     if (
       vy < 0
@@ -1202,13 +834,10 @@ update() {
         "map09_back"
       )
     ) {
-
       this.player.setTexture(
         "map09_back"
       );
-
     }
-
     else if (
       vy > 0
       &&
@@ -1216,31 +845,23 @@ update() {
         "map09_front"
       )
     ) {
-
       this.player.setTexture(
         "map09_front"
       );
-
     }
-
   }
 
-
   nearestObject() {
-
     let nearest =
       null;
 
-
     let shortest =
       Infinity;
-
 
     for (
       const object of
       this.interactables
     ) {
-
       const distance =
         Phaser.Math.Distance.Between(
           this.player.x,
@@ -1249,7 +870,6 @@ update() {
           object.y
         );
 
-
       if (
         distance <=
           object.radius
@@ -1257,44 +877,31 @@ update() {
         distance <
           shortest
       ) {
-
         nearest =
           object;
 
-
         shortest =
           distance;
-
       }
-
     }
 
-
     return nearest;
-
   }
 
-
   updatePrompt() {
-
     const object =
       this.nearestObject();
-
 
     if (
       !object
     ) {
-
       this.prompt
         ?.setVisible(
           false
         );
 
-
       return;
-
     }
-
 
     this.prompt
       ?.setText(
@@ -1303,164 +910,96 @@ update() {
       .setVisible(
         true
       );
-
   }
 
-
   async interact() {
-
     if (
       this.inputLocked
       ||
       this.interactionRunning
     ) {
-
       return;
-
     }
-
 
     const object =
       this.nearestObject();
 
-
     if (
       !object
     ) {
-
       return;
-
     }
-
 
     this.lockInput();
 
-
     try {
-
       switch (
         object.id
       ) {
-
-        case "core":
-
-          await this.handleCore();
-
+        case "clock":
+          await this.handleClock();
           break;
 
-
-        case "prehistoric":
-
-          await this.handlePrehistoric();
-
+        case "gallery":
+          await this.handleGallery();
           break;
 
-
-        case "ancient":
-
-          await this.handleAncient();
-
+        case "archive":
+          await this.handleArchive();
           break;
 
-
-        case "medieval":
-
-          await this.handleMedieval();
-
+        case "statue":
+          await this.handleStatue();
           break;
 
-
-        case "industrial":
-
-          await this.handleIndustrial();
-
+        case "hourglass":
+          await this.handleHourglass();
           break;
-
-
-        case "future":
-
-          await this.handleFuture();
-
-          break;
-
 
         case "exit":
-
           await this.handleExit();
-
           break;
-
       }
-
     }
-
     catch (error) {
-
       console.error(
         "MAP09 interaction error:",
         error
       );
-
     }
-
     finally {
-
       this.forceUnlock();
-
       this.updateGuide();
-
     }
-
   }
 
-
   async playIntro() {
-
     await GameUI.say([
-
-      "거대한 박물관 안의 모든 시계가 멈춰 있다.",
-
-      "나: 정말 시간이 멈춘 것 같아.",
-
-      "루미: 아홉 번째 언어 수정이 박물관의 여러 시대를 뒤섞어 버렸어.",
-
-      "루미: 서로 다른 시대의 전시관을 순서대로 다시 활성화해야 해.",
-
-      "루미: 먼저 중앙의 시간 코어를 조사해 보자!"
-
+      "거대한 박물관 안은 이상할 정도로 조용했다.",
+      "나: 사람도 없고, 시계도 전부 멈춰 있어.",
+      "루미: 여기는 시간이 멈춰버린 박물관이야.",
+      "루미: 아홉 번째 언어 수정의 힘 때문에 과거와 현재의 시간이 뒤섞였어.",
+      "루미: 박물관의 시간 장치들을 순서대로 복구해야 해.",
+      "루미: 먼저 중앙의 대형 시계를 조사해 보자!"
     ]);
-
 
     this.state.introDone =
       true;
 
-
     this.state.phase =
-      "core";
-
+      "clock";
 
     this.save();
-
   }
 
-
-  /* =====================================================
-     1. TIME CORE
-  ====================================================== */
-
-  async handleCore() {
-
+  async handleClock() {
     if (
       this.state.phase !==
-      "core"
+      "clock"
     ) {
-
       await this.showHint();
-
       return;
-
     }
-
 
     const quiz =
       QuizEngine.wordToKorean(
@@ -1468,21 +1007,17 @@ update() {
         this.state.usedWords
       );
 
-
-    if (!quiz) {
-
+    if (
+      !quiz
+    ) {
       await GameUI.say(
         "루미: MAP09 단어 데이터가 부족해."
       );
 
-
       return;
-
     }
 
-
     this.state.questionsShown++;
-
 
     const correct =
       await GameUI.choice(
@@ -1491,69 +1026,52 @@ update() {
         quiz.correctIndex
       );
 
-
-    if (!correct) {
-
+    if (
+      !correct
+    ) {
       this.markWrong(
-        "core"
+        "clock"
       );
-
 
       await GameUI.say(
-        "루미: 시간 코어가 반응하지 않아. 단어 뜻을 다시 생각해 보자!"
+        "루미: 시계바늘이 움직이지 않아. 단어 뜻을 다시 생각해 보자!"
       );
 
-
       return;
-
     }
-
 
     this.rememberWord(
       quiz.itemKey
     );
 
-
     this.markCorrect(
-      "core"
+      "clock"
     );
 
+    this.state.shards =
+      1;
 
     this.state.phase =
-      "prehistoric";
-
+      "gallery";
 
     this.save();
 
-
     await GameUI.say([
-
-      "시간 코어의 첫 번째 고리가 움직이기 시작했다.",
-
-      "루미: 좋아! 왼쪽 위 선사시대 전시관부터 복구하자!"
-
+      "중앙 시계의 초침이 다시 움직이기 시작했다.",
+      "루미: 첫 번째 말의 조각이야!",
+      "나: 왼쪽 위 전시관의 조명이 켜졌어.",
+      "루미: 과거 전시관으로 가자!"
     ]);
-
   }
 
-
-  /* =====================================================
-     2. PREHISTORIC
-  ====================================================== */
-
-  async handlePrehistoric() {
-
+  async handleGallery() {
     if (
       this.state.phase !==
-      "prehistoric"
+      "gallery"
     ) {
-
       await this.showHint();
-
       return;
-
     }
-
 
     const quiz =
       QuizEngine.koreanToWord(
@@ -1561,21 +1079,17 @@ update() {
         this.state.usedWords
       );
 
-
-    if (!quiz) {
-
+    if (
+      !quiz
+    ) {
       await GameUI.say(
         "루미: MAP09 단어 데이터가 부족해."
       );
 
-
       return;
-
     }
 
-
     this.state.questionsShown++;
-
 
     const correct =
       await GameUI.choice(
@@ -1584,75 +1098,48 @@ update() {
         quiz.correctIndex
       );
 
-
-    if (!correct) {
-
+    if (
+      !correct
+    ) {
       this.markWrong(
-        "prehistoric"
+        "gallery"
       );
-
 
       await GameUI.say(
-        "루미: 화석의 시간이 아직 멈춰 있어. 다시 골라 보자!"
+        "루미: 전시물이 다시 멈췄어. 영어 단어를 다시 골라 보자!"
       );
 
-
       return;
-
     }
-
 
     this.rememberWord(
       quiz.itemKey
     );
 
-
     this.markCorrect(
-      "prehistoric"
+      "gallery"
     );
 
-
-    this.state.shards =
-      1;
-
-
     this.state.phase =
-      "ancient";
-
+      "archive";
 
     this.save();
 
-
     await GameUI.say([
-
-      "공룡 화석 주변의 먼지가 다시 움직이기 시작했다.",
-
-      "루미: 첫 번째 말의 조각이야!",
-
-      "루미: 다음은 오른쪽 위 고대 문명 전시관이야!"
-
+      "정지해 있던 전시물들이 천천히 움직이기 시작했다.",
+      "나: 오른쪽 위 기록 보관소에도 빛이 들어왔어.",
+      "루미: 시간 기록 보관소로 가자!"
     ]);
-
   }
 
-
-  /* =====================================================
-     3. ANCIENT
-  ====================================================== */
-
-  async handleAncient() {
-
+  async handleArchive() {
     if (
       this.state.phase !==
-      "ancient"
+      "archive"
     ) {
-
       await this.showHint();
-
       return;
-
     }
-
 
     const quiz =
       QuizEngine.expressionToKorean(
@@ -1660,21 +1147,17 @@ update() {
         this.state.usedExpressions
       );
 
-
-    if (!quiz) {
-
+    if (
+      !quiz
+    ) {
       await GameUI.say(
         "루미: MAP09 영어 표현 데이터가 부족해."
       );
 
-
       return;
-
     }
 
-
     this.state.questionsShown++;
-
 
     const correct =
       await GameUI.choice(
@@ -1683,69 +1166,52 @@ update() {
         quiz.correctIndex
       );
 
-
-    if (!correct) {
-
+    if (
+      !correct
+    ) {
       this.markWrong(
-        "ancient"
+        "archive"
       );
-
 
       await GameUI.say(
-        "루미: 고대 전시관의 시간이 움직이지 않아. 표현 뜻을 다시 생각해 보자!"
+        "루미: 시간 기록을 읽을 수 없어. 영어 표현의 뜻을 다시 생각해 보자!"
       );
 
-
       return;
-
     }
-
 
     this.rememberExpression(
       quiz.itemKey
     );
 
-
     this.markCorrect(
-      "ancient"
+      "archive"
     );
 
+    this.state.shards =
+      2;
 
     this.state.phase =
-      "medieval";
-
+      "statue";
 
     this.save();
 
-
     await GameUI.say([
-
-      "고대 조각상과 유물에 빛이 돌아왔다.",
-
-      "루미: 다음은 왼쪽 중간의 왕국 전시관이야!"
-
+      "보관소의 기록들이 다시 시간 순서대로 정렬되었다.",
+      "루미: 두 번째 말의 조각이야!",
+      "나: 왼쪽 아래 조각상이 빛나고 있어.",
+      "루미: 멈춘 시간 조각상으로 가자!"
     ]);
-
   }
 
-
-  /* =====================================================
-     4. MEDIEVAL
-  ====================================================== */
-
-  async handleMedieval() {
-
+  async handleStatue() {
     if (
       this.state.phase !==
-      "medieval"
+      "statue"
     ) {
-
       await this.showHint();
-
       return;
-
     }
-
 
     const expression =
       QuizEngine.pickExpression(
@@ -1753,196 +1219,69 @@ update() {
         this.state.usedExpressions
       );
 
-
-    if (!expression) {
-
+    if (
+      !expression
+    ) {
       await GameUI.say(
         "루미: 문장 배열에 사용할 MAP09 영어 표현이 부족해."
       );
 
-
       return;
-
     }
 
-
     this.state.questionsShown++;
-
 
     await GameUI.say(
       `루미: "${expression.korean}"라는 뜻이 되도록 영어 문장을 만들어 봐!`
     );
-
 
     const correct =
       await GameUI.wordOrder(
         expression.english
       );
 
-
-    if (!correct) {
-
+    if (
+      !correct
+    ) {
       this.markWrong(
-        "medieval"
+        "statue"
       );
-
 
       await GameUI.say(
-        "루미: 왕국 전시관의 시간이 아직 멈춰 있어. 문장 순서를 다시 확인해 보자!"
+        "루미: 조각상이 다시 굳어 버렸어. 문장 순서를 다시 확인해 보자!"
       );
 
-
       return;
-
     }
-
 
     this.rememberExpression(
       expression.english
     );
 
-
     this.markCorrect(
-      "medieval"
+      "statue"
     );
 
-
-    this.state.shards =
-      2;
-
-
     this.state.phase =
-      "industrial";
-
+      "hourglass";
 
     this.save();
 
-
     await GameUI.say([
-
-      "기사의 갑옷과 오래된 왕국 유물들이 다시 움직였다.",
-
-      "루미: 두 번째 말의 조각을 찾았어!",
-
-      "루미: 이제 오른쪽 중간의 산업혁명 전시관으로 가자!"
-
+      "조각상을 감싸던 시간의 얼음이 사라졌다.",
+      "나: 오른쪽 아래 거대한 모래시계가 움직이기 시작했어.",
+      "루미: 마지막 시험이야. 거대한 모래시계로 가자!"
     ]);
-
   }
 
-
-  /* =====================================================
-     5. INDUSTRIAL
-  ====================================================== */
-
-  async handleIndustrial() {
-
+  async handleHourglass() {
     if (
       this.state.phase !==
-      "industrial"
+      "hourglass"
     ) {
-
       await this.showHint();
-
       return;
-
     }
-
-
-    const quiz =
-      QuizEngine.koreanToExpression(
-        this.content.expressions,
-        this.state.usedExpressions
-      );
-
-
-    if (!quiz) {
-
-      await GameUI.say(
-        "루미: MAP09 영어 표현 데이터가 부족해."
-      );
-
-
-      return;
-
-    }
-
-
-    this.state.questionsShown++;
-
-
-    const correct =
-      await GameUI.choice(
-        quiz.question,
-        quiz.options,
-        quiz.correctIndex
-      );
-
-
-    if (!correct) {
-
-      this.markWrong(
-        "industrial"
-      );
-
-
-      await GameUI.say(
-        "루미: 증기기관이 움직이지 않아. 영어 표현을 다시 골라 보자!"
-      );
-
-
-      return;
-
-    }
-
-
-    this.rememberExpression(
-      quiz.itemKey
-    );
-
-
-    this.markCorrect(
-      "industrial"
-    );
-
-
-    this.state.phase =
-      "future";
-
-
-    this.save();
-
-
-    await GameUI.say([
-
-      "멈춰 있던 증기기관의 톱니바퀴가 돌아가기 시작했다.",
-
-      "나: 아래쪽 미래 전시관에서도 빛이 나!",
-
-      "루미: 마지막 시대를 복구하자!"
-
-    ]);
-
-  }
-
-
-  /* =====================================================
-     6. FUTURE
-  ====================================================== */
-
-  async handleFuture() {
-
-    if (
-      this.state.phase !==
-      "future"
-    ) {
-
-      await this.showHint();
-
-      return;
-
-    }
-
 
     const quiz =
       QuizEngine.randomReview(
@@ -1951,215 +1290,160 @@ update() {
         this.state.usedExpressions
       );
 
-
-    if (!quiz) {
-
+    if (
+      !quiz
+    ) {
       await GameUI.say(
         "루미: 마지막 문제를 만들 MAP09 학습 데이터가 부족해."
       );
 
-
       return;
-
     }
-
 
     this.state.questionsShown++;
 
-
     const correct =
       await GameUI.choice(
-        `시간 박물관의 마지막 시험!\n${quiz.question}`,
+        `모래시계의 마지막 시험!\n${quiz.question}`,
         quiz.options,
         quiz.correctIndex
       );
 
-
-    if (!correct) {
-
+    if (
+      !correct
+    ) {
       this.markWrong(
-        "future"
+        "hourglass"
       );
-
 
       await GameUI.say(
-        "루미: 미래 전시관의 시간이 아직 복구되지 않았어. 다시 해 보자!"
+        "루미: 모래가 다시 멈췄어. 마지막 문제를 다시 풀어 보자!"
       );
 
-
       return;
-
     }
 
-
     this.markCorrect(
-      "future"
+      "hourglass"
     );
-
 
     this.state.shards =
       3;
 
-
     this.state.phase =
       "exit";
 
-
     this.save();
 
-
     await GameUI.say([
-
-      "우주 전시관의 행성과 별들이 다시 움직이기 시작했다.",
-
-      "세 번째 말의 조각이 시간 코어로 날아갔다.",
-
-      "나: 박물관의 모든 시대가 다시 움직이고 있어!",
-
-      "루미: 좋아! 가운데 위의 시간의 문으로 가자!"
-
+      "거대한 모래시계의 모래가 다시 흐르기 시작했다.",
+      "세 번째 말의 조각이 나타났다.",
+      "나: 박물관의 시간이 다시 움직이고 있어!",
+      "루미: 좋아! 아래 중앙의 시간의 문이 열렸어.",
+      "루미: 시간의 문으로 가자!"
     ]);
-
   }
 
-
-  /* =====================================================
-     EXIT
-  ====================================================== */
-
   async handleExit() {
-
     if (
       this.state.phase !==
       "exit"
     ) {
-
       await this.showHint();
-
       return;
-
     }
 
-
     await this.completeMap();
-
   }
 
-
   async showHint() {
-
     this.state.hintsUsed++;
-
 
     this.save();
 
-
     const hints = {
+      clock:
+        "루미: 중앙의 대형 시계를 조사해 봐!",
 
-      core:
-        "루미: 가운데의 거대한 시간 코어를 조사해 봐!",
+      gallery:
+        "루미: 왼쪽 위의 과거 전시관으로 가자!",
 
-      prehistoric:
-        "루미: 왼쪽 위 공룡 화석이 있는 선사시대 전시관으로 가자!",
+      archive:
+        "루미: 오른쪽 위의 시간 기록 보관소로 가자!",
 
-      ancient:
-        "루미: 오른쪽 위 조각상과 유물이 있는 고대 문명 전시관으로 가자!",
+      statue:
+        "루미: 왼쪽 아래의 멈춘 시간 조각상을 조사해 봐!",
 
-      medieval:
-        "루미: 왼쪽 중간 갑옷과 왕국 유물이 있는 전시관으로 가자!",
-
-      industrial:
-        "루미: 오른쪽 중간 증기기관과 기계가 있는 전시관으로 가자!",
-
-      future:
-        "루미: 아래쪽의 우주와 미래 전시관으로 가자!",
+      hourglass:
+        "루미: 오른쪽 아래의 거대한 모래시계로 가자!",
 
       exit:
-        "루미: 가운데 위쪽의 큰 시계 아래 시간의 문으로 가자!"
-
+        "루미: 아래 중앙의 시간의 문으로 가자!"
     };
-
 
     await GameUI.say(
       hints[
         this.state.phase
       ]
       ||
-      "루미: 시대의 흐름을 순서대로 따라가 보자!"
+      "루미: 시간이 다시 흐르는 곳을 따라가자!"
     );
-
   }
-
 
   rememberWord(
     english
   ) {
-
-    if (!english) {
+    if (
+      !english
+    ) {
       return;
     }
-
 
     if (
       !this.state.usedWords.includes(
         english
       )
     ) {
-
       this.state.usedWords.push(
         english
       );
-
     }
-
   }
-
 
   rememberExpression(
     english
   ) {
-
-    if (!english) {
+    if (
+      !english
+    ) {
       return;
     }
-
 
     if (
       !this.state.usedExpressions.includes(
         english
       )
     ) {
-
       this.state.usedExpressions.push(
         english
       );
-
     }
-
   }
-
 
   markCorrect(
     id
   ) {
-
     if (
       !this.state.mistakes[id]
     ) {
-
       this.state.firstTryCorrect++;
-
     }
-
   }
-
 
   markWrong(
     id
   ) {
-
     this.state.wrongAttempts++;
-
 
     this.state.mistakes[id] =
       (
@@ -2170,26 +1454,18 @@ update() {
       +
       1;
 
-
     this.save();
-
   }
 
-
   async completeMap() {
-
     if (
       this.state.completed
     ) {
-
       return;
-
     }
-
 
     this.state.completed =
       true;
-
 
     const seconds =
       Math.max(
@@ -2205,12 +1481,9 @@ update() {
         )
       );
 
-
     this.save();
 
-
     saveRecord({
-
       mapId:
         MAP_ID,
 
@@ -2241,52 +1514,38 @@ update() {
       completedAt:
         new Date()
           .toISOString()
-
     });
-
 
     const nextMap =
       getNextMapId(
         MAP_ID
       );
 
-
     if (
       nextMap
     ) {
-
       setCurrentMap(
         nextMap
       );
 
-
       this.profile.currentMap =
         nextMap;
-
 
       saveProfile(
         this.profile
       );
-
     }
 
-
     await GameUI.say([
-
-      "거대한 시계의 바늘이 다시 움직이기 시작했다.",
-
-      "박물관 전체에 멈춰 있던 시간이 한꺼번에 흐르기 시작했다.",
-
+      "박물관의 모든 시계가 다시 움직이기 시작했다.",
+      "멈춰 있던 전시물과 장치들이 원래의 시간으로 돌아왔다.",
       "루미: 아홉 번째 언어 수정도 복원됐어!",
-
-      "나: 과거부터 미래까지 전부 다시 움직이고 있어!",
+      "나: 시간이 다시 흐르고 있어!",
 
       nextMap
         ? `루미: 다음 목적지는 ${nextMap}이야!`
         : "루미: 모든 언어 수정을 복원했어!"
-
     ]);
-
 
     if (
       nextMap
@@ -2296,19 +1555,14 @@ update() {
           nextMap
         )
     ) {
-
       window.WisdomGame.startMap(
         nextMap
       );
 
-
       return;
-
     }
 
-
     await GameUI.finish({
-
       mapId:
         MAP_ID,
 
@@ -2322,42 +1576,30 @@ update() {
 
       wrong:
         this.state.wrongAttempts
-
     });
-
   }
 
-
   save() {
-
     saveMapProgress(
       MAP_ID,
       this.profile.name,
       this.state
     );
 
-
     this.updateHUD();
-
     this.updateGuide();
-
   }
 
-
   updateHUD() {
-
     const shards =
       document.querySelector(
         "#hud-shards"
       );
 
-
     if (
       shards
     ) {
-
       shards.textContent = [
-
         this.state.shards >= 1
           ? "◆"
           : "◇",
@@ -2369,62 +1611,48 @@ update() {
         this.state.shards >= 3
           ? "◆"
           : "◇"
-
       ].join(
         " "
       );
-
     }
-
 
     const objective =
       document.querySelector(
         "#hud-objective"
       );
 
-
     if (
       !objective
     ) {
-
       return;
-
     }
 
-
     const objectives = {
+      clock:
+        "중앙 대형 시계를 다시 움직이자.",
 
-      core:
-        "중앙 시간 코어를 활성화하자.",
+      gallery:
+        "과거 전시관의 시간을 복구하자.",
 
-      prehistoric:
-        "선사시대 전시관의 시간을 복구하자.",
+      archive:
+        "시간 기록 보관소를 복구하자.",
 
-      ancient:
-        "고대 문명 전시관의 시간을 복구하자.",
+      statue:
+        "멈춘 시간 조각상을 해방하자.",
 
-      medieval:
-        "왕국 전시관의 문장 문제를 풀자.",
-
-      industrial:
-        "산업혁명 전시관의 시간을 복구하자.",
-
-      future:
-        "우주 미래 전시관의 마지막 시험을 풀자.",
+      hourglass:
+        "거대한 모래시계의 마지막 시험을 풀자.",
 
       exit:
-        "가운데 위쪽 시간의 문으로 가자."
-
+        "아래 중앙의 시간의 문으로 가자."
     };
-
 
     objective.textContent =
       objectives[
         this.state.phase
       ]
       ||
-      "멈춰버린 시간 박물관을 복구하자.";
-
+      "멈춰버린 시간 박물관의 시간을 복원하자.";
   }
 
 }
