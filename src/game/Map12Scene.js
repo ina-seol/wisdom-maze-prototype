@@ -16,7 +16,11 @@ const MAP_ID = "MAP12";
 export default class Map12Scene extends Phaser.Scene {
 
   constructor() {
-    super(MAP_ID);
+
+    super(
+      MAP_ID
+    );
+
   }
 
 
@@ -32,36 +36,61 @@ export default class Map12Scene extends Phaser.Scene {
     );
 
 
+    this.load.image(
+      "map12_boss_portrait",
+      `${base}assets/portraits/boss_portrait.png`
+    );
+
+
     const sprites =
       window.WISDOM_PROFILE?.spriteUrls;
 
 
-    if (sprites?.front) {
+    if (
+      sprites?.front
+    ) {
+
       this.load.image(
         "map12_front",
         sprites.front
       );
+
     }
 
-    if (sprites?.back) {
+
+    if (
+      sprites?.back
+    ) {
+
       this.load.image(
         "map12_back",
         sprites.back
       );
+
     }
 
-    if (sprites?.left) {
+
+    if (
+      sprites?.left
+    ) {
+
       this.load.image(
         "map12_left",
         sprites.left
       );
+
     }
 
-    if (sprites?.right) {
+
+    if (
+      sprites?.right
+    ) {
+
       this.load.image(
         "map12_right",
         sprites.right
       );
+
     }
 
   }
@@ -105,6 +134,10 @@ export default class Map12Scene extends Phaser.Scene {
       Date.now();
 
 
+    this.bossBattleRunning =
+      false;
+
+
     this.interactables =
       [];
 
@@ -139,6 +172,8 @@ export default class Map12Scene extends Phaser.Scene {
 
     this.createInput();
 
+    this.createBossHud();
+
     this.updateHUD();
 
 
@@ -158,7 +193,9 @@ export default class Map12Scene extends Phaser.Scene {
 
         }
 
-        catch (error) {
+        catch (
+          error
+        ) {
 
           console.error(
             "MAP12 intro error:",
@@ -169,7 +206,14 @@ export default class Map12Scene extends Phaser.Scene {
 
         finally {
 
-          this.forceUnlock();
+          if (
+            this.state.phase !==
+            "ending"
+          ) {
+
+            this.forceUnlock();
+
+          }
 
         }
 
@@ -182,13 +226,16 @@ export default class Map12Scene extends Phaser.Scene {
   prepareState() {
 
     const validPhases = [
+
       "crystal_circle",
       "left_library",
       "right_library",
       "moon_altar",
       "sun_altar",
       "throne",
-      "boss"
+      "boss",
+      "ending"
+
     ];
 
 
@@ -246,20 +293,40 @@ export default class Map12Scene extends Phaser.Scene {
       false;
 
 
+    this.state.sessionStartedAt ??=
+      Date.now();
+
+
     this.state.bossHp ??=
       5;
 
 
-    this.state.bossStarted ??=
-      false;
+    this.state.bossRound ??=
+      1;
 
 
-    this.state.endingSeen ??=
-      false;
+    /*
+      예전 저장 데이터에서 bossHp가 0인데
+      completed가 false일 경우 복구
+    */
+
+    if (
+      !this.state.completed
+      &&
+      this.state.phase ===
+      "boss"
+      &&
+      this.state.bossHp <= 0
+    ) {
+
+      this.state.bossHp =
+        5;
 
 
-    this.state.sessionStartedAt ??=
-      Date.now();
+      this.state.bossRound =
+        1;
+
+    }
 
   }
 
@@ -351,6 +418,21 @@ export default class Map12Scene extends Phaser.Scene {
     }
 
 
+    if (
+      this.state.phase ===
+      "boss"
+      ||
+      this.state.phase ===
+      "ending"
+      ||
+      this.bossBattleRunning
+    ) {
+
+      return;
+
+    }
+
+
     const modal =
       document.querySelector(
         "#modal"
@@ -417,7 +499,7 @@ export default class Map12Scene extends Phaser.Scene {
           "crystal_circle",
 
         label:
-          "열두 수정의 원",
+          "중앙 수정 원",
 
         x:
           385,
@@ -435,7 +517,7 @@ export default class Map12Scene extends Phaser.Scene {
           "left_library",
 
         label:
-          "기억의 서고",
+          "왼쪽 고대 서고",
 
         x:
           115,
@@ -453,7 +535,7 @@ export default class Map12Scene extends Phaser.Scene {
           "right_library",
 
         label:
-          "기록의 서고",
+          "오른쪽 고대 서고",
 
         x:
           655,
@@ -530,13 +612,13 @@ export default class Map12Scene extends Phaser.Scene {
       this.add.circle(
         385,
         290,
-        22,
-        0xffd765,
+        23,
+        0xc185ff,
         0.18
       )
         .setStrokeStyle(
           4,
-          0xffffff,
+          0xf1dcff,
           1
         )
         .setDepth(
@@ -550,8 +632,11 @@ export default class Map12Scene extends Phaser.Scene {
         this.guide,
 
       alpha: {
-        from: 0.25,
-        to: 1
+        from:
+          0.25,
+
+        to:
+          1
       },
 
       duration:
@@ -586,11 +671,14 @@ export default class Map12Scene extends Phaser.Scene {
             "#ffffff",
 
           backgroundColor:
-            "#171426dd",
+            "#160f29dd",
 
           padding: {
-            x: 10,
-            y: 6
+            x:
+              10,
+
+            y:
+              6
           }
 
         }
@@ -647,6 +735,9 @@ export default class Map12Scene extends Phaser.Scene {
       ||
       this.state.phase ===
       "boss"
+      ||
+      this.state.phase ===
+      "ending"
     ) {
 
       this.guide
@@ -774,280 +865,271 @@ export default class Map12Scene extends Phaser.Scene {
   }
 
 
-update() {
+  createBossHud() {
 
-  if (
-    !this.player?.body
-  ) {
-
-    return;
-
-  }
-
-
-  /*
-    MAP02 이후처럼 recoverStuckInput()이 있는 Scene에서는
-    자동 복구도 같이 실행.
-    없는 Scene에서는 그냥 넘어감.
-  */
-
-  if (
-    typeof this.recoverStuckInput ===
-    "function"
-  ) {
-
-    this.recoverStuckInput();
-
-  }
+    this.bossHud =
+      this.add.container(
+        384,
+        55
+      )
+        .setDepth(
+          900
+        )
+        .setVisible(
+          false
+        );
 
 
-  const touch =
-    window.WisdomTouchInput
-    ||
-    {
-      up: false,
-      down: false,
-      left: false,
-      right: false,
-      interactPressed: false
-    };
+    const panel =
+      this.add.rectangle(
+        0,
+        0,
+        400,
+        54,
+        0x090510,
+        0.9
+      )
+        .setStrokeStyle(
+          2,
+          0x8f52c9,
+          1
+        );
 
 
-  /*
-    대화/퀴즈 중에는 이동 금지.
-    이때 눌린 조사 입력도 버린다.
-  */
+    this.bossNameText =
+      this.add.text(
+        -185,
+        -17,
+        "침묵의 군주",
+        {
 
-  if (
-    this.inputLocked
-  ) {
+          fontFamily:
+            "Arial",
 
-    this.player.body.setVelocity(
-      0,
-      0
-    );
+          fontSize:
+            "13px",
 
+          fontStyle:
+            "bold",
 
-    this.prompt
-      ?.setVisible(
-        false
+          color:
+            "#f0ddff"
+
+        }
       );
 
 
+    this.bossHpText =
+      this.add.text(
+        185,
+        -17,
+        "",
+        {
+
+          fontFamily:
+            "Arial",
+
+          fontSize:
+            "13px",
+
+          fontStyle:
+            "bold",
+
+          color:
+            "#ffb3f5"
+
+        }
+      )
+        .setOrigin(
+          1,
+          0
+        );
+
+
+    this.bossHpBarBack =
+      this.add.rectangle(
+        0,
+        13,
+        360,
+        12,
+        0x26132f,
+        1
+      );
+
+
+    this.bossHpBar =
+      this.add.rectangle(
+        -180,
+        13,
+        360,
+        12,
+        0xb45cff,
+        1
+      )
+        .setOrigin(
+          0,
+          0.5
+        );
+
+
+    this.bossHud.add([
+      panel,
+      this.bossNameText,
+      this.bossHpText,
+      this.bossHpBarBack,
+      this.bossHpBar
+    ]);
+
+
+    this.updateBossHud();
+
+  }
+
+
+  updateBossHud() {
+
     if (
-      window.WisdomTouchInput
+      !this.bossHud
     ) {
 
-      window.WisdomTouchInput.interactPressed =
-        false;
+      return;
 
     }
 
 
-    return;
+    const hp =
+      Phaser.Math.Clamp(
+        Number(
+          this.state.bossHp
+        )
+        ||
+        0,
+        0,
+        5
+      );
+
+
+    this.bossHpText
+      ?.setText(
+        `HP ${hp} / 5`
+      );
+
+
+    this.bossHpBar
+      ?.setDisplaySize(
+        360
+        *
+        (
+          hp / 5
+        ),
+        12
+      );
 
   }
 
 
-  /*
-    MAP12 보스전에서는 이동하지 않음.
-    다른 맵에서는 phase가 boss가 아니므로 영향 없음.
-  */
-
-  if (
-    this.state?.phase ===
-    "boss"
-  ) {
-
-    this.player.body.setVelocity(
-      0,
-      0
-    );
-
+  update() {
 
     if (
-      window.WisdomTouchInput
+      !this.player?.body
     ) {
 
-      window.WisdomTouchInput.interactPressed =
-        false;
+      return;
 
     }
 
 
-    return;
-
-  }
+    this.recoverStuckInput();
 
 
-  const speed =
-    145;
+    const touch =
+      window.WisdomTouchInput
+      ||
+      {
+
+        up:
+          false,
+
+        down:
+          false,
+
+        left:
+          false,
+
+        right:
+          false,
+
+        interactPressed:
+          false
+
+      };
 
 
-  let vx =
-    0;
-
-
-  let vy =
-    0;
-
-
-  /* =========================
-     LEFT / RIGHT
-  ========================= */
-
-  if (
-    this.cursors.left.isDown
-    ||
-    this.keys.left.isDown
-    ||
-    touch.left
-  ) {
-
-    vx =
-      -speed;
-
-  }
-
-  else if (
-    this.cursors.right.isDown
-    ||
-    this.keys.right.isDown
-    ||
-    touch.right
-  ) {
-
-    vx =
-      speed;
-
-  }
-
-
-  /* =========================
-     UP / DOWN
-  ========================= */
-
-  if (
-    this.cursors.up.isDown
-    ||
-    this.keys.up.isDown
-    ||
-    touch.up
-  ) {
-
-    vy =
-      -speed;
-
-  }
-
-  else if (
-    this.cursors.down.isDown
-    ||
-    this.keys.down.isDown
-    ||
-    touch.down
-  ) {
-
-    vy =
-      speed;
-
-  }
-
-
-  /*
-    대각선 이동 속도 보정
-  */
-
-  if (
-    vx !== 0
-    &&
-    vy !== 0
-  ) {
-
-    vx *=
-      0.707;
-
-
-    vy *=
-      0.707;
-
-  }
-
-
-  this.player.body.setVelocity(
-    vx,
-    vy
-  );
-
-
-  this.updateDirection(
-    vx,
-    vy
-  );
-
-
-  this.updatePrompt();
-
-
-  /* =========================
-     INTERACT
-  ========================= */
-
-  const keyboardInteract =
-    Phaser.Input.Keyboard.JustDown(
-      this.keys.interact
-    )
-    ||
-    Phaser.Input.Keyboard.JustDown(
-      this.keys.enter
-    );
-
-
-  const touchInteract =
-    Boolean(
-      touch.interactPressed
-    );
-
-
-  /*
-    터치 조사 버튼은 1회 입력이므로
-    읽은 직후 반드시 false 처리
-  */
-
-  if (
-    touchInteract
-    &&
-    window.WisdomTouchInput
-  ) {
-
-    window.WisdomTouchInput.interactPressed =
-      false;
-
-  }
-
-
-  if (
-    keyboardInteract
-    ||
-    touchInteract
-  ) {
-
-    this.interact();
-
-  }
-
-}
-
+    /*
+      보스전 / 엔딩 중에는 이동 금지
+    */
 
     if (
       this.state.phase ===
       "boss"
+      ||
+      this.state.phase ===
+      "ending"
+      ||
+      this.bossBattleRunning
     ) {
 
       this.player.body.setVelocity(
         0,
         0
       );
+
+
+      this.prompt
+        ?.setVisible(
+          false
+        );
+
+
+      if (
+        window.WisdomTouchInput
+      ) {
+
+        window.WisdomTouchInput.interactPressed =
+          false;
+
+      }
+
+
+      return;
+
+    }
+
+
+    if (
+      this.inputLocked
+    ) {
+
+      this.player.body.setVelocity(
+        0,
+        0
+      );
+
+
+      this.prompt
+        ?.setVisible(
+          false
+        );
+
+
+      if (
+        window.WisdomTouchInput
+      ) {
+
+        window.WisdomTouchInput.interactPressed =
+          false;
+
+      }
 
 
       return;
@@ -1071,6 +1153,8 @@ update() {
       this.cursors.left.isDown
       ||
       this.keys.left.isDown
+      ||
+      touch.left
     ) {
 
       vx =
@@ -1082,6 +1166,8 @@ update() {
       this.cursors.right.isDown
       ||
       this.keys.right.isDown
+      ||
+      touch.right
     ) {
 
       vx =
@@ -1094,6 +1180,8 @@ update() {
       this.cursors.up.isDown
       ||
       this.keys.up.isDown
+      ||
+      touch.up
     ) {
 
       vy =
@@ -1105,6 +1193,8 @@ update() {
       this.cursors.down.isDown
       ||
       this.keys.down.isDown
+      ||
+      touch.down
     ) {
 
       vy =
@@ -1144,14 +1234,38 @@ update() {
     this.updatePrompt();
 
 
-    if (
+    const keyboardInteract =
       Phaser.Input.Keyboard.JustDown(
         this.keys.interact
       )
       ||
       Phaser.Input.Keyboard.JustDown(
         this.keys.enter
-      )
+      );
+
+
+    const touchInteract =
+      Boolean(
+        touch.interactPressed
+      );
+
+
+    if (
+      touchInteract
+      &&
+      window.WisdomTouchInput
+    ) {
+
+      window.WisdomTouchInput.interactPressed =
+        false;
+
+    }
+
+
+    if (
+      keyboardInteract
+      ||
+      touchInteract
     ) {
 
       this.interact();
@@ -1167,9 +1281,13 @@ update() {
   ) {
 
     if (
-      Math.abs(vx)
+      Math.abs(
+        vx
+      )
       >
-      Math.abs(vy)
+      Math.abs(
+        vy
+      )
     ) {
 
       if (
@@ -1324,6 +1442,8 @@ update() {
       this.inputLocked
       ||
       this.interactionRunning
+      ||
+      this.bossBattleRunning
     ) {
 
       return;
@@ -1335,7 +1455,9 @@ update() {
       this.nearestObject();
 
 
-    if (!object) {
+    if (
+      !object
+    ) {
 
       return;
 
@@ -1396,7 +1518,9 @@ update() {
 
     }
 
-    catch (error) {
+    catch (
+      error
+    ) {
 
       console.error(
         "MAP12 interaction error:",
@@ -1410,6 +1534,9 @@ update() {
       if (
         this.state.phase !==
         "boss"
+        &&
+        this.state.phase !==
+        "ending"
       ) {
 
         this.forceUnlock();
@@ -1428,17 +1555,17 @@ update() {
 
     await GameUI.say([
 
-      "마지막 성의 문이 열렸다.",
+      "얼음 성의 마지막 문 너머에는 거대한 검은 성이 기다리고 있었다.",
 
-      "성 안에는 지금까지 되찾은 언어 수정들이 모두 모여 있었다.",
+      "성 안에는 소리조차 사라진 듯한 침묵이 감돌았다.",
 
-      "나: 드디어 마지막 장소야.",
+      "나: 여기가 마지막 장소구나.",
 
-      "루미: 하지만 이상해. 수정들이 빛나지 않아.",
+      "루미: 응. 열두 번째 언어 수정과 모든 혼란의 근원이 이 안에 있어.",
 
-      "루미: 누군가 모든 언어의 힘을 이곳에서 묶어 두고 있어.",
+      "루미: 중앙의 수정 원부터 복원하자.",
 
-      "루미: 먼저 중앙의 열두 수정의 원을 조사하자."
+      "루미: 이번엔 정말 마지막이야."
 
     ]);
 
@@ -1477,7 +1604,9 @@ update() {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
         "루미: MAP12 단어 데이터가 부족해."
@@ -1500,7 +1629,9 @@ update() {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "crystal_circle"
@@ -1508,7 +1639,7 @@ update() {
 
 
       await GameUI.say(
-        "루미: 수정들이 아직 반응하지 않아. 다시 해 보자!"
+        "루미: 수정들이 아직 깨어나지 않았어. 단어 뜻을 다시 생각해 보자!"
       );
 
 
@@ -1540,11 +1671,11 @@ update() {
 
     await GameUI.say([
 
-      "열두 개의 수정 중 하나가 강하게 빛났다.",
+      "중앙의 열두 수정이 희미하게 빛나기 시작했다.",
 
-      "루미: 왼쪽 위 기억의 서고가 열렸어.",
+      "루미: 첫 번째 말의 조각이야.",
 
-      "루미: 그곳에서 사라진 단어의 기억을 되찾자!"
+      "루미: 왼쪽 위 고대 서고의 봉인이 약해졌어!"
 
     ]);
 
@@ -1572,7 +1703,9 @@ update() {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
         "루미: MAP12 단어 데이터가 부족해."
@@ -1595,7 +1728,9 @@ update() {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "left_library"
@@ -1603,7 +1738,7 @@ update() {
 
 
       await GameUI.say(
-        "루미: 기억이 아직 흐릿해. 영어 단어를 다시 찾아보자!"
+        "루미: 기록이 읽히지 않아. 영어 단어를 다시 골라 보자!"
       );
 
 
@@ -1631,11 +1766,11 @@ update() {
 
     await GameUI.say([
 
-      "잊혀졌던 단어들이 책장 위로 다시 나타났다.",
+      "왼쪽 서고의 글자들이 다시 모습을 드러냈다.",
 
-      "나: 오른쪽 서고에서도 빛이 나!",
+      "나: 반대쪽 서고에서도 빛이 나.",
 
-      "루미: 기록의 서고로 가자!"
+      "루미: 오른쪽 고대 서고로 가자!"
 
     ]);
 
@@ -1663,7 +1798,9 @@ update() {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
         "루미: MAP12 영어 표현 데이터가 부족해."
@@ -1686,7 +1823,9 @@ update() {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "right_library"
@@ -1694,7 +1833,7 @@ update() {
 
 
       await GameUI.say(
-        "루미: 문장의 기록이 아직 복원되지 않았어!"
+        "루미: 문장의 의미가 아직 봉인되어 있어. 다시 생각해 보자!"
       );
 
 
@@ -1726,11 +1865,9 @@ update() {
 
     await GameUI.say([
 
-      "기록의 서고에 문장들이 다시 떠올랐다.",
+      "오른쪽 서고의 봉인이 풀리며 두 번째 말의 조각이 나타났다.",
 
-      "루미: 두 번째 말의 조각이야.",
-
-      "루미: 이제 왼쪽 아래 달의 제단으로 가자."
+      "루미: 이제 아래 왼쪽의 달의 제단으로 가자!"
 
     ]);
 
@@ -1758,7 +1895,9 @@ update() {
       );
 
 
-    if (!expression) {
+    if (
+      !expression
+    ) {
 
       await GameUI.say(
         "루미: MAP12 문장 데이터가 부족해."
@@ -1774,7 +1913,7 @@ update() {
 
 
     await GameUI.say(
-      `루미: "${expression.korean}"라는 뜻이 되도록 문장을 완성해 봐!`
+      `루미: "${expression.korean}"라는 뜻이 되도록 영어 문장을 만들어 봐!`
     );
 
 
@@ -1784,7 +1923,9 @@ update() {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "moon_altar"
@@ -1792,7 +1933,7 @@ update() {
 
 
       await GameUI.say(
-        "루미: 달의 제단이 반응하지 않아. 문장 순서를 다시 맞춰 보자!"
+        "루미: 달의 제단이 다시 어두워졌어. 문장 순서를 다시 맞춰 보자!"
       );
 
 
@@ -1820,11 +1961,9 @@ update() {
 
     await GameUI.say([
 
-      "달의 제단에서 은빛 마법이 퍼져 나갔다.",
+      "달의 제단에서 은빛 빛줄기가 왕좌를 향해 뻗어 나갔다.",
 
-      "나: 반대쪽 태양 제단도 깨어났어!",
-
-      "루미: 오른쪽 아래 태양의 제단으로 가자."
+      "루미: 이제 오른쪽 아래 태양의 제단이야!"
 
     ]);
 
@@ -1852,10 +1991,12 @@ update() {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
-        "루미: MAP12 표현 데이터가 부족해."
+        "루미: MAP12 영어 표현 데이터가 부족해."
       );
 
 
@@ -1875,7 +2016,9 @@ update() {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "sun_altar"
@@ -1883,7 +2026,7 @@ update() {
 
 
       await GameUI.say(
-        "루미: 태양의 제단이 아직 잠들어 있어!"
+        "루미: 태양의 제단이 반응하지 않아. 영어 표현을 다시 골라 보자!"
       );
 
 
@@ -1915,13 +2058,15 @@ update() {
 
     await GameUI.say([
 
-      "달과 태양의 빛이 중앙 수정진에서 하나가 되었다.",
+      "태양의 제단에서 황금빛이 솟아올랐다.",
 
-      "열두 개의 수정이 동시에 빛나기 시작했다.",
+      "세 번째 말의 조각이 중앙 수정 원으로 날아갔다.",
 
-      "루미: 이제 마지막이야.",
+      "나: 세 조각을 모두 모았어.",
 
-      "루미: 가운데 위 침묵의 왕좌로 가자."
+      "루미: 왕좌의 봉인이 풀렸어.",
+
+      "루미: 이제 침묵의 군주를 만나러 가자."
 
     ]);
 
@@ -1946,8 +2091,12 @@ update() {
       "boss";
 
 
-    this.state.bossStarted =
-      true;
+    this.state.bossHp =
+      5;
+
+
+    this.state.bossRound =
+      1;
 
 
     this.save();
@@ -1959,614 +2108,13 @@ update() {
       );
 
 
+    this.prompt
+      ?.setVisible(
+        false
+      );
+
+
     await this.startBossBattle();
-
-  }
-
-
-  /* =====================================================
-     BOSS
-  ====================================================== */
-
-  async startBossBattle() {
-
-    this.lockInput();
-
-
-    await this.bossSay(
-      "침묵의 군주",
-      "드디어 여기까지 왔군."
-    );
-
-
-    await this.bossSay(
-      "침묵의 군주",
-      "너희는 왜 사라져야 할 말들을 다시 되찾으려 하지?"
-    );
-
-
-    await GameUI.say([
-
-      "나: 사라져야 할 말 같은 건 없어.",
-
-      "나: 누군가와 이야기하고, 마음을 전하려면 말이 필요해.",
-
-      "루미: 그리고 우리는 지금까지 그걸 직접 배워 왔어."
-
-    ]);
-
-
-    await this.bossSay(
-      "침묵의 군주",
-      "그렇다면 증명해 보아라."
-    );
-
-
-    await this.bossSay(
-      "침묵의 군주",
-      "너희가 되찾은 언어가 정말 침묵보다 강한지."
-    );
-
-
-    this.state.bossHp =
-      5;
-
-
-    this.save();
-
-
-    while (
-      this.state.bossHp >
-      0
-    ) {
-
-      const round =
-        6 -
-        this.state.bossHp;
-
-
-      const correct =
-        await this.runBossQuiz(
-          round
-        );
-
-
-      if (
-        correct
-      ) {
-
-        this.state.bossHp--;
-
-
-        this.state.firstTryCorrect++;
-
-
-        this.save();
-
-
-        if (
-          this.state.bossHp >
-          0
-        ) {
-
-          await this.bossSay(
-            "침묵의 군주",
-            `...좋아. 하지만 아직 ${this.state.bossHp}개의 침묵이 남아 있다.`
-          );
-
-        }
-
-      }
-
-      else {
-
-        this.state.wrongAttempts++;
-
-
-        this.save();
-
-
-        await this.bossSay(
-          "침묵의 군주",
-          "그 정도로는 침묵을 깨뜨릴 수 없다."
-        );
-
-
-        await GameUI.say(
-          "루미: 괜찮아! 다시 도전하면 돼!"
-        );
-
-      }
-
-    }
-
-
-    await this.finishBossBattle();
-
-  }
-
-
-  async runBossQuiz(
-    round
-  ) {
-
-    this.state.questionsShown++;
-
-
-    let quiz =
-      null;
-
-
-    if (
-      round === 1
-    ) {
-
-      quiz =
-        QuizEngine.wordToKorean(
-          this.content.words,
-          this.state.usedWords
-        );
-
-    }
-
-    else if (
-      round === 2
-    ) {
-
-      quiz =
-        QuizEngine.koreanToWord(
-          this.content.words,
-          this.state.usedWords
-        );
-
-    }
-
-    else if (
-      round === 3
-    ) {
-
-      quiz =
-        QuizEngine.expressionToKorean(
-          this.content.expressions,
-          this.state.usedExpressions
-        );
-
-    }
-
-    else if (
-      round === 4
-    ) {
-
-      quiz =
-        QuizEngine.koreanToExpression(
-          this.content.expressions,
-          this.state.usedExpressions
-        );
-
-    }
-
-    else {
-
-      quiz =
-        QuizEngine.randomReview(
-          this.content,
-          this.state.usedWords,
-          this.state.usedExpressions
-        );
-
-    }
-
-
-    if (
-      !quiz
-    ) {
-
-      await GameUI.say(
-        "루미: 최종 시험용 학습 데이터가 부족해."
-      );
-
-
-      return false;
-
-    }
-
-
-    return await GameUI.choice(
-      `최종 시험 ${round}/5\n${quiz.question}`,
-      quiz.options,
-      quiz.correctIndex
-    );
-
-  }
-
-
-  async finishBossBattle() {
-
-    await this.bossSay(
-      "침묵의 군주",
-      "...이럴 수가."
-    );
-
-
-    await this.bossSay(
-      "침묵의 군주",
-      "잊힌 말들이... 다시 빛나고 있다."
-    );
-
-
-    await GameUI.say([
-
-      "열두 개의 언어 수정이 공중으로 떠올랐다.",
-
-      "각 수정에서 수많은 단어와 문장이 별빛처럼 퍼져 나갔다.",
-
-      "나: 이제 끝난 거야?",
-
-      "루미: 응. 세계의 언어가 모두 돌아오고 있어."
-
-    ]);
-
-
-    await this.bossSay(
-      "침묵의 군주",
-      "나는 침묵만이 상처 없는 세상을 만들 수 있다고 생각했다."
-    );
-
-
-    await this.bossSay(
-      "침묵의 군주",
-      "하지만 너희는 말이 서로를 상처 입히는 것만이 아니라..."
-    );
-
-
-    await this.bossSay(
-      "침묵의 군주",
-      "서로를 이해하게 만들 수도 있다는 것을 보여 주었군."
-    );
-
-
-    this.state.completed =
-      true;
-
-
-    this.state.endingSeen =
-      true;
-
-
-    this.save();
-
-
-    await this.playTrueEnding();
-
-  }
-
-
-  /* =====================================================
-     TRUE ENDING
-  ====================================================== */
-
-  async playTrueEnding() {
-
-    await GameUI.say([
-
-      "침묵의 성을 뒤덮고 있던 어둠이 천천히 사라졌다.",
-
-      "열두 개의 언어 수정이 원래의 빛을 되찾았다.",
-
-      "그리고 사라졌던 말들이 다시 세계 곳곳으로 흘러갔다.",
-
-      "마을에서는 다시 인사가 들렸고,",
-
-      "학교에서는 아이들의 목소리가 들렸으며,",
-
-      "책 속에는 사라졌던 문장들이 다시 나타났다."
-
-    ]);
-
-
-    await GameUI.say([
-
-      "나: 루미, 우리가 정말 전부 되찾은 거야?",
-
-      "루미: 응.",
-
-      "루미: 하지만 중요한 건 수정을 되찾은 것만이 아니야.",
-
-      "루미: 네가 지금까지 수많은 단어와 문장을 직접 사용했다는 거야.",
-
-      "나: 그러네.",
-
-      "루미: 언어는 정답을 외우는 힘이 아니야.",
-
-      "루미: 서로를 이해하게 만드는 힘이야."
-
-    ]);
-
-
-    await this.showEndingScreen();
-
-  }
-
-
-  async showEndingScreen() {
-
-    this.inputLocked =
-      true;
-
-
-    if (
-      this.player?.body
-    ) {
-
-      this.player.body.setVelocity(
-        0,
-        0
-      );
-
-    }
-
-
-    const modal =
-      document.querySelector(
-        "#modal"
-      );
-
-
-    const body =
-      document.querySelector(
-        "#modal-body"
-      );
-
-
-    if (
-      !modal
-      ||
-      !body
-    ) {
-
-      return;
-
-    }
-
-
-    modal.classList.remove(
-      "hidden"
-    );
-
-
-    body.innerHTML = `
-
-      <div
-        style="
-          text-align:center;
-          padding:28px 18px;
-        "
-      >
-
-        <div
-          style="
-            color:#ffeaa4;
-            font-size:15px;
-            letter-spacing:5px;
-            margin-bottom:8px;
-          "
-        >
-          WISDOM MAZE
-        </div>
-
-        <h1
-          style="
-            color:#ffffff;
-            font-size:42px;
-            margin:8px 0 22px;
-          "
-        >
-          THE END
-        </h1>
-
-        <p
-          style="
-            color:#e8efff;
-            font-size:18px;
-            line-height:1.8;
-          "
-        >
-          열두 개의 언어 수정이 모두 복원되었습니다.
-        </p>
-
-        <p
-          style="
-            color:#ffe99b;
-            font-size:21px;
-            line-height:1.9;
-            margin:24px 0;
-          "
-        >
-          “언어는 정답을 외우는 힘이 아니라,<br>
-          서로를 이해하게 만드는 힘이었다.”
-        </p>
-
-        <p
-          style="
-            color:#bcd2ff;
-            font-size:15px;
-            line-height:1.7;
-          "
-        >
-          ${this.escapeHtml(
-            this.profile.name
-          )}의 모험이 끝났습니다.
-        </p>
-
-        <button
-          id="map12-ending-home"
-          class="big-gold"
-          type="button"
-          style="
-            margin-top:28px;
-          "
-        >
-          타이틀로 돌아가기
-        </button>
-
-      </div>
-
-    `;
-
-
-    document
-      .querySelector(
-        "#map12-ending-home"
-      )
-      ?.addEventListener(
-        "click",
-        () => {
-
-          modal.classList.add(
-            "hidden"
-          );
-
-
-          window.WisdomGame
-            ?.goTitle();
-
-        },
-        {
-          once:
-            true
-        }
-      );
-
-  }
-
-
-  /* =====================================================
-     BOSS PORTRAIT DIALOGUE
-  ====================================================== */
-
-  async bossSay(
-    speaker,
-    text
-  ) {
-
-    return new Promise(
-      resolve => {
-
-        const modal =
-          document.querySelector(
-            "#modal"
-          );
-
-
-        const body =
-          document.querySelector(
-            "#modal-body"
-          );
-
-
-        if (
-          !modal
-          ||
-          !body
-        ) {
-
-          resolve();
-
-          return;
-
-        }
-
-
-        const base =
-          import.meta.env.BASE_URL;
-
-
-        const portrait =
-          `${base}assets/portraits/boss_portrait.png`;
-
-
-        modal.classList.remove(
-          "hidden"
-        );
-
-
-        body.innerHTML = `
-
-          <div class="dialogue-layout">
-
-            <div class="dialogue-portrait-box">
-
-              <img
-                class="dialogue-portrait"
-                src="${portrait}"
-                alt="${this.escapeHtml(
-                  speaker
-                )}"
-                style="
-                  object-position:center 18%;
-                "
-              />
-
-            </div>
-
-            <div class="dialogue-content">
-
-              <div
-                class="dialogue-speaker"
-                style="
-                  color:#caa4ff;
-                "
-              >
-                ${this.escapeHtml(
-                  speaker
-                )}
-              </div>
-
-              <p class="dialogue-text">
-                ${this.escapeHtml(
-                  text
-                )}
-              </p>
-
-              <button
-                id="boss-dialog-next"
-                class="big-gold"
-                type="button"
-              >
-                다음
-              </button>
-
-            </div>
-
-          </div>
-
-        `;
-
-
-        document
-          .querySelector(
-            "#boss-dialog-next"
-          )
-          ?.addEventListener(
-            "click",
-            () => {
-
-              modal.classList.add(
-                "hidden"
-              );
-
-
-              resolve();
-
-            },
-            {
-              once:
-                true
-            }
-          );
-
-      }
-    );
 
   }
 
@@ -2582,13 +2130,13 @@ update() {
     const hints = {
 
       crystal_circle:
-        "루미: 중앙의 열두 수정이 둘러싼 큰 마법진을 조사해 봐!",
+        "루미: 중앙의 수정 원을 조사해!",
 
       left_library:
-        "루미: 왼쪽 위 기억의 서고로 가자!",
+        "루미: 왼쪽 위 고대 서고로 가자!",
 
       right_library:
-        "루미: 오른쪽 위 기록의 서고로 가자!",
+        "루미: 오른쪽 위 고대 서고로 가자!",
 
       moon_altar:
         "루미: 왼쪽 아래 달의 제단으로 가자!",
@@ -2597,7 +2145,7 @@ update() {
         "루미: 오른쪽 아래 태양의 제단으로 가자!",
 
       throne:
-        "루미: 가운데 위 침묵의 왕좌로 가자!"
+        "루미: 중앙 위쪽 침묵의 왕좌로 가자!"
 
     };
 
@@ -2607,7 +2155,1480 @@ update() {
         this.state.phase
       ]
       ||
-      "루미: 열두 수정의 빛을 따라가자!"
+      "루미: 마지막 수정의 빛을 따라가자!"
+    );
+
+  }
+
+
+  async startBossBattle() {
+
+    if (
+      this.bossBattleRunning
+    ) {
+
+      return;
+
+    }
+
+
+    this.bossBattleRunning =
+      true;
+
+
+    this.inputLocked =
+      true;
+
+
+    this.interactionRunning =
+      true;
+
+
+    this.bossHud
+      ?.setVisible(
+        true
+      );
+
+
+    this.updateBossHud();
+
+
+    try {
+
+      await this.bossSay([
+
+        "침묵의 군주: 결국 여기까지 왔군.",
+
+        "침묵의 군주: 인간은 언제나 말로 서로를 상처 입힌다.",
+
+        "침묵의 군주: 그러니 모든 말을 없애면 갈등도 사라지지.",
+
+        "나: 아니야.",
+
+        "나: 말은 상처를 주기도 하지만, 서로를 이해하게 만들 수도 있어.",
+
+        "루미: 우리가 되찾은 열한 개의 수정이 그 증거야.",
+
+        "침묵의 군주: 그렇다면 보여 보아라.",
+
+        "침묵의 군주: 네가 되찾은 언어의 힘을!"
+
+      ]);
+
+
+      while (
+        this.state.bossHp > 0
+      ) {
+
+        const round =
+          Phaser.Math.Clamp(
+            this.state.bossRound,
+            1,
+            5
+          );
+
+
+        const correct =
+          await this.runBossRound(
+            round
+          );
+
+
+        if (
+          correct
+        ) {
+
+          this.state.bossHp =
+            Math.max(
+              0,
+              this.state.bossHp - 1
+            );
+
+
+          this.state.bossRound =
+            Math.min(
+              5,
+              round + 1
+            );
+
+
+          this.save();
+
+          this.updateBossHud();
+
+
+          if (
+            this.state.bossHp > 0
+          ) {
+
+            await this.bossSay(
+              this.getBossDamageDialogue(
+                this.state.bossHp
+              )
+            );
+
+          }
+
+        }
+
+      }
+
+
+      await this.finishBossBattle();
+
+    }
+
+    catch (
+      error
+    ) {
+
+      console.error(
+        "MAP12 boss battle error:",
+        error
+      );
+
+
+      /*
+        치명적 오류가 나더라도
+        게임 입력이 영구 잠기지 않도록 한다.
+      */
+
+      this.state.phase =
+        "throne";
+
+
+      this.bossHud
+        ?.setVisible(
+          false
+        );
+
+
+      this.forceUnlock();
+
+    }
+
+    finally {
+
+      this.bossBattleRunning =
+        false;
+
+    }
+
+  }
+
+
+  async runBossRound(
+    round
+  ) {
+
+    let quiz =
+      null;
+
+
+    let correct =
+      false;
+
+
+    const attemptKey =
+      `boss_round_${round}`;
+
+
+    /*
+      ROUND 1
+      영어 단어 -> 뜻
+    */
+
+    if (
+      round === 1
+    ) {
+
+      quiz =
+        QuizEngine.wordToKorean(
+          this.content.words,
+          this.state.usedWords
+        );
+
+
+      if (
+        !quiz
+      ) {
+
+        await this.bossSay(
+          "루미: 보스 문제를 만들 MAP12 단어 데이터가 부족해."
+        );
+
+
+        return false;
+
+      }
+
+
+      this.state.questionsShown++;
+
+
+      correct =
+        await GameUI.choice(
+          `침묵의 군주 · 1단계\n${quiz.question}`,
+          quiz.options,
+          quiz.correctIndex
+        );
+
+
+      if (
+        correct
+      ) {
+
+        this.rememberWord(
+          quiz.itemKey
+        );
+
+      }
+
+    }
+
+
+    /*
+      ROUND 2
+      한국어 뜻 -> 영어 단어
+    */
+
+    else if (
+      round === 2
+    ) {
+
+      quiz =
+        QuizEngine.koreanToWord(
+          this.content.words,
+          this.state.usedWords
+        );
+
+
+      if (
+        !quiz
+      ) {
+
+        await this.bossSay(
+          "루미: 보스 문제를 만들 MAP12 단어 데이터가 부족해."
+        );
+
+
+        return false;
+
+      }
+
+
+      this.state.questionsShown++;
+
+
+      correct =
+        await GameUI.choice(
+          `침묵의 군주 · 2단계\n${quiz.question}`,
+          quiz.options,
+          quiz.correctIndex
+        );
+
+
+      if (
+        correct
+      ) {
+
+        this.rememberWord(
+          quiz.itemKey
+        );
+
+      }
+
+    }
+
+
+    /*
+      ROUND 3
+      영어 표현 -> 뜻
+    */
+
+    else if (
+      round === 3
+    ) {
+
+      quiz =
+        QuizEngine.expressionToKorean(
+          this.content.expressions,
+          this.state.usedExpressions
+        );
+
+
+      if (
+        !quiz
+      ) {
+
+        await this.bossSay(
+          "루미: 보스 문제를 만들 MAP12 표현 데이터가 부족해."
+        );
+
+
+        return false;
+
+      }
+
+
+      this.state.questionsShown++;
+
+
+      correct =
+        await GameUI.choice(
+          `침묵의 군주 · 3단계\n${quiz.question}`,
+          quiz.options,
+          quiz.correctIndex
+        );
+
+
+      if (
+        correct
+      ) {
+
+        this.rememberExpression(
+          quiz.itemKey
+        );
+
+      }
+
+    }
+
+
+    /*
+      ROUND 4
+      한국어 뜻 -> 영어 표현
+    */
+
+    else if (
+      round === 4
+    ) {
+
+      quiz =
+        QuizEngine.koreanToExpression(
+          this.content.expressions,
+          this.state.usedExpressions
+        );
+
+
+      if (
+        !quiz
+      ) {
+
+        await this.bossSay(
+          "루미: 보스 문제를 만들 MAP12 표현 데이터가 부족해."
+        );
+
+
+        return false;
+
+      }
+
+
+      this.state.questionsShown++;
+
+
+      correct =
+        await GameUI.choice(
+          `침묵의 군주 · 4단계\n${quiz.question}`,
+          quiz.options,
+          quiz.correctIndex
+        );
+
+
+      if (
+        correct
+      ) {
+
+        this.rememberExpression(
+          quiz.itemKey
+        );
+
+      }
+
+    }
+
+
+    /*
+      ROUND 5
+      최종 랜덤 복습
+    */
+
+    else {
+
+      quiz =
+        QuizEngine.randomReview(
+          this.content,
+          this.state.usedWords,
+          this.state.usedExpressions
+        );
+
+
+      if (
+        !quiz
+      ) {
+
+        await this.bossSay(
+          "루미: 최종 문제를 만들 MAP12 학습 데이터가 부족해."
+        );
+
+
+        return false;
+
+      }
+
+
+      this.state.questionsShown++;
+
+
+      correct =
+        await GameUI.choice(
+          `침묵의 군주 · 최종 단계\n${quiz.question}`,
+          quiz.options,
+          quiz.correctIndex
+        );
+
+    }
+
+
+    if (
+      !correct
+    ) {
+
+      this.markWrong(
+        attemptKey
+      );
+
+
+      await this.bossSay([
+
+        "침묵의 군주: 그 정도인가?",
+
+        "루미: 괜찮아! 틀렸다고 끝나는 게 아니야.",
+
+        `루미: ${round}단계 문제를 다시 풀어 보자!`
+
+      ]);
+
+
+      return false;
+
+    }
+
+
+    this.markCorrect(
+      attemptKey
+    );
+
+
+    this.save();
+
+
+    return true;
+
+  }
+
+
+  getBossDamageDialogue(
+    hp
+  ) {
+
+    if (
+      hp === 4
+    ) {
+
+      return [
+
+        "침묵의 군주: ...!",
+
+        "루미: 통했어! 계속 가자!"
+
+      ];
+
+    }
+
+
+    if (
+      hp === 3
+    ) {
+
+      return [
+
+        "침묵의 군주: 언어 따위가 이런 힘을...",
+
+        "나: 아직 끝나지 않았어."
+
+      ];
+
+    }
+
+
+    if (
+      hp === 2
+    ) {
+
+      return [
+
+        "침묵의 군주: 침묵이야말로 완전한 세계다!",
+
+        "루미: 서로 이해할 기회까지 없애 버린 세계가 완전할 리 없어!"
+
+      ];
+
+    }
+
+
+    if (
+      hp === 1
+    ) {
+
+      return [
+
+        "침묵의 군주: 그만...!",
+
+        "나: 마지막 문제야."
+
+      ];
+
+    }
+
+
+    return [
+      "루미: 조금만 더!"
+    ];
+
+  }
+
+
+  async finishBossBattle() {
+
+    this.state.bossHp =
+      0;
+
+
+    this.state.completed =
+      true;
+
+
+    this.state.phase =
+      "ending";
+
+
+    this.save();
+
+
+    this.updateBossHud();
+
+
+    await this.bossSay([
+
+      "침묵의 군주: 어째서...",
+
+      "침묵의 군주: 말은 갈등만을 낳는 것이 아니었단 말인가...",
+
+      "나: 언어는 정답을 외우는 힘이 아니야.",
+
+      "나: 서로를 이해하게 만드는 힘이야.",
+
+      "루미: 누군가에게 말을 건네는 순간, 새로운 길이 생길 수도 있어."
+
+    ]);
+
+
+    this.bossHud
+      ?.setVisible(
+        false
+      );
+
+
+    /*
+      MAP12 기록 저장
+    */
+
+    const seconds =
+      Math.max(
+        1,
+        Math.floor(
+          (
+            Date.now()
+            -
+            this.state.sessionStartedAt
+          )
+          /
+          1000
+        )
+      );
+
+
+    saveRecord({
+
+      mapId:
+        MAP_ID,
+
+      studentName:
+        this.profile.name,
+
+      character:
+        this.profile.gender,
+
+      completed:
+        true,
+
+      playTime:
+        seconds,
+
+      questionsShown:
+        this.state.questionsShown,
+
+      firstTryCorrect:
+        this.state.firstTryCorrect,
+
+      wrongAttempts:
+        this.state.wrongAttempts,
+
+      hintsUsed:
+        this.state.hintsUsed,
+
+      completedAt:
+        new Date()
+          .toISOString()
+
+    });
+
+
+    this.profile.currentMap =
+      MAP_ID;
+
+
+    this.profile.gameCompleted =
+      true;
+
+
+    saveProfile(
+      this.profile
+    );
+
+
+    await this.playTrueEnding(
+      seconds
+    );
+
+  }
+
+
+  async playTrueEnding(
+    seconds
+  ) {
+
+    await GameUI.say([
+
+      "침묵의 군주의 갑옷이 빛으로 흩어졌다.",
+
+      "성 중앙의 마지막 수정이 하늘로 떠올랐다.",
+
+      "그 순간 지금까지 되찾은 열한 개의 수정이 하나씩 나타났다.",
+
+      "열두 개의 언어 수정이 서로 연결되며 거대한 빛의 원을 만들었다.",
+
+      "잃어버렸던 말들이 세상 곳곳으로 다시 퍼져 나갔다.",
+
+      "사람들은 다시 서로의 목소리를 들을 수 있게 되었다.",
+
+      "나: 끝난 거지?",
+
+      "루미: 응.",
+
+      "루미: 하지만 언어의 모험은 아마 계속될 거야.",
+
+      "루미: 새로운 말을 배우고, 누군가를 이해하려고 하는 동안에는."
+
+    ]);
+
+
+    this.showEndingScreen(
+      seconds
+    );
+
+  }
+
+
+  showEndingScreen(
+    seconds
+  ) {
+
+    const old =
+      document.querySelector(
+        "#wisdom-final-ending"
+      );
+
+
+    old?.remove();
+
+
+    const overlay =
+      document.createElement(
+        "div"
+      );
+
+
+    overlay.id =
+      "wisdom-final-ending";
+
+
+    overlay.innerHTML = `
+
+      <div class="wisdom-ending-card">
+
+        <div class="wisdom-ending-small">
+          WISDOM MAZE
+        </div>
+
+        <h1>
+          THE END
+        </h1>
+
+        <div class="wisdom-ending-crystals">
+          ◆ ◆ ◆ ◆ ◆ ◆ ◆ ◆ ◆ ◆ ◆ ◆
+        </div>
+
+        <h2>
+          열두 언어 수정 복원 완료
+        </h2>
+
+        <p class="wisdom-ending-player">
+          ${this.escapeHtml(
+            this.profile?.name
+            ??
+            "모험가"
+          )}
+        </p>
+
+        <p class="wisdom-ending-message">
+          언어는 정답을 외우는 힘이 아니라<br>
+          서로를 이해하게 만드는 힘입니다.
+        </p>
+
+        <div class="wisdom-ending-time">
+          마지막 모험 기록 ·
+          ${this.formatTime(
+            seconds
+          )}
+        </div>
+
+        <button
+          type="button"
+          id="wisdom-ending-title"
+        >
+          타이틀로 돌아가기
+        </button>
+
+      </div>
+
+    `;
+
+
+    document.body.appendChild(
+      overlay
+    );
+
+
+    this.injectEndingStyle();
+
+
+    overlay
+      .querySelector(
+        "#wisdom-ending-title"
+      )
+      ?.addEventListener(
+        "click",
+        () => {
+
+          overlay.remove();
+
+
+          if (
+            window.WisdomGame
+              ?.showTitle
+          ) {
+
+            window.WisdomGame.showTitle();
+
+            return;
+
+          }
+
+
+          window.location.reload();
+
+        }
+      );
+
+  }
+
+
+  injectEndingStyle() {
+
+    if (
+      document.querySelector(
+        "#wisdom-ending-style"
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    const style =
+      document.createElement(
+        "style"
+      );
+
+
+    style.id =
+      "wisdom-ending-style";
+
+
+    style.textContent = `
+
+      #wisdom-final-ending {
+
+        position:
+          fixed;
+
+        inset:
+          0;
+
+        z-index:
+          50000;
+
+        display:
+          flex;
+
+        align-items:
+          center;
+
+        justify-content:
+          center;
+
+        padding:
+          20px;
+
+        box-sizing:
+          border-box;
+
+        background:
+          radial-gradient(
+            circle at center,
+            rgba(62, 49, 112, .96),
+            rgba(4, 5, 13, .99) 68%
+          );
+
+      }
+
+
+      .wisdom-ending-card {
+
+        width:
+          min(600px, 100%);
+
+        padding:
+          38px 24px;
+
+        box-sizing:
+          border-box;
+
+        border:
+          2px solid
+          rgba(211, 188, 255, .7);
+
+        border-radius:
+          24px;
+
+        color:
+          #ffffff;
+
+        text-align:
+          center;
+
+        background:
+          linear-gradient(
+            180deg,
+            rgba(27, 20, 52, .98),
+            rgba(9, 9, 23, .98)
+          );
+
+        box-shadow:
+          0 25px 100px
+          rgba(0, 0, 0, .75);
+
+      }
+
+
+      .wisdom-ending-small {
+
+        color:
+          #d6c3ff;
+
+        font-size:
+          12px;
+
+        font-weight:
+          900;
+
+        letter-spacing:
+          .24em;
+
+      }
+
+
+      .wisdom-ending-card h1 {
+
+        margin:
+          12px 0 6px;
+
+        color:
+          #ffffff;
+
+        font-size:
+          clamp(
+            44px,
+            10vw,
+            78px
+          );
+
+        line-height:
+          1;
+
+        letter-spacing:
+          .08em;
+
+      }
+
+
+      .wisdom-ending-crystals {
+
+        margin:
+          20px 0;
+
+        color:
+          #bff7ff;
+
+        font-size:
+          18px;
+
+        letter-spacing:
+          5px;
+
+        line-height:
+          1.8;
+
+      }
+
+
+      .wisdom-ending-card h2 {
+
+        margin:
+          6px 0 14px;
+
+        color:
+          #ffe693;
+
+        font-size:
+          22px;
+
+      }
+
+
+      .wisdom-ending-player {
+
+        margin:
+          8px 0 22px;
+
+        color:
+          #e5d9ff;
+
+        font-size:
+          18px;
+
+        font-weight:
+          900;
+
+      }
+
+
+      .wisdom-ending-message {
+
+        margin:
+          0 auto 22px;
+
+        color:
+          #d8def2;
+
+        font-size:
+          16px;
+
+        line-height:
+          1.9;
+
+      }
+
+
+      .wisdom-ending-time {
+
+        margin:
+          0 0 24px;
+
+        color:
+          #9fb0d3;
+
+        font-size:
+          13px;
+
+      }
+
+
+      #wisdom-ending-title {
+
+        min-width:
+          210px;
+
+        min-height:
+          50px;
+
+        padding:
+          12px 22px;
+
+        border:
+          2px solid
+          #f2d879;
+
+        border-radius:
+          12px;
+
+        color:
+          #291d00;
+
+        font-size:
+          15px;
+
+        font-weight:
+          900;
+
+        background:
+          linear-gradient(
+            #fff1a2,
+            #e6b745
+          );
+
+        cursor:
+          pointer;
+
+      }
+
+
+      #wisdom-ending-title:active {
+
+        transform:
+          translateY(2px);
+
+      }
+
+    `;
+
+
+    document.head.appendChild(
+      style
+    );
+
+  }
+
+
+  async bossSay(
+    lines
+  ) {
+
+    const items =
+      Array.isArray(
+        lines
+      )
+        ? lines
+        : [lines];
+
+
+    /*
+      보스 초상화를 직접 보여주는 전용 대화창
+    */
+
+    for (
+      const line of
+      items
+    ) {
+
+      await this.showBossLine(
+        line
+      );
+
+    }
+
+  }
+
+
+  showBossLine(
+    line
+  ) {
+
+    return new Promise(
+      resolve => {
+
+        const old =
+          document.querySelector(
+            "#wisdom-boss-dialogue"
+          );
+
+
+        old?.remove();
+
+
+        const overlay =
+          document.createElement(
+            "div"
+          );
+
+
+        overlay.id =
+          "wisdom-boss-dialogue";
+
+
+        overlay.innerHTML = `
+
+          <div class="wisdom-boss-box">
+
+            <img
+              class="wisdom-boss-portrait"
+              src="${
+                import.meta.env.BASE_URL
+              }assets/portraits/boss_portrait.png"
+              alt="침묵의 군주"
+            >
+
+            <div class="wisdom-boss-text">
+
+              <div class="wisdom-boss-name">
+                침묵의 군주
+              </div>
+
+              <div class="wisdom-boss-line">
+                ${this.escapeHtml(
+                  line
+                )}
+              </div>
+
+              <button
+                type="button"
+                class="wisdom-boss-next"
+              >
+                계속
+              </button>
+
+            </div>
+
+          </div>
+
+        `;
+
+
+        document.body.appendChild(
+          overlay
+        );
+
+
+        this.injectBossDialogueStyle();
+
+
+        const finish =
+          () => {
+
+            overlay.remove();
+
+            resolve();
+
+          };
+
+
+        overlay
+          .querySelector(
+            ".wisdom-boss-next"
+          )
+          ?.addEventListener(
+            "click",
+            finish,
+            {
+              once:
+                true
+            }
+          );
+
+      }
+    );
+
+  }
+
+
+  injectBossDialogueStyle() {
+
+    if (
+      document.querySelector(
+        "#wisdom-boss-dialogue-style"
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    const style =
+      document.createElement(
+        "style"
+      );
+
+
+    style.id =
+      "wisdom-boss-dialogue-style";
+
+
+    style.textContent = `
+
+      #wisdom-boss-dialogue {
+
+        position:
+          fixed;
+
+        left:
+          0;
+
+        right:
+          0;
+
+        bottom:
+          0;
+
+        z-index:
+          40000;
+
+        padding:
+          14px;
+
+        box-sizing:
+          border-box;
+
+        background:
+          linear-gradient(
+            transparent,
+            rgba(0,0,0,.78)
+          );
+
+      }
+
+
+      .wisdom-boss-box {
+
+        width:
+          min(760px, 100%);
+
+        margin:
+          0 auto;
+
+        display:
+          flex;
+
+        align-items:
+          stretch;
+
+        gap:
+          14px;
+
+        padding:
+          14px;
+
+        box-sizing:
+          border-box;
+
+        border:
+          2px solid
+          #7443a2;
+
+        border-radius:
+          16px;
+
+        color:
+          white;
+
+        background:
+          rgba(13, 8, 24, .98);
+
+      }
+
+
+      .wisdom-boss-portrait {
+
+        width:
+          120px;
+
+        height:
+          120px;
+
+        flex:
+          0 0 120px;
+
+        object-fit:
+          cover;
+
+        border:
+          2px solid
+          #9d64cf;
+
+        border-radius:
+          12px;
+
+        background:
+          #090510;
+
+      }
+
+
+      .wisdom-boss-text {
+
+        min-width:
+          0;
+
+        flex:
+          1;
+
+        display:
+          flex;
+
+        flex-direction:
+          column;
+
+      }
+
+
+      .wisdom-boss-name {
+
+        margin-bottom:
+          8px;
+
+        color:
+          #d59cff;
+
+        font-size:
+          14px;
+
+        font-weight:
+          900;
+
+      }
+
+
+      .wisdom-boss-line {
+
+        flex:
+          1;
+
+        color:
+          #f4efff;
+
+        font-size:
+          16px;
+
+        line-height:
+          1.65;
+
+        white-space:
+          pre-wrap;
+
+      }
+
+
+      .wisdom-boss-next {
+
+        align-self:
+          flex-end;
+
+        min-width:
+          82px;
+
+        min-height:
+          40px;
+
+        margin-top:
+          10px;
+
+        border:
+          1px solid
+          #a96ddd;
+
+        border-radius:
+          9px;
+
+        color:
+          white;
+
+        font-weight:
+          800;
+
+        background:
+          #4b286c;
+
+        cursor:
+          pointer;
+
+      }
+
+
+      @media (max-width: 520px) {
+
+        .wisdom-boss-box {
+
+          gap:
+            10px;
+
+          padding:
+            10px;
+
+        }
+
+
+        .wisdom-boss-portrait {
+
+          width:
+            82px;
+
+          height:
+            82px;
+
+          flex-basis:
+            82px;
+
+        }
+
+
+        .wisdom-boss-line {
+
+          font-size:
+            14px;
+
+        }
+
+      }
+
+    `;
+
+
+    document.head.appendChild(
+      style
     );
 
   }
@@ -2617,8 +3638,12 @@ update() {
     english
   ) {
 
-    if (!english) {
+    if (
+      !english
+    ) {
+
       return;
+
     }
 
 
@@ -2641,8 +3666,12 @@ update() {
     english
   ) {
 
-    if (!english) {
+    if (
+      !english
+    ) {
+
       return;
+
     }
 
 
@@ -2711,6 +3740,8 @@ update() {
 
     this.updateGuide();
 
+    this.updateBossHud();
+
   }
 
 
@@ -2726,37 +3757,23 @@ update() {
       shards
     ) {
 
-      if (
-        this.state.phase ===
-        "boss"
-      ) {
+      shards.textContent = [
 
-        shards.textContent =
-          `침묵 ${this.state.bossHp}/5`;
+        this.state.shards >= 1
+          ? "◆"
+          : "◇",
 
-      }
+        this.state.shards >= 2
+          ? "◆"
+          : "◇",
 
-      else {
+        this.state.shards >= 3
+          ? "◆"
+          : "◇"
 
-        shards.textContent = [
-
-          this.state.shards >= 1
-            ? "◆"
-            : "◇",
-
-          this.state.shards >= 2
-            ? "◆"
-            : "◇",
-
-          this.state.shards >= 3
-            ? "◆"
-            : "◇"
-
-        ].join(
-          " "
-        );
-
-      }
+      ].join(
+        " "
+      );
 
     }
 
@@ -2767,7 +3784,9 @@ update() {
       );
 
 
-    if (!objective) {
+    if (
+      !objective
+    ) {
 
       return;
 
@@ -2777,16 +3796,16 @@ update() {
     const objectives = {
 
       crystal_circle:
-        "열두 수정의 원을 활성화하자.",
+        "중앙 수정 원을 깨우자.",
 
       left_library:
-        "기억의 서고에서 단어를 복원하자.",
+        "왼쪽 고대 서고의 기록을 복원하자.",
 
       right_library:
-        "기록의 서고에서 표현을 복원하자.",
+        "오른쪽 고대 서고의 기록을 복원하자.",
 
       moon_altar:
-        "달의 제단에서 문장을 완성하자.",
+        "달의 제단을 활성화하자.",
 
       sun_altar:
         "태양의 제단을 활성화하자.",
@@ -2795,7 +3814,10 @@ update() {
         "침묵의 왕좌로 가자.",
 
       boss:
-        `침묵의 군주를 물리치자. 남은 침묵 ${this.state.bossHp}/5`
+        `침묵의 군주와 최종 대결 · HP ${this.state.bossHp}/5`,
+
+      ending:
+        "열두 언어 수정이 모두 복원되었다."
 
     };
 
@@ -2805,7 +3827,7 @@ update() {
         this.state.phase
       ]
       ||
-      "침묵의 언어 성을 복원하자.";
+      "침묵의 언어 성을 탐험하자.";
 
   }
 
@@ -2817,31 +3839,69 @@ update() {
     return String(
       value ?? ""
     )
-
       .replaceAll(
         "&",
         "&amp;"
       )
-
       .replaceAll(
         "<",
         "&lt;"
       )
-
       .replaceAll(
         ">",
         "&gt;"
       )
-
       .replaceAll(
         '"',
         "&quot;"
       )
-
       .replaceAll(
         "'",
         "&#039;"
       );
+
+  }
+
+
+  formatTime(
+    seconds
+  ) {
+
+    const total =
+      Math.max(
+        0,
+        Number(
+          seconds
+        )
+        ||
+        0
+      );
+
+
+    const minutes =
+      Math.floor(
+        total / 60
+      );
+
+
+    const secs =
+      Math.floor(
+        total % 60
+      );
+
+
+    if (
+      minutes > 0
+    ) {
+
+      return (
+        `${minutes}분 ${secs}초`
+      );
+
+    }
+
+
+    return `${secs}초`;
 
   }
 
