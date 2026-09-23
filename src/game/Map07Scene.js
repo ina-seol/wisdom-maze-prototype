@@ -187,12 +187,14 @@ export default class Map07Scene extends Phaser.Scene {
   prepareState() {
 
     const validPhases = [
+
       "magic_circle",
       "classroom",
       "lab",
       "library",
       "principal",
       "exit"
+
     ];
 
 
@@ -200,6 +202,8 @@ export default class Map07Scene extends Phaser.Scene {
       !validPhases.includes(
         this.state.phase
       )
+      &&
+      !this.state.completed
     ) {
 
       this.state.phase =
@@ -540,8 +544,11 @@ export default class Map07Scene extends Phaser.Scene {
         this.guide,
 
       alpha: {
-        from: 0.25,
-        to: 1
+        from:
+          0.25,
+
+        to:
+          1
       },
 
       duration:
@@ -579,8 +586,11 @@ export default class Map07Scene extends Phaser.Scene {
             "#1b1430dd",
 
           padding: {
-            x: 10,
-            y: 6
+            x:
+              10,
+
+            y:
+              6
           }
 
         }
@@ -761,269 +771,72 @@ export default class Map07Scene extends Phaser.Scene {
   }
 
 
-update() {
+  update() {
 
-  if (
-    !this.player?.body
-  ) {
+    if (
+      !this.player?.body
+    ) {
 
-    return;
+      return;
 
-  }
+    }
 
-
-  /*
-    MAP02 이후처럼 recoverStuckInput()이 있는 Scene에서는
-    자동 복구도 같이 실행.
-    없는 Scene에서는 그냥 넘어감.
-  */
-
-  if (
-    typeof this.recoverStuckInput ===
-    "function"
-  ) {
 
     this.recoverStuckInput();
 
-  }
+
+    const touch =
+      window.WisdomTouchInput
+      ||
+      {
+
+        up:
+          false,
+
+        down:
+          false,
+
+        left:
+          false,
+
+        right:
+          false,
+
+        interactPressed:
+          false
+
+      };
 
 
-  const touch =
-    window.WisdomTouchInput
-    ||
-    {
-      up: false,
-      down: false,
-      left: false,
-      right: false,
-      interactPressed: false
-    };
+    if (
+      this.inputLocked
+    ) {
 
-
-  /*
-    대화/퀴즈 중에는 이동 금지.
-    이때 눌린 조사 입력도 버린다.
-  */
-
-  if (
-    this.inputLocked
-  ) {
-
-    this.player.body.setVelocity(
-      0,
-      0
-    );
-
-
-    this.prompt
-      ?.setVisible(
-        false
+      this.player.body.setVelocity(
+        0,
+        0
       );
 
 
-    if (
-      window.WisdomTouchInput
-    ) {
-
-      window.WisdomTouchInput.interactPressed =
-        false;
-
-    }
+      this.prompt
+        ?.setVisible(
+          false
+        );
 
 
-    return;
+      if (
+        window.WisdomTouchInput
+      ) {
 
-  }
+        window.WisdomTouchInput.interactPressed =
+          false;
 
-
-  /*
-    MAP12 보스전에서는 이동하지 않음.
-    다른 맵에서는 phase가 boss가 아니므로 영향 없음.
-  */
-
-  if (
-    this.state?.phase ===
-    "boss"
-  ) {
-
-    this.player.body.setVelocity(
-      0,
-      0
-    );
+      }
 
 
-    if (
-      window.WisdomTouchInput
-    ) {
-
-      window.WisdomTouchInput.interactPressed =
-        false;
+      return;
 
     }
-
-
-    return;
-
-  }
-
-
-  const speed =
-    145;
-
-
-  let vx =
-    0;
-
-
-  let vy =
-    0;
-
-
-  /* =========================
-     LEFT / RIGHT
-  ========================= */
-
-  if (
-    this.cursors.left.isDown
-    ||
-    this.keys.left.isDown
-    ||
-    touch.left
-  ) {
-
-    vx =
-      -speed;
-
-  }
-
-  else if (
-    this.cursors.right.isDown
-    ||
-    this.keys.right.isDown
-    ||
-    touch.right
-  ) {
-
-    vx =
-      speed;
-
-  }
-
-
-  /* =========================
-     UP / DOWN
-  ========================= */
-
-  if (
-    this.cursors.up.isDown
-    ||
-    this.keys.up.isDown
-    ||
-    touch.up
-  ) {
-
-    vy =
-      -speed;
-
-  }
-
-  else if (
-    this.cursors.down.isDown
-    ||
-    this.keys.down.isDown
-    ||
-    touch.down
-  ) {
-
-    vy =
-      speed;
-
-  }
-
-
-  /*
-    대각선 이동 속도 보정
-  */
-
-  if (
-    vx !== 0
-    &&
-    vy !== 0
-  ) {
-
-    vx *=
-      0.707;
-
-
-    vy *=
-      0.707;
-
-  }
-
-
-  this.player.body.setVelocity(
-    vx,
-    vy
-  );
-
-
-  this.updateDirection(
-    vx,
-    vy
-  );
-
-
-  this.updatePrompt();
-
-
-  /* =========================
-     INTERACT
-  ========================= */
-
-  const keyboardInteract =
-    Phaser.Input.Keyboard.JustDown(
-      this.keys.interact
-    )
-    ||
-    Phaser.Input.Keyboard.JustDown(
-      this.keys.enter
-    );
-
-
-  const touchInteract =
-    Boolean(
-      touch.interactPressed
-    );
-
-
-  /*
-    터치 조사 버튼은 1회 입력이므로
-    읽은 직후 반드시 false 처리
-  */
-
-  if (
-    touchInteract
-    &&
-    window.WisdomTouchInput
-  ) {
-
-    window.WisdomTouchInput.interactPressed =
-      false;
-
-  }
-
-
-  if (
-    keyboardInteract
-    ||
-    touchInteract
-  ) {
-
-    this.interact();
-
-  }
-
-}
 
 
     const speed =
@@ -1042,6 +855,8 @@ update() {
       this.cursors.left.isDown
       ||
       this.keys.left.isDown
+      ||
+      touch.left
     ) {
 
       vx =
@@ -1053,6 +868,8 @@ update() {
       this.cursors.right.isDown
       ||
       this.keys.right.isDown
+      ||
+      touch.right
     ) {
 
       vx =
@@ -1065,6 +882,8 @@ update() {
       this.cursors.up.isDown
       ||
       this.keys.up.isDown
+      ||
+      touch.up
     ) {
 
       vy =
@@ -1076,6 +895,8 @@ update() {
       this.cursors.down.isDown
       ||
       this.keys.down.isDown
+      ||
+      touch.down
     ) {
 
       vy =
@@ -1115,14 +936,38 @@ update() {
     this.updatePrompt();
 
 
-    if (
+    const keyboardInteract =
       Phaser.Input.Keyboard.JustDown(
         this.keys.interact
       )
       ||
       Phaser.Input.Keyboard.JustDown(
         this.keys.enter
-      )
+      );
+
+
+    const touchInteract =
+      Boolean(
+        touch.interactPressed
+      );
+
+
+    if (
+      touchInteract
+      &&
+      window.WisdomTouchInput
+    ) {
+
+      window.WisdomTouchInput.interactPressed =
+        false;
+
+    }
+
+
+    if (
+      keyboardInteract
+      ||
+      touchInteract
     ) {
 
       this.interact();
@@ -1138,9 +983,13 @@ update() {
   ) {
 
     if (
-      Math.abs(vx)
+      Math.abs(
+        vx
+      )
       >
-      Math.abs(vy)
+      Math.abs(
+        vy
+      )
     ) {
 
       if (
@@ -1419,10 +1268,6 @@ update() {
   }
 
 
-  /* =====================================================
-     1. CENTRAL MAGIC CIRCLE
-  ====================================================== */
-
   async handleMagicCircle() {
 
     if (
@@ -1444,7 +1289,9 @@ update() {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
         "루미: MAP07 단어 데이터가 부족해."
@@ -1467,7 +1314,9 @@ update() {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "magic_circle"
@@ -1520,10 +1369,6 @@ update() {
   }
 
 
-  /* =====================================================
-     2. CLASSROOM
-  ====================================================== */
-
   async handleClassroom() {
 
     if (
@@ -1545,7 +1390,9 @@ update() {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
         "루미: MAP07 단어 데이터가 부족해."
@@ -1568,7 +1415,9 @@ update() {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "classroom"
@@ -1615,10 +1464,6 @@ update() {
   }
 
 
-  /* =====================================================
-     3. MAGIC LAB
-  ====================================================== */
-
   async handleLab() {
 
     if (
@@ -1640,7 +1485,9 @@ update() {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
         "루미: MAP07 영어 표현 데이터가 부족해."
@@ -1663,7 +1510,9 @@ update() {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "lab"
@@ -1716,10 +1565,6 @@ update() {
   }
 
 
-  /* =====================================================
-     4. LIBRARY
-  ====================================================== */
-
   async handleLibrary() {
 
     if (
@@ -1741,7 +1586,9 @@ update() {
       );
 
 
-    if (!expression) {
+    if (
+      !expression
+    ) {
 
       await GameUI.say(
         "루미: 문장 배열에 사용할 MAP07 영어 표현이 부족해."
@@ -1767,7 +1614,9 @@ update() {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "library"
@@ -1814,10 +1663,6 @@ update() {
   }
 
 
-  /* =====================================================
-     5. PRINCIPAL
-  ====================================================== */
-
   async handlePrincipal() {
 
     if (
@@ -1840,7 +1685,9 @@ update() {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
         "루미: 마지막 문제를 만들 MAP07 학습 데이터가 부족해."
@@ -1863,7 +1710,9 @@ update() {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "principal"
@@ -1910,10 +1759,6 @@ update() {
 
   }
 
-
-  /* =====================================================
-     EXIT
-  ====================================================== */
 
   async handleExit() {
 
@@ -1970,7 +1815,7 @@ update() {
         this.state.phase
       ]
       ||
-      "루미: 뒤틀린 마법의 흐름을 따라가 보자!"
+      "루미: 빛나는 마법 장치를 따라가자!"
     );
 
   }
@@ -1980,8 +1825,12 @@ update() {
     english
   ) {
 
-    if (!english) {
+    if (
+      !english
+    ) {
+
       return;
+
     }
 
 
@@ -2004,8 +1853,12 @@ update() {
     english
   ) {
 
-    if (!english) {
+    if (
+      !english
+    ) {
+
       return;
+
     }
 
 
@@ -2158,13 +2011,11 @@ update() {
 
     await GameUI.say([
 
-      "학교를 뒤틀던 보라 마법이 천천히 사라졌다.",
+      "뒤틀렸던 학교의 복도와 교실이 원래 모습으로 돌아왔다.",
 
-      "교실과 실험실의 주문이 다시 정상적으로 움직이기 시작했다.",
+      "일곱 번째 언어 수정이 다시 빛나기 시작했다.",
 
-      "루미: 일곱 번째 언어 수정도 복원됐어!",
-
-      "나: 마법 학교가 원래 모습으로 돌아왔어!",
+      "루미: 좋아! 일곱 번째 미로도 해결했어!",
 
       nextMap
         ? `루미: 다음 목적지는 ${nextMap}이야!`
@@ -2280,22 +2131,22 @@ update() {
     const objectives = {
 
       magic_circle:
-        "중앙 뒤틀린 마법진의 문제를 풀자.",
+        "중앙의 뒤틀린 마법진을 안정시키자.",
 
       classroom:
-        "마법 교실의 단어 문제를 풀자.",
+        "왼쪽 위 마법 교실의 주문을 복구하자.",
 
       lab:
-        "마법 실험실의 표현 문제를 풀자.",
+        "왼쪽 아래 마법 실험실을 정상화하자.",
 
       library:
-        "뒤틀린 서고의 문장 배열 문제를 풀자.",
+        "오른쪽의 뒤틀린 서고를 복구하자.",
 
       principal:
-        "교장실의 마지막 시험을 풀자.",
+        "오른쪽 위 교장실의 마지막 봉인을 풀자.",
 
       exit:
-        "아래 중앙의 학교 봉인문으로 가자."
+        "아래쪽 중앙의 학교 봉인문으로 가자."
 
     };
 
@@ -2305,7 +2156,7 @@ update() {
         this.state.phase
       ]
       ||
-      "뒤틀린 마법 학교를 정상화하자.";
+      "뒤틀린 마법 학교를 정상으로 되돌리자.";
 
   }
 
