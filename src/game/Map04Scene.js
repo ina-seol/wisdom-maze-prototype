@@ -12,10 +12,10 @@ import {
 } from "../data.js";
 
 
-const MAP_ID = "MAP03";
+const MAP_ID = "MAP04";
 
 
-export default class Map03Scene extends Phaser.Scene {
+export default class Map04Scene extends Phaser.Scene {
 
   constructor() {
 
@@ -33,8 +33,8 @@ export default class Map03Scene extends Phaser.Scene {
 
 
     this.load.image(
-      "map03_background",
-      `${base}assets/maps/map03.png`
+      "map04_background",
+      `${base}assets/maps/map04.png`
     );
 
 
@@ -42,48 +42,40 @@ export default class Map03Scene extends Phaser.Scene {
       window.WISDOM_PROFILE?.spriteUrls;
 
 
-    if (
-      sprites?.front
-    ) {
+    if (sprites?.front) {
 
       this.load.image(
-        "map03_front",
+        "map04_front",
         sprites.front
       );
 
     }
 
 
-    if (
-      sprites?.back
-    ) {
+    if (sprites?.back) {
 
       this.load.image(
-        "map03_back",
+        "map04_back",
         sprites.back
       );
 
     }
 
 
-    if (
-      sprites?.left
-    ) {
+    if (sprites?.left) {
 
       this.load.image(
-        "map03_left",
+        "map04_left",
         sprites.left
       );
 
     }
 
 
-    if (
-      sprites?.right
-    ) {
+    if (sprites?.right) {
 
       this.load.image(
-        "map03_right",
+        "map04_right",
         sprites.right
       );
 
@@ -137,7 +129,7 @@ export default class Map03Scene extends Phaser.Scene {
     this.add.image(
       384,
       288,
-      "map03_background"
+      "map04_background"
     )
       .setDisplaySize(
         768,
@@ -188,7 +180,7 @@ export default class Map03Scene extends Phaser.Scene {
         ) {
 
           console.error(
-            "MAP03 intro error:",
+            "MAP04 intro error:",
             error
           );
 
@@ -210,11 +202,11 @@ export default class Map03Scene extends Phaser.Scene {
 
     const validPhases = [
 
-      "sign",
-      "well",
-      "house",
-      "shrine",
-      "barn",
+      "fountain",
+      "observatory",
+      "library",
+      "time_circle",
+      "crystal",
       "exit"
 
     ];
@@ -229,7 +221,7 @@ export default class Map03Scene extends Phaser.Scene {
     ) {
 
       this.state.phase =
-        "sign";
+        "fountain";
 
     }
 
@@ -415,7 +407,7 @@ export default class Map03Scene extends Phaser.Scene {
 
 
     console.warn(
-      "MAP03 input lock 자동 복구"
+      "MAP04 input lock 자동 복구"
     );
 
 
@@ -430,16 +422,16 @@ export default class Map03Scene extends Phaser.Scene {
 
       {
         id:
-          "sign",
+          "fountain",
 
         label:
-          "낡은 표지판",
+          "푸른 수정 분수",
 
         x:
-          292,
+          385,
 
         y:
-          270,
+          310,
 
         radius:
           80
@@ -448,73 +440,73 @@ export default class Map03Scene extends Phaser.Scene {
 
       {
         id:
-          "well",
+          "observatory",
 
         label:
-          "오래된 우물",
-
-        x:
-          382,
-
-        y:
-          315,
-
-        radius:
-          85
-      },
-
-
-      {
-        id:
-          "house",
-
-        label:
-          "작은 집",
-
-        x:
-          557,
-
-        y:
-          225,
-
-        radius:
-          85
-      },
-
-
-      {
-        id:
-          "shrine",
-
-        label:
-          "안개 속 제단",
+          "고대 관측소",
 
         x:
           145,
 
         y:
-          105,
+          160,
 
         radius:
-          90
+          85
       },
 
 
       {
         id:
-          "barn",
+          "library",
 
         label:
-          "낡은 헛간",
+          "푸른 서고",
+
+        x:
+          650,
+
+        y:
+          160,
+
+        radius:
+          85
+      },
+
+
+      {
+        id:
+          "time_circle",
+
+        label:
+          "시간 마법진",
+
+        x:
+          385,
+
+        y:
+          465,
+
+        radius:
+          88
+      },
+
+
+      {
+        id:
+          "crystal",
+
+        label:
+          "시간 수정",
 
         x:
           625,
 
         y:
-          390,
+          490,
 
         radius:
-          90
+          88
       },
 
 
@@ -523,13 +515,13 @@ export default class Map03Scene extends Phaser.Scene {
           "exit",
 
         label:
-          "마을 출구",
+          "고대 사원 문",
 
         x:
           385,
 
         y:
-          105,
+          140,
 
         radius:
           95
@@ -544,15 +536,15 @@ export default class Map03Scene extends Phaser.Scene {
 
     this.guide =
       this.add.circle(
-        292,
-        270,
+        385,
+        310,
         20,
-        0x9de7c0,
+        0x6adfff,
         0.2
       )
         .setStrokeStyle(
           4,
-          0xe5fff0,
+          0xdcfbff,
           1
         )
         .setDepth(
@@ -566,8 +558,11 @@ export default class Map03Scene extends Phaser.Scene {
         this.guide,
 
       alpha: {
-        from: 0.25,
-        to: 1
+        from:
+          0.25,
+
+        to:
+          1
       },
 
       duration:
@@ -602,11 +597,16 @@ export default class Map03Scene extends Phaser.Scene {
             "#ffffff",
 
           backgroundColor:
-            "#12251ddd",
+            "#102a2edd",
 
           padding: {
-            x: 10,
-            y: 6
+
+            x:
+              10,
+
+            y:
+              6
+
           }
 
         }
@@ -631,23 +631,23 @@ export default class Map03Scene extends Phaser.Scene {
 
     const points = {
 
-      sign:
-        [292, 270],
+      fountain:
+        [385, 310],
 
-      well:
-        [382, 315],
+      observatory:
+        [145, 160],
 
-      house:
-        [557, 225],
+      library:
+        [650, 160],
 
-      shrine:
-        [145, 105],
+      time_circle:
+        [385, 465],
 
-      barn:
-        [625, 390],
+      crystal:
+        [625, 490],
 
       exit:
-        [385, 105]
+        [385, 140]
 
     };
 
@@ -689,7 +689,7 @@ export default class Map03Scene extends Phaser.Scene {
 
     if (
       this.textures.exists(
-        "map03_front"
+        "map04_front"
       )
     ) {
 
@@ -697,7 +697,7 @@ export default class Map03Scene extends Phaser.Scene {
         this.physics.add.image(
           384,
           525,
-          "map03_front"
+          "map04_front"
         );
 
 
@@ -990,21 +990,25 @@ export default class Map03Scene extends Phaser.Scene {
   ) {
 
     if (
-      Math.abs(vx)
+      Math.abs(
+        vx
+      )
       >
-      Math.abs(vy)
+      Math.abs(
+        vy
+      )
     ) {
 
       if (
         vx < 0
         &&
         this.textures.exists(
-          "map03_left"
+          "map04_left"
         )
       ) {
 
         this.player.setTexture(
-          "map03_left"
+          "map04_left"
         );
 
       }
@@ -1013,12 +1017,12 @@ export default class Map03Scene extends Phaser.Scene {
         vx > 0
         &&
         this.textures.exists(
-          "map03_right"
+          "map04_right"
         )
       ) {
 
         this.player.setTexture(
-          "map03_right"
+          "map04_right"
         );
 
       }
@@ -1033,12 +1037,12 @@ export default class Map03Scene extends Phaser.Scene {
       vy < 0
       &&
       this.textures.exists(
-        "map03_back"
+        "map04_back"
       )
     ) {
 
       this.player.setTexture(
-        "map03_back"
+        "map04_back"
       );
 
     }
@@ -1047,12 +1051,12 @@ export default class Map03Scene extends Phaser.Scene {
       vy > 0
       &&
       this.textures.exists(
-        "map03_front"
+        "map04_front"
       )
     ) {
 
       this.player.setTexture(
-        "map03_front"
+        "map04_front"
       );
 
     }
@@ -1176,37 +1180,37 @@ export default class Map03Scene extends Phaser.Scene {
         object.id
       ) {
 
-        case "sign":
+        case "fountain":
 
-          await this.handleSign();
-
-          break;
-
-
-        case "well":
-
-          await this.handleWell();
+          await this.handleFountain();
 
           break;
 
 
-        case "house":
+        case "observatory":
 
-          await this.handleHouse();
-
-          break;
-
-
-        case "shrine":
-
-          await this.handleShrine();
+          await this.handleObservatory();
 
           break;
 
 
-        case "barn":
+        case "library":
 
-          await this.handleBarn();
+          await this.handleLibrary();
+
+          break;
+
+
+        case "time_circle":
+
+          await this.handleTimeCircle();
+
+          break;
+
+
+        case "crystal":
+
+          await this.handleCrystal();
 
           break;
 
@@ -1226,7 +1230,7 @@ export default class Map03Scene extends Phaser.Scene {
     ) {
 
       console.error(
-        "MAP03 interaction error:",
+        "MAP04 interaction error:",
         error
       );
 
@@ -1247,15 +1251,15 @@ export default class Map03Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "도서관을 빠져나오자 짙은 안개가 낀 작은 마을이 나타났다.",
+      "안개 낀 마을을 지나자 오래된 고대 유적이 나타났다.",
 
-      "나: 앞이 잘 안 보여.",
+      "거대한 사원과 수정 장치들이 멈춰 있었다.",
 
-      "루미: 세 번째 언어 수정의 힘 때문에 마을 전체가 안개에 갇힌 것 같아.",
+      "나: 이곳은 시간이 멈춘 것 같아.",
 
-      "루미: 마을 곳곳의 단서를 따라가면 안개를 걷어낼 수 있을 거야.",
+      "루미: 맞아. 네 번째 언어 수정 때문에 이 유적의 시간이 뒤틀렸어.",
 
-      "루미: 먼저 앞쪽의 낡은 표지판을 조사해 보자!"
+      "루미: 먼저 중앙의 푸른 수정 분수를 조사하자!"
 
     ]);
 
@@ -1265,7 +1269,7 @@ export default class Map03Scene extends Phaser.Scene {
 
 
     this.state.phase =
-      "sign";
+      "fountain";
 
 
     this.save();
@@ -1273,11 +1277,11 @@ export default class Map03Scene extends Phaser.Scene {
   }
 
 
-  async handleSign() {
+  async handleFountain() {
 
     if (
       this.state.phase !==
-      "sign"
+      "fountain"
     ) {
 
       await this.showHint();
@@ -1299,7 +1303,7 @@ export default class Map03Scene extends Phaser.Scene {
     ) {
 
       await GameUI.say(
-        "루미: MAP03 단어 데이터가 부족해."
+        "루미: MAP04 단어 데이터가 부족해."
       );
 
 
@@ -1324,12 +1328,12 @@ export default class Map03Scene extends Phaser.Scene {
     ) {
 
       this.markWrong(
-        "sign"
+        "fountain"
       );
 
 
       await GameUI.say(
-        "루미: 표지판의 글자가 흐릿해. 단어 뜻을 다시 생각해 보자!"
+        "루미: 수정 분수가 반응하지 않아. 단어 뜻을 다시 생각해 보자!"
       );
 
 
@@ -1344,7 +1348,7 @@ export default class Map03Scene extends Phaser.Scene {
 
 
     this.markCorrect(
-      "sign"
+      "fountain"
     );
 
 
@@ -1353,7 +1357,7 @@ export default class Map03Scene extends Phaser.Scene {
 
 
     this.state.phase =
-      "well";
+      "observatory";
 
 
     this.save();
@@ -1361,22 +1365,22 @@ export default class Map03Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "표지판의 글자가 선명하게 빛났다.",
+      "푸른 수정 분수에서 빛이 솟아올랐다.",
 
       "루미: 첫 번째 말의 조각이야!",
 
-      "루미: 다음은 가운데의 오래된 우물을 조사해 보자."
+      "루미: 왼쪽 위의 고대 관측소가 움직이기 시작했어. 그곳으로 가자!"
 
     ]);
 
   }
 
 
-  async handleWell() {
+  async handleObservatory() {
 
     if (
       this.state.phase !==
-      "well"
+      "observatory"
     ) {
 
       await this.showHint();
@@ -1398,7 +1402,7 @@ export default class Map03Scene extends Phaser.Scene {
     ) {
 
       await GameUI.say(
-        "루미: MAP03 단어 데이터가 부족해."
+        "루미: MAP04 단어 데이터가 부족해."
       );
 
 
@@ -1423,12 +1427,12 @@ export default class Map03Scene extends Phaser.Scene {
     ) {
 
       this.markWrong(
-        "well"
+        "observatory"
       );
 
 
       await GameUI.say(
-        "루미: 우물 속에서 아무 반응이 없어. 영어 단어를 다시 골라 보자!"
+        "루미: 관측 장치가 멈췄어. 영어 단어를 다시 골라 보자!"
       );
 
 
@@ -1443,12 +1447,12 @@ export default class Map03Scene extends Phaser.Scene {
 
 
     this.markCorrect(
-      "well"
+      "observatory"
     );
 
 
     this.state.phase =
-      "house";
+      "library";
 
 
     this.save();
@@ -1456,22 +1460,22 @@ export default class Map03Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "우물 속에서 푸른 빛이 올라왔다.",
+      "고대 관측 장치가 천천히 회전하기 시작했다.",
 
-      "나: 오른쪽의 작은 집에서도 빛이 보여.",
+      "나: 오른쪽 위 서고에도 빛이 들어왔어.",
 
-      "루미: 그 집을 조사해 보자!"
+      "루미: 좋아. 이제 푸른 서고로 가자!"
 
     ]);
 
   }
 
 
-  async handleHouse() {
+  async handleLibrary() {
 
     if (
       this.state.phase !==
-      "house"
+      "library"
     ) {
 
       await this.showHint();
@@ -1493,7 +1497,7 @@ export default class Map03Scene extends Phaser.Scene {
     ) {
 
       await GameUI.say(
-        "루미: MAP03 영어 표현 데이터가 부족해."
+        "루미: MAP04 영어 표현 데이터가 부족해."
       );
 
 
@@ -1518,12 +1522,12 @@ export default class Map03Scene extends Phaser.Scene {
     ) {
 
       this.markWrong(
-        "house"
+        "library"
       );
 
 
       await GameUI.say(
-        "루미: 집 안의 문장이 아직 흐릿해. 표현의 뜻을 다시 생각해 보자!"
+        "루미: 고대 기록이 아직 읽히지 않아. 영어 표현의 뜻을 다시 생각해 보자!"
       );
 
 
@@ -1538,7 +1542,7 @@ export default class Map03Scene extends Phaser.Scene {
 
 
     this.markCorrect(
-      "house"
+      "library"
     );
 
 
@@ -1547,7 +1551,7 @@ export default class Map03Scene extends Phaser.Scene {
 
 
     this.state.phase =
-      "shrine";
+      "time_circle";
 
 
     this.save();
@@ -1555,22 +1559,22 @@ export default class Map03Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "작은 집의 창문에서 따뜻한 빛이 퍼졌다.",
+      "서고의 오래된 기록들이 푸른빛으로 떠올랐다.",
 
       "루미: 두 번째 말의 조각이야!",
 
-      "루미: 이제 왼쪽 위 안개 속 제단으로 가자!"
+      "루미: 이제 아래쪽 중앙의 시간 마법진으로 가자!"
 
     ]);
 
   }
 
 
-  async handleShrine() {
+  async handleTimeCircle() {
 
     if (
       this.state.phase !==
-      "shrine"
+      "time_circle"
     ) {
 
       await this.showHint();
@@ -1592,7 +1596,7 @@ export default class Map03Scene extends Phaser.Scene {
     ) {
 
       await GameUI.say(
-        "루미: MAP03 문장 데이터가 부족해."
+        "루미: MAP04 문장 데이터가 부족해."
       );
 
 
@@ -1620,12 +1624,12 @@ export default class Map03Scene extends Phaser.Scene {
     ) {
 
       this.markWrong(
-        "shrine"
+        "time_circle"
       );
 
 
       await GameUI.say(
-        "루미: 제단의 빛이 꺼졌어. 문장 순서를 다시 맞춰 보자!"
+        "루미: 시간 마법진이 다시 멈췄어. 문장 순서를 다시 맞춰 보자!"
       );
 
 
@@ -1640,12 +1644,12 @@ export default class Map03Scene extends Phaser.Scene {
 
 
     this.markCorrect(
-      "shrine"
+      "time_circle"
     );
 
 
     this.state.phase =
-      "barn";
+      "crystal";
 
 
     this.save();
@@ -1653,22 +1657,24 @@ export default class Map03Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "제단에서 밝은 빛이 퍼지며 안개가 조금 걷혔다.",
+      "시간 마법진의 룬이 순서대로 빛났다.",
 
-      "나: 오른쪽 아래 헛간이 보이기 시작했어.",
+      "유적 전체의 시간이 다시 흐르기 시작했다.",
 
-      "루미: 마지막 단서가 그곳에 있을 거야!"
+      "나: 오른쪽 아래 수정 동굴도 빛나고 있어.",
+
+      "루미: 마지막 시간 수정으로 가자!"
 
     ]);
 
   }
 
 
-  async handleBarn() {
+  async handleCrystal() {
 
     if (
       this.state.phase !==
-      "barn"
+      "crystal"
     ) {
 
       await this.showHint();
@@ -1691,7 +1697,7 @@ export default class Map03Scene extends Phaser.Scene {
     ) {
 
       await GameUI.say(
-        "루미: 마지막 문제를 만들 학습 데이터가 부족해."
+        "루미: 마지막 문제를 만들 MAP04 학습 데이터가 부족해."
       );
 
 
@@ -1716,12 +1722,12 @@ export default class Map03Scene extends Phaser.Scene {
     ) {
 
       this.markWrong(
-        "barn"
+        "crystal"
       );
 
 
       await GameUI.say(
-        "루미: 안개가 다시 짙어졌어. 마지막 문제를 다시 풀어 보자!"
+        "루미: 수정의 빛이 약해졌어. 마지막 문제를 다시 풀어 보자!"
       );
 
 
@@ -1731,7 +1737,7 @@ export default class Map03Scene extends Phaser.Scene {
 
 
     this.markCorrect(
-      "barn"
+      "crystal"
     );
 
 
@@ -1748,13 +1754,15 @@ export default class Map03Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "헛간 안에서 마지막 말의 조각이 나타났다.",
+      "시간 수정이 강렬한 푸른빛을 내뿜었다.",
 
-      "마을을 덮고 있던 안개가 빠르게 사라졌다.",
+      "세 번째 말의 조각이 나타났다.",
 
       "나: 세 조각을 모두 찾았어!",
 
-      "루미: 좋아! 이제 위쪽 중앙의 마을 출구로 가자!"
+      "루미: 좋아! 가운데 위쪽의 큰 고대 사원 문이 열렸어.",
+
+      "루미: 고대 사원 문으로 가자!"
 
     ]);
 
@@ -1790,23 +1798,23 @@ export default class Map03Scene extends Phaser.Scene {
 
     const hints = {
 
-      sign:
-        "루미: 앞쪽의 낡은 표지판을 조사해 봐!",
+      fountain:
+        "루미: 중앙의 푸른 수정 분수를 조사해 봐!",
 
-      well:
-        "루미: 가운데의 오래된 우물로 가자!",
+      observatory:
+        "루미: 왼쪽 위의 고대 관측소로 가자!",
 
-      house:
-        "루미: 오른쪽 위쪽의 작은 집을 조사해 보자!",
+      library:
+        "루미: 오른쪽 위의 푸른 서고로 가자!",
 
-      shrine:
-        "루미: 왼쪽 위의 안개 속 제단으로 가자!",
+      time_circle:
+        "루미: 아래쪽 중앙의 시간 마법진을 조사해 봐!",
 
-      barn:
-        "루미: 오른쪽 아래의 낡은 헛간을 조사해 봐!",
+      crystal:
+        "루미: 오른쪽 아래의 빛나는 시간 수정으로 가자!",
 
       exit:
-        "루미: 위쪽 중앙의 마을 출구로 가자!"
+        "루미: 가운데 위쪽의 큰 고대 사원 문으로 가자!"
 
     };
 
@@ -1816,7 +1824,7 @@ export default class Map03Scene extends Phaser.Scene {
         this.state.phase
       ]
       ||
-      "루미: 안개 사이로 빛나는 곳을 따라가자!"
+      "루미: 유적에서 빛나는 장치를 따라가자!"
     );
 
   }
@@ -2012,11 +2020,11 @@ export default class Map03Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "안개가 완전히 사라지고 마을에 다시 햇빛이 들어왔다.",
+      "유적 전체를 뒤덮고 있던 시간의 왜곡이 사라졌다.",
 
-      "세 번째 언어 수정이 원래의 빛을 되찾았다.",
+      "네 번째 언어 수정이 원래의 빛을 되찾았다.",
 
-      "루미: 좋아! 세 번째 미로도 해결했어!",
+      "루미: 좋아! 네 번째 미로도 해결했어!",
 
       nextMap
         ? `루미: 다음 목적지는 ${nextMap}이야!`
@@ -2131,23 +2139,23 @@ export default class Map03Scene extends Phaser.Scene {
 
     const objectives = {
 
-      sign:
-        "낡은 표지판을 조사하자.",
+      fountain:
+        "중앙의 푸른 수정 분수를 활성화하자.",
 
-      well:
-        "오래된 우물을 조사하자.",
+      observatory:
+        "왼쪽 위 고대 관측소를 복구하자.",
 
-      house:
-        "오른쪽의 작은 집을 조사하자.",
+      library:
+        "오른쪽 위 푸른 서고의 기록을 복원하자.",
 
-      shrine:
-        "안개 속 제단을 활성화하자.",
+      time_circle:
+        "아래쪽 중앙의 시간 마법진을 복구하자.",
 
-      barn:
-        "낡은 헛간에서 마지막 단서를 찾자.",
+      crystal:
+        "오른쪽 아래의 시간 수정을 복원하자.",
 
       exit:
-        "위쪽 중앙의 마을 출구로 가자."
+        "가운데 위쪽의 큰 고대 사원 문으로 가자."
 
     };
 
@@ -2157,7 +2165,7 @@ export default class Map03Scene extends Phaser.Scene {
         this.state.phase
       ]
       ||
-      "안개 낀 숲속 마을의 언어 수정을 복원하자.";
+      "시간이 뒤틀린 고대 유적을 복원하자.";
 
   }
 
