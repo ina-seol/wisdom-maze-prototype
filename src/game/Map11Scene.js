@@ -201,6 +201,8 @@ export default class Map11Scene extends Phaser.Scene {
       !validPhases.includes(
         this.state.phase
       )
+      &&
+      !this.state.completed
     ) {
 
       this.state.phase =
@@ -408,7 +410,7 @@ export default class Map11Scene extends Phaser.Scene {
           "center_rune",
 
         label:
-          "얼음 문양",
+          "중앙 얼음 룬",
 
         x:
           385,
@@ -426,7 +428,7 @@ export default class Map11Scene extends Phaser.Scene {
           "moon_tower",
 
         label:
-          "달 수정탑",
+          "달의 탑",
 
         x:
           105,
@@ -444,7 +446,7 @@ export default class Map11Scene extends Phaser.Scene {
           "sun_tower",
 
         label:
-          "태양 수정탑",
+          "태양의 탑",
 
         x:
           665,
@@ -462,7 +464,7 @@ export default class Map11Scene extends Phaser.Scene {
           "left_bridge",
 
         label:
-          "금이 간 얼음 다리",
+          "왼쪽 얼음 다리",
 
         x:
           150,
@@ -480,7 +482,7 @@ export default class Map11Scene extends Phaser.Scene {
           "right_bridge",
 
         label:
-          "무너지는 얼음 다리",
+          "오른쪽 얼음 다리",
 
         x:
           620,
@@ -516,7 +518,7 @@ export default class Map11Scene extends Phaser.Scene {
           "exit",
 
         label:
-          "얼음 성 봉인문",
+          "최상층 봉인문",
 
         x:
           385,
@@ -540,12 +542,12 @@ export default class Map11Scene extends Phaser.Scene {
         385,
         305,
         21,
-        0x6bdcff,
+        0x8eeaff,
         0.18
       )
         .setStrokeStyle(
           4,
-          0xd7f8ff,
+          0xe4fbff,
           1
         )
         .setDepth(
@@ -559,8 +561,11 @@ export default class Map11Scene extends Phaser.Scene {
         this.guide,
 
       alpha: {
-        from: 0.25,
-        to: 1
+        from:
+          0.25,
+
+        to:
+          1
       },
 
       duration:
@@ -595,11 +600,14 @@ export default class Map11Scene extends Phaser.Scene {
             "#ffffff",
 
           backgroundColor:
-            "#11243ddd",
+            "#102939dd",
 
           padding: {
-            x: 10,
-            y: 6
+            x:
+              10,
+
+            y:
+              6
           }
 
         }
@@ -783,269 +791,71 @@ export default class Map11Scene extends Phaser.Scene {
   }
 
 
-update() {
+  update() {
 
-  if (
-    !this.player?.body
-  ) {
+    if (
+      !this.player?.body
+    ) {
 
-    return;
+      return;
 
-  }
+    }
 
-
-  /*
-    MAP02 이후처럼 recoverStuckInput()이 있는 Scene에서는
-    자동 복구도 같이 실행.
-    없는 Scene에서는 그냥 넘어감.
-  */
-
-  if (
-    typeof this.recoverStuckInput ===
-    "function"
-  ) {
 
     this.recoverStuckInput();
 
-  }
+
+    const touch =
+      window.WisdomTouchInput
+      ||
+      {
+        up:
+          false,
+
+        down:
+          false,
+
+        left:
+          false,
+
+        right:
+          false,
+
+        interactPressed:
+          false
+      };
 
 
-  const touch =
-    window.WisdomTouchInput
-    ||
-    {
-      up: false,
-      down: false,
-      left: false,
-      right: false,
-      interactPressed: false
-    };
+    if (
+      this.inputLocked
+    ) {
 
-
-  /*
-    대화/퀴즈 중에는 이동 금지.
-    이때 눌린 조사 입력도 버린다.
-  */
-
-  if (
-    this.inputLocked
-  ) {
-
-    this.player.body.setVelocity(
-      0,
-      0
-    );
-
-
-    this.prompt
-      ?.setVisible(
-        false
+      this.player.body.setVelocity(
+        0,
+        0
       );
 
 
-    if (
-      window.WisdomTouchInput
-    ) {
-
-      window.WisdomTouchInput.interactPressed =
-        false;
-
-    }
+      this.prompt
+        ?.setVisible(
+          false
+        );
 
 
-    return;
+      if (
+        window.WisdomTouchInput
+      ) {
 
-  }
+        window.WisdomTouchInput.interactPressed =
+          false;
 
-
-  /*
-    MAP12 보스전에서는 이동하지 않음.
-    다른 맵에서는 phase가 boss가 아니므로 영향 없음.
-  */
-
-  if (
-    this.state?.phase ===
-    "boss"
-  ) {
-
-    this.player.body.setVelocity(
-      0,
-      0
-    );
+      }
 
 
-    if (
-      window.WisdomTouchInput
-    ) {
-
-      window.WisdomTouchInput.interactPressed =
-        false;
+      return;
 
     }
 
-
-    return;
-
-  }
-
-
-  const speed =
-    145;
-
-
-  let vx =
-    0;
-
-
-  let vy =
-    0;
-
-
-  /* =========================
-     LEFT / RIGHT
-  ========================= */
-
-  if (
-    this.cursors.left.isDown
-    ||
-    this.keys.left.isDown
-    ||
-    touch.left
-  ) {
-
-    vx =
-      -speed;
-
-  }
-
-  else if (
-    this.cursors.right.isDown
-    ||
-    this.keys.right.isDown
-    ||
-    touch.right
-  ) {
-
-    vx =
-      speed;
-
-  }
-
-
-  /* =========================
-     UP / DOWN
-  ========================= */
-
-  if (
-    this.cursors.up.isDown
-    ||
-    this.keys.up.isDown
-    ||
-    touch.up
-  ) {
-
-    vy =
-      -speed;
-
-  }
-
-  else if (
-    this.cursors.down.isDown
-    ||
-    this.keys.down.isDown
-    ||
-    touch.down
-  ) {
-
-    vy =
-      speed;
-
-  }
-
-
-  /*
-    대각선 이동 속도 보정
-  */
-
-  if (
-    vx !== 0
-    &&
-    vy !== 0
-  ) {
-
-    vx *=
-      0.707;
-
-
-    vy *=
-      0.707;
-
-  }
-
-
-  this.player.body.setVelocity(
-    vx,
-    vy
-  );
-
-
-  this.updateDirection(
-    vx,
-    vy
-  );
-
-
-  this.updatePrompt();
-
-
-  /* =========================
-     INTERACT
-  ========================= */
-
-  const keyboardInteract =
-    Phaser.Input.Keyboard.JustDown(
-      this.keys.interact
-    )
-    ||
-    Phaser.Input.Keyboard.JustDown(
-      this.keys.enter
-    );
-
-
-  const touchInteract =
-    Boolean(
-      touch.interactPressed
-    );
-
-
-  /*
-    터치 조사 버튼은 1회 입력이므로
-    읽은 직후 반드시 false 처리
-  */
-
-  if (
-    touchInteract
-    &&
-    window.WisdomTouchInput
-  ) {
-
-    window.WisdomTouchInput.interactPressed =
-      false;
-
-  }
-
-
-  if (
-    keyboardInteract
-    ||
-    touchInteract
-  ) {
-
-    this.interact();
-
-  }
-
-}
 
     const speed =
       145;
@@ -1063,6 +873,8 @@ update() {
       this.cursors.left.isDown
       ||
       this.keys.left.isDown
+      ||
+      touch.left
     ) {
 
       vx =
@@ -1074,6 +886,8 @@ update() {
       this.cursors.right.isDown
       ||
       this.keys.right.isDown
+      ||
+      touch.right
     ) {
 
       vx =
@@ -1086,6 +900,8 @@ update() {
       this.cursors.up.isDown
       ||
       this.keys.up.isDown
+      ||
+      touch.up
     ) {
 
       vy =
@@ -1097,6 +913,8 @@ update() {
       this.cursors.down.isDown
       ||
       this.keys.down.isDown
+      ||
+      touch.down
     ) {
 
       vy =
@@ -1136,14 +954,38 @@ update() {
     this.updatePrompt();
 
 
-    if (
+    const keyboardInteract =
       Phaser.Input.Keyboard.JustDown(
         this.keys.interact
       )
       ||
       Phaser.Input.Keyboard.JustDown(
         this.keys.enter
-      )
+      );
+
+
+    const touchInteract =
+      Boolean(
+        touch.interactPressed
+      );
+
+
+    if (
+      touchInteract
+      &&
+      window.WisdomTouchInput
+    ) {
+
+      window.WisdomTouchInput.interactPressed =
+        false;
+
+    }
+
+
+    if (
+      keyboardInteract
+      ||
+      touchInteract
     ) {
 
       this.interact();
@@ -1159,9 +1001,13 @@ update() {
   ) {
 
     if (
-      Math.abs(vx)
+      Math.abs(
+        vx
+      )
       >
-      Math.abs(vy)
+      Math.abs(
+        vy
+      )
     ) {
 
       if (
@@ -1421,15 +1267,15 @@ update() {
 
     await GameUI.say([
 
-      "얼음 성 곳곳에서 거대한 균열 소리가 울렸다.",
+      "거대한 얼음 성 안에는 차가운 바람만 불고 있었다.",
 
-      "나: 성이 무너지고 있어!",
+      "나: 성 전체가 얼어붙었어.",
 
-      "루미: 열한 번째 언어 수정의 힘이 약해지면서 얼음 마법이 녹고 있어.",
+      "루미: 열한 번째 언어 수정이 얼음 성의 마력을 폭주시킨 것 같아.",
 
-      "루미: 수정탑과 다리, 왕좌의 봉인을 빠르게 복구해야 해.",
+      "루미: 달과 태양의 힘을 다시 연결해야 왕좌의 봉인을 풀 수 있어.",
 
-      "루미: 먼저 중앙의 얼음 문양을 조사하자!"
+      "루미: 먼저 중앙의 얼음 룬을 조사하자!"
 
     ]);
 
@@ -1446,10 +1292,6 @@ update() {
 
   }
 
-
-  /* =====================================================
-     1. CENTER RUNE
-  ====================================================== */
 
   async handleCenterRune() {
 
@@ -1472,7 +1314,9 @@ update() {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
         "루미: MAP11 단어 데이터가 부족해."
@@ -1495,7 +1339,9 @@ update() {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "center_rune"
@@ -1503,7 +1349,7 @@ update() {
 
 
       await GameUI.say(
-        "루미: 얼음 문양이 반응하지 않아. 단어 뜻을 다시 생각해 보자!"
+        "루미: 얼음 룬이 반응하지 않아. 단어 뜻을 다시 생각해 보자!"
       );
 
 
@@ -1522,6 +1368,10 @@ update() {
     );
 
 
+    this.state.shards =
+      1;
+
+
     this.state.phase =
       "moon_tower";
 
@@ -1531,18 +1381,18 @@ update() {
 
     await GameUI.say([
 
-      "중앙 얼음 문양에 푸른 빛이 퍼졌다.",
+      "중앙 얼음 룬에서 푸른빛이 퍼졌다.",
 
-      "루미: 좋아! 먼저 왼쪽 위 달 수정탑을 복구하자!"
+      "루미: 첫 번째 말의 조각이야!",
+
+      "나: 왼쪽 위 탑에 달빛이 들어왔어.",
+
+      "루미: 달의 탑으로 가자!"
 
     ]);
 
   }
 
-
-  /* =====================================================
-     2. MOON TOWER
-  ====================================================== */
 
   async handleMoonTower() {
 
@@ -1565,7 +1415,9 @@ update() {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
         "루미: MAP11 단어 데이터가 부족해."
@@ -1588,7 +1440,9 @@ update() {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "moon_tower"
@@ -1596,7 +1450,7 @@ update() {
 
 
       await GameUI.say(
-        "루미: 달 수정이 아직 흐려. 영어 단어를 다시 골라 보자!"
+        "루미: 달의 룬이 흐려졌어. 영어 단어를 다시 골라 보자!"
       );
 
 
@@ -1615,10 +1469,6 @@ update() {
     );
 
 
-    this.state.shards =
-      1;
-
-
     this.state.phase =
       "sun_tower";
 
@@ -1628,20 +1478,16 @@ update() {
 
     await GameUI.say([
 
-      "달 수정탑의 빛이 되살아났다.",
+      "달의 탑이 푸른빛으로 빛났다.",
 
-      "루미: 첫 번째 말의 조각이야!",
+      "나: 반대편 태양의 탑도 반응하고 있어.",
 
-      "루미: 이제 오른쪽 위 태양 수정탑으로 가자!"
+      "루미: 오른쪽 위 태양의 탑으로 가자!"
 
     ]);
 
   }
 
-
-  /* =====================================================
-     3. SUN TOWER
-  ====================================================== */
 
   async handleSunTower() {
 
@@ -1664,7 +1510,9 @@ update() {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
         "루미: MAP11 영어 표현 데이터가 부족해."
@@ -1687,7 +1535,9 @@ update() {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "sun_tower"
@@ -1695,7 +1545,7 @@ update() {
 
 
       await GameUI.say(
-        "루미: 태양 수정이 아직 깨져 있어. 영어 표현의 뜻을 다시 생각해 보자!"
+        "루미: 태양의 룬이 꺼졌어. 영어 표현의 뜻을 다시 생각해 보자!"
       );
 
 
@@ -1714,6 +1564,10 @@ update() {
     );
 
 
+    this.state.shards =
+      2;
+
+
     this.state.phase =
       "left_bridge";
 
@@ -1723,20 +1577,18 @@ update() {
 
     await GameUI.say([
 
-      "태양 수정탑의 얼음 결정이 다시 굳기 시작했다.",
+      "태양의 탑에서 황금빛이 퍼졌다.",
 
-      "나: 왼쪽 아래의 갈라진 다리도 빛나고 있어.",
+      "루미: 두 번째 말의 조각이야!",
 
-      "루미: 금이 간 얼음 다리로 가자!"
+      "나: 왼쪽 얼음 다리에 룬이 나타났어.",
+
+      "루미: 왼쪽 다리부터 복구하자!"
 
     ]);
 
   }
 
-
-  /* =====================================================
-     4. LEFT BRIDGE
-  ====================================================== */
 
   async handleLeftBridge() {
 
@@ -1759,7 +1611,9 @@ update() {
       );
 
 
-    if (!expression) {
+    if (
+      !expression
+    ) {
 
       await GameUI.say(
         "루미: 문장 배열에 사용할 MAP11 영어 표현이 부족해."
@@ -1785,7 +1639,9 @@ update() {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "left_bridge"
@@ -1793,7 +1649,7 @@ update() {
 
 
       await GameUI.say(
-        "루미: 얼음 다리가 아직 갈라져 있어. 문장 순서를 다시 확인해 보자!"
+        "루미: 얼음 다리가 다시 갈라졌어. 문장 순서를 다시 맞춰 보자!"
       );
 
 
@@ -1812,10 +1668,6 @@ update() {
     );
 
 
-    this.state.shards =
-      2;
-
-
     this.state.phase =
       "right_bridge";
 
@@ -1825,20 +1677,16 @@ update() {
 
     await GameUI.say([
 
-      "금이 간 얼음 다리가 다시 단단하게 얼어붙었다.",
+      "왼쪽 얼음 다리가 단단하게 이어졌다.",
 
-      "루미: 두 번째 말의 조각을 찾았어!",
+      "나: 오른쪽 다리에도 문장이 나타났어.",
 
-      "루미: 이번엔 오른쪽의 무너지는 얼음 다리를 복구하자!"
+      "루미: 이번엔 오른쪽 얼음 다리야!"
 
     ]);
 
   }
 
-
-  /* =====================================================
-     5. RIGHT BRIDGE
-  ====================================================== */
 
   async handleRightBridge() {
 
@@ -1861,7 +1709,9 @@ update() {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
         "루미: MAP11 영어 표현 데이터가 부족해."
@@ -1884,7 +1734,9 @@ update() {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "right_bridge"
@@ -1892,7 +1744,7 @@ update() {
 
 
       await GameUI.say(
-        "루미: 다리가 계속 녹고 있어. 영어 표현을 다시 골라 보자!"
+        "루미: 오른쪽 다리의 마력이 부족해. 영어 표현을 다시 골라 보자!"
       );
 
 
@@ -1920,20 +1772,16 @@ update() {
 
     await GameUI.say([
 
-      "오른쪽 얼음 다리가 다시 연결됐다.",
+      "오른쪽 얼음 다리도 완전히 복구되었다.",
 
-      "나: 중앙 위쪽 왕좌에서 강한 빛이 나오고 있어!",
+      "나: 왕좌의 봉인이 깨지고 있어!",
 
-      "루미: 얼음 왕좌로 가자!"
+      "루미: 좋아. 이제 중앙 위쪽 얼음 왕좌로 가자!"
 
     ]);
 
   }
 
-
-  /* =====================================================
-     6. THRONE
-  ====================================================== */
 
   async handleThrone() {
 
@@ -1957,7 +1805,9 @@ update() {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
         "루미: 마지막 문제를 만들 MAP11 학습 데이터가 부족해."
@@ -1980,7 +1830,9 @@ update() {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "throne"
@@ -1988,7 +1840,7 @@ update() {
 
 
       await GameUI.say(
-        "루미: 왕좌의 봉인이 아직 풀리지 않았어. 다시 해 보자!"
+        "루미: 왕좌의 봉인이 아직 남아 있어. 다시 풀어 보자!"
       );
 
 
@@ -2015,24 +1867,20 @@ update() {
 
     await GameUI.say([
 
-      "얼음 왕좌가 눈부신 푸른빛으로 빛났다.",
+      "얼음 왕좌에서 세 번째 말의 조각이 나타났다.",
 
-      "세 번째 말의 조각이 왕좌 위로 떠올랐다.",
+      "성 전체를 뒤덮었던 얼음이 천천히 녹기 시작했다.",
 
-      "나: 세 조각을 모두 모았어!",
+      "나: 마지막 문이 열렸어!",
 
-      "루미: 좋아! 위쪽 중앙 봉인문이 열렸어.",
+      "루미: 위쪽 중앙 최상층 봉인문으로 가자!",
 
-      "루미: 얼음 성 봉인문으로 가자!"
+      "루미: 이제 마지막 언어 수정이 기다리고 있어."
 
     ]);
 
   }
 
-
-  /* =====================================================
-     EXIT
-  ====================================================== */
 
   async handleExit() {
 
@@ -2064,25 +1912,25 @@ update() {
     const hints = {
 
       center_rune:
-        "루미: 중앙의 큰 눈꽃 문양을 조사해 봐!",
+        "루미: 가운데의 푸른 얼음 룬을 조사해 봐!",
 
       moon_tower:
-        "루미: 왼쪽 위 달 모양이 있는 수정탑으로 가자!",
+        "루미: 왼쪽 위 달의 탑으로 가자!",
 
       sun_tower:
-        "루미: 오른쪽 위 태양 모양이 있는 수정탑으로 가자!",
+        "루미: 오른쪽 위 태양의 탑으로 가자!",
 
       left_bridge:
-        "루미: 왼쪽 중간의 금이 간 얼음 다리로 가자!",
+        "루미: 왼쪽 아래 얼음 다리의 룬을 조사해 봐!",
 
       right_bridge:
-        "루미: 오른쪽 중간의 무너지는 얼음 다리로 가자!",
+        "루미: 오른쪽 아래 얼음 다리로 가자!",
 
       throne:
-        "루미: 가운데 위쪽의 거대한 얼음 왕좌로 가자!",
+        "루미: 중앙 위쪽의 얼음 왕좌로 가자!",
 
       exit:
-        "루미: 맨 위 중앙의 빛나는 봉인문으로 가자!"
+        "루미: 가장 위쪽 중앙의 최상층 봉인문으로 가자!"
 
     };
 
@@ -2092,7 +1940,7 @@ update() {
         this.state.phase
       ]
       ||
-      "루미: 얼음 마법의 빛을 따라가자!"
+      "루미: 얼음 성의 빛나는 룬을 따라가자!"
     );
 
   }
@@ -2102,8 +1950,12 @@ update() {
     english
   ) {
 
-    if (!english) {
+    if (
+      !english
+    ) {
+
       return;
+
     }
 
 
@@ -2126,8 +1978,12 @@ update() {
     english
   ) {
 
-    if (!english) {
+    if (
+      !english
+    ) {
+
       return;
+
     }
 
 
@@ -2280,16 +2136,17 @@ update() {
 
     await GameUI.say([
 
-      "얼음 성 전체의 균열이 푸른빛으로 봉합되기 시작했다.",
+      "얼음 성의 봉인이 완전히 사라졌다.",
 
-      "녹아내리던 얼음 폭포와 다리도 다시 단단하게 얼어붙었다.",
+      "열한 번째 언어 수정이 원래의 빛을 되찾았다.",
 
-      "루미: 열한 번째 언어 수정도 복원됐어!",
+      "루미: 이제 남은 건 마지막 하나뿐이야.",
 
-      "나: 이제 마지막 하나만 남았네.",
+      "나: 열두 번째 언어 수정...",
+
 
       nextMap
-        ? `루미: 맞아. 마지막 목적지는 ${nextMap}이야!`
+        ? "루미: 침묵의 언어 성으로 가자."
         : "루미: 모든 언어 수정을 복원했어!"
 
     ]);
@@ -2402,25 +2259,25 @@ update() {
     const objectives = {
 
       center_rune:
-        "중앙 얼음 문양을 활성화하자.",
+        "중앙 얼음 룬을 활성화하자.",
 
       moon_tower:
-        "왼쪽 달 수정탑을 복구하자.",
+        "왼쪽 위 달의 탑을 복구하자.",
 
       sun_tower:
-        "오른쪽 태양 수정탑을 복구하자.",
+        "오른쪽 위 태양의 탑을 복구하자.",
 
       left_bridge:
-        "금이 간 얼음 다리를 복구하자.",
+        "왼쪽 얼음 다리를 복구하자.",
 
       right_bridge:
-        "무너지는 얼음 다리를 복구하자.",
+        "오른쪽 얼음 다리를 복구하자.",
 
       throne:
         "얼음 왕좌의 마지막 봉인을 풀자.",
 
       exit:
-        "상단 중앙의 얼음 성 봉인문으로 가자."
+        "최상층 봉인문을 지나 마지막 미로로 가자."
 
     };
 
@@ -2430,7 +2287,7 @@ update() {
         this.state.phase
       ]
       ||
-      "녹아내리는 얼음 성을 복원하자.";
+      "녹아내리는 얼음 성의 언어 수정을 복원하자.";
 
   }
 
