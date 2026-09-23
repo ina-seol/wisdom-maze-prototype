@@ -774,33 +774,269 @@ export default class Map12Scene extends Phaser.Scene {
   }
 
 
-  update() {
+update() {
 
-    if (
-      !this.player?.body
-    ) {
+  if (
+    !this.player?.body
+  ) {
 
-      return;
+    return;
 
-    }
+  }
 
+
+  /*
+    MAP02 이후처럼 recoverStuckInput()이 있는 Scene에서는
+    자동 복구도 같이 실행.
+    없는 Scene에서는 그냥 넘어감.
+  */
+
+  if (
+    typeof this.recoverStuckInput ===
+    "function"
+  ) {
 
     this.recoverStuckInput();
 
+  }
 
-    if (
-      this.inputLocked
-    ) {
 
-      this.player.body.setVelocity(
-        0,
-        0
+  const touch =
+    window.WisdomTouchInput
+    ||
+    {
+      up: false,
+      down: false,
+      left: false,
+      right: false,
+      interactPressed: false
+    };
+
+
+  /*
+    대화/퀴즈 중에는 이동 금지.
+    이때 눌린 조사 입력도 버린다.
+  */
+
+  if (
+    this.inputLocked
+  ) {
+
+    this.player.body.setVelocity(
+      0,
+      0
+    );
+
+
+    this.prompt
+      ?.setVisible(
+        false
       );
 
 
-      return;
+    if (
+      window.WisdomTouchInput
+    ) {
+
+      window.WisdomTouchInput.interactPressed =
+        false;
 
     }
+
+
+    return;
+
+  }
+
+
+  /*
+    MAP12 보스전에서는 이동하지 않음.
+    다른 맵에서는 phase가 boss가 아니므로 영향 없음.
+  */
+
+  if (
+    this.state?.phase ===
+    "boss"
+  ) {
+
+    this.player.body.setVelocity(
+      0,
+      0
+    );
+
+
+    if (
+      window.WisdomTouchInput
+    ) {
+
+      window.WisdomTouchInput.interactPressed =
+        false;
+
+    }
+
+
+    return;
+
+  }
+
+
+  const speed =
+    145;
+
+
+  let vx =
+    0;
+
+
+  let vy =
+    0;
+
+
+  /* =========================
+     LEFT / RIGHT
+  ========================= */
+
+  if (
+    this.cursors.left.isDown
+    ||
+    this.keys.left.isDown
+    ||
+    touch.left
+  ) {
+
+    vx =
+      -speed;
+
+  }
+
+  else if (
+    this.cursors.right.isDown
+    ||
+    this.keys.right.isDown
+    ||
+    touch.right
+  ) {
+
+    vx =
+      speed;
+
+  }
+
+
+  /* =========================
+     UP / DOWN
+  ========================= */
+
+  if (
+    this.cursors.up.isDown
+    ||
+    this.keys.up.isDown
+    ||
+    touch.up
+  ) {
+
+    vy =
+      -speed;
+
+  }
+
+  else if (
+    this.cursors.down.isDown
+    ||
+    this.keys.down.isDown
+    ||
+    touch.down
+  ) {
+
+    vy =
+      speed;
+
+  }
+
+
+  /*
+    대각선 이동 속도 보정
+  */
+
+  if (
+    vx !== 0
+    &&
+    vy !== 0
+  ) {
+
+    vx *=
+      0.707;
+
+
+    vy *=
+      0.707;
+
+  }
+
+
+  this.player.body.setVelocity(
+    vx,
+    vy
+  );
+
+
+  this.updateDirection(
+    vx,
+    vy
+  );
+
+
+  this.updatePrompt();
+
+
+  /* =========================
+     INTERACT
+  ========================= */
+
+  const keyboardInteract =
+    Phaser.Input.Keyboard.JustDown(
+      this.keys.interact
+    )
+    ||
+    Phaser.Input.Keyboard.JustDown(
+      this.keys.enter
+    );
+
+
+  const touchInteract =
+    Boolean(
+      touch.interactPressed
+    );
+
+
+  /*
+    터치 조사 버튼은 1회 입력이므로
+    읽은 직후 반드시 false 처리
+  */
+
+  if (
+    touchInteract
+    &&
+    window.WisdomTouchInput
+  ) {
+
+    window.WisdomTouchInput.interactPressed =
+      false;
+
+  }
+
+
+  if (
+    keyboardInteract
+    ||
+    touchInteract
+  ) {
+
+    this.interact();
+
+  }
+
+}
 
 
     if (
