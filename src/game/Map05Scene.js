@@ -18,7 +18,11 @@ const MAP_ID = "MAP05";
 export default class Map05Scene extends Phaser.Scene {
 
   constructor() {
-    super(MAP_ID);
+
+    super(
+      MAP_ID
+    );
+
   }
 
 
@@ -38,32 +42,51 @@ export default class Map05Scene extends Phaser.Scene {
       window.WISDOM_PROFILE?.spriteUrls;
 
 
-    if (sprites?.front) {
+    if (
+      sprites?.front
+    ) {
+
       this.load.image(
         "map05_front",
         sprites.front
       );
+
     }
 
-    if (sprites?.back) {
+
+    if (
+      sprites?.back
+    ) {
+
       this.load.image(
         "map05_back",
         sprites.back
       );
+
     }
 
-    if (sprites?.left) {
+
+    if (
+      sprites?.left
+    ) {
+
       this.load.image(
         "map05_left",
         sprites.left
       );
+
     }
 
-    if (sprites?.right) {
+
+    if (
+      sprites?.right
+    ) {
+
       this.load.image(
         "map05_right",
         sprites.right
       );
+
     }
 
   }
@@ -160,7 +183,9 @@ export default class Map05Scene extends Phaser.Scene {
 
         }
 
-        catch (error) {
+        catch (
+          error
+        ) {
 
           console.error(
             "MAP05 intro error:",
@@ -184,12 +209,14 @@ export default class Map05Scene extends Phaser.Scene {
   prepareState() {
 
     const validPhases = [
+
       "fountain",
       "observatory",
       "library",
       "dock",
       "altar",
       "exit"
+
     ];
 
 
@@ -197,6 +224,8 @@ export default class Map05Scene extends Phaser.Scene {
       !validPhases.includes(
         this.state.phase
       )
+      &&
+      !this.state.completed
     ) {
 
       this.state.phase =
@@ -517,13 +546,13 @@ export default class Map05Scene extends Phaser.Scene {
       this.add.circle(
         384,
         305,
-        21,
-        0xffdd77,
-        0.18
+        20,
+        0x91d8ff,
+        0.2
       )
         .setStrokeStyle(
           4,
-          0xfff4bb,
+          0xf1fbff,
           1
         )
         .setDepth(
@@ -537,8 +566,11 @@ export default class Map05Scene extends Phaser.Scene {
         this.guide,
 
       alpha: {
-        from: 0.25,
-        to: 1
+        from:
+          0.25,
+
+        to:
+          1
       },
 
       duration:
@@ -573,11 +605,16 @@ export default class Map05Scene extends Phaser.Scene {
             "#ffffff",
 
           backgroundColor:
-            "#1c1835dd",
+            "#15234ddd",
 
           padding: {
-            x: 10,
-            y: 6
+
+            x:
+              10,
+
+            y:
+              6
+
           }
 
         }
@@ -760,267 +797,61 @@ export default class Map05Scene extends Phaser.Scene {
 
   update() {
 
-  if (
-    !this.player?.body
-  ) {
+    if (
+      !this.player?.body
+    ) {
 
-    return;
+      return;
 
-  }
+    }
 
-
-  /*
-    MAP02 이후처럼 recoverStuckInput()이 있는 Scene에서는
-    자동 복구도 같이 실행.
-    없는 Scene에서는 그냥 넘어감.
-  */
-
-  if (
-    typeof this.recoverStuckInput ===
-    "function"
-  ) {
 
     this.recoverStuckInput();
 
-  }
+
+    const touch =
+      window.WisdomTouchInput
+      ||
+      {
+
+        up: false,
+        down: false,
+        left: false,
+        right: false,
+        interactPressed: false
+
+      };
 
 
-  const touch =
-    window.WisdomTouchInput
-    ||
-    {
-      up: false,
-      down: false,
-      left: false,
-      right: false,
-      interactPressed: false
-    };
+    if (
+      this.inputLocked
+    ) {
 
-
-  /*
-    대화/퀴즈 중에는 이동 금지.
-    이때 눌린 조사 입력도 버린다.
-  */
-
-  if (
-    this.inputLocked
-  ) {
-
-    this.player.body.setVelocity(
-      0,
-      0
-    );
-
-
-    this.prompt
-      ?.setVisible(
-        false
+      this.player.body.setVelocity(
+        0,
+        0
       );
 
 
-    if (
-      window.WisdomTouchInput
-    ) {
-
-      window.WisdomTouchInput.interactPressed =
-        false;
-
-    }
+      this.prompt
+        ?.setVisible(
+          false
+        );
 
 
-    return;
+      if (
+        window.WisdomTouchInput
+      ) {
 
-  }
+        window.WisdomTouchInput.interactPressed =
+          false;
 
-
-  /*
-    MAP12 보스전에서는 이동하지 않음.
-    다른 맵에서는 phase가 boss가 아니므로 영향 없음.
-  */
-
-  if (
-    this.state?.phase ===
-    "boss"
-  ) {
-
-    this.player.body.setVelocity(
-      0,
-      0
-    );
+      }
 
 
-    if (
-      window.WisdomTouchInput
-    ) {
-
-      window.WisdomTouchInput.interactPressed =
-        false;
+      return;
 
     }
-
-
-    return;
-
-  }
-
-
-  const speed =
-    145;
-
-
-  let vx =
-    0;
-
-
-  let vy =
-    0;
-
-
-  /* =========================
-     LEFT / RIGHT
-  ========================= */
-
-  if (
-    this.cursors.left.isDown
-    ||
-    this.keys.left.isDown
-    ||
-    touch.left
-  ) {
-
-    vx =
-      -speed;
-
-  }
-
-  else if (
-    this.cursors.right.isDown
-    ||
-    this.keys.right.isDown
-    ||
-    touch.right
-  ) {
-
-    vx =
-      speed;
-
-  }
-
-
-  /* =========================
-     UP / DOWN
-  ========================= */
-
-  if (
-    this.cursors.up.isDown
-    ||
-    this.keys.up.isDown
-    ||
-    touch.up
-  ) {
-
-    vy =
-      -speed;
-
-  }
-
-  else if (
-    this.cursors.down.isDown
-    ||
-    this.keys.down.isDown
-    ||
-    touch.down
-  ) {
-
-    vy =
-      speed;
-
-  }
-
-
-  /*
-    대각선 이동 속도 보정
-  */
-
-  if (
-    vx !== 0
-    &&
-    vy !== 0
-  ) {
-
-    vx *=
-      0.707;
-
-
-    vy *=
-      0.707;
-
-  }
-
-
-  this.player.body.setVelocity(
-    vx,
-    vy
-  );
-
-
-  this.updateDirection(
-    vx,
-    vy
-  );
-
-
-  this.updatePrompt();
-
-
-  /* =========================
-     INTERACT
-  ========================= */
-
-  const keyboardInteract =
-    Phaser.Input.Keyboard.JustDown(
-      this.keys.interact
-    )
-    ||
-    Phaser.Input.Keyboard.JustDown(
-      this.keys.enter
-    );
-
-
-  const touchInteract =
-    Boolean(
-      touch.interactPressed
-    );
-
-
-  /*
-    터치 조사 버튼은 1회 입력이므로
-    읽은 직후 반드시 false 처리
-  */
-
-  if (
-    touchInteract
-    &&
-    window.WisdomTouchInput
-  ) {
-
-    window.WisdomTouchInput.interactPressed =
-      false;
-
-  }
-
-
-  if (
-    keyboardInteract
-    ||
-    touchInteract
-  ) {
-
-    this.interact();
-
-  }
-
-}
 
 
     const speed =
@@ -1039,6 +870,8 @@ export default class Map05Scene extends Phaser.Scene {
       this.cursors.left.isDown
       ||
       this.keys.left.isDown
+      ||
+      touch.left
     ) {
 
       vx =
@@ -1050,6 +883,8 @@ export default class Map05Scene extends Phaser.Scene {
       this.cursors.right.isDown
       ||
       this.keys.right.isDown
+      ||
+      touch.right
     ) {
 
       vx =
@@ -1062,6 +897,8 @@ export default class Map05Scene extends Phaser.Scene {
       this.cursors.up.isDown
       ||
       this.keys.up.isDown
+      ||
+      touch.up
     ) {
 
       vy =
@@ -1073,6 +910,8 @@ export default class Map05Scene extends Phaser.Scene {
       this.cursors.down.isDown
       ||
       this.keys.down.isDown
+      ||
+      touch.down
     ) {
 
       vy =
@@ -1112,14 +951,38 @@ export default class Map05Scene extends Phaser.Scene {
     this.updatePrompt();
 
 
-    if (
+    const keyboardInteract =
       Phaser.Input.Keyboard.JustDown(
         this.keys.interact
       )
       ||
       Phaser.Input.Keyboard.JustDown(
         this.keys.enter
-      )
+      );
+
+
+    const touchInteract =
+      Boolean(
+        touch.interactPressed
+      );
+
+
+    if (
+      touchInteract
+      &&
+      window.WisdomTouchInput
+    ) {
+
+      window.WisdomTouchInput.interactPressed =
+        false;
+
+    }
+
+
+    if (
+      keyboardInteract
+      ||
+      touchInteract
     ) {
 
       this.interact();
@@ -1135,9 +998,13 @@ export default class Map05Scene extends Phaser.Scene {
   ) {
 
     if (
-      Math.abs(vx)
+      Math.abs(
+        vx
+      )
       >
-      Math.abs(vy)
+      Math.abs(
+        vy
+      )
     ) {
 
       if (
@@ -1366,7 +1233,9 @@ export default class Map05Scene extends Phaser.Scene {
 
     }
 
-    catch (error) {
+    catch (
+      error
+    ) {
 
       console.error(
         "MAP05 interaction error:",
@@ -1390,13 +1259,17 @@ export default class Map05Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "구름 위의 별빛 공중도시가 눈앞에 나타났다.",
+      "고대 사원의 문을 지나자 눈앞에 끝없는 구름바다가 펼쳐졌다.",
 
-      "나: 도시 전체가 하늘에 떠 있어!",
+      "하늘 위에는 별빛으로 빛나는 도시가 떠 있었다.",
 
-      "루미: 다섯 번째 언어 수정 때문에 별빛 마법이 불안정해졌어.",
+      "나: 도시가 하늘에 떠 있어!",
 
-      "루미: 먼저 중앙의 별빛 분수를 조사해 보자!"
+      "루미: 다섯 번째 언어 수정의 힘으로 만들어진 별빛 공중도시야.",
+
+      "루미: 하지만 도시의 별빛이 점점 약해지고 있어.",
+
+      "루미: 먼저 중앙의 별빛 분수를 조사하자!"
 
     ]);
 
@@ -1435,7 +1308,9 @@ export default class Map05Scene extends Phaser.Scene {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
         "루미: MAP05 단어 데이터가 부족해."
@@ -1458,7 +1333,9 @@ export default class Map05Scene extends Phaser.Scene {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "fountain"
@@ -1466,7 +1343,7 @@ export default class Map05Scene extends Phaser.Scene {
 
 
       await GameUI.say(
-        "루미: 단어 뜻을 다시 생각해 보자!"
+        "루미: 별빛 분수가 반응하지 않아. 단어 뜻을 다시 생각해 보자!"
       );
 
 
@@ -1498,11 +1375,13 @@ export default class Map05Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "별빛 분수가 다시 빛나기 시작했다.",
+      "별빛 분수가 푸른빛을 뿜어냈다.",
 
       "루미: 첫 번째 말의 조각이야!",
 
-      "루미: 왼쪽 위 천체 관측대로 가자!"
+      "나: 왼쪽 위 관측대에도 불이 들어왔어.",
+
+      "루미: 천체 관측대로 가자!"
 
     ]);
 
@@ -1530,7 +1409,9 @@ export default class Map05Scene extends Phaser.Scene {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
         "루미: MAP05 단어 데이터가 부족해."
@@ -1553,7 +1434,9 @@ export default class Map05Scene extends Phaser.Scene {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "observatory"
@@ -1561,7 +1444,7 @@ export default class Map05Scene extends Phaser.Scene {
 
 
       await GameUI.say(
-        "루미: 뜻에 맞는 영어 단어를 다시 골라 보자!"
+        "루미: 별의 위치가 맞지 않아. 영어 단어를 다시 골라 보자!"
       );
 
 
@@ -1589,9 +1472,9 @@ export default class Map05Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "관측대의 별자리가 움직이기 시작했다.",
+      "천체 관측 장치가 밤하늘의 별을 가리켰다.",
 
-      "나: 오른쪽 위 건물에서 빛이 보여!",
+      "나: 오른쪽 위 건물에서도 빛이 나고 있어.",
 
       "루미: 공중 서고로 가자!"
 
@@ -1621,7 +1504,9 @@ export default class Map05Scene extends Phaser.Scene {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
         "루미: MAP05 영어 표현 데이터가 부족해."
@@ -1644,7 +1529,9 @@ export default class Map05Scene extends Phaser.Scene {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "library"
@@ -1652,7 +1539,7 @@ export default class Map05Scene extends Phaser.Scene {
 
 
       await GameUI.say(
-        "루미: 영어 표현의 뜻을 다시 생각해 보자!"
+        "루미: 별빛 기록이 아직 읽히지 않아. 표현의 뜻을 다시 생각해 보자!"
       );
 
 
@@ -1684,11 +1571,11 @@ export default class Map05Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "공중 서고의 마법책이 제자리로 돌아왔다.",
+      "공중 서고의 책들이 별빛처럼 반짝였다.",
 
       "루미: 두 번째 말의 조각을 찾았어!",
 
-      "루미: 아래쪽 중앙의 하늘 선착장으로 가자!"
+      "루미: 이제 아래쪽 중앙의 하늘 선착장으로 가자."
 
     ]);
 
@@ -1716,10 +1603,12 @@ export default class Map05Scene extends Phaser.Scene {
       );
 
 
-    if (!expression) {
+    if (
+      !expression
+    ) {
 
       await GameUI.say(
-        "루미: 문장 배열에 사용할 MAP05 영어 표현이 부족해."
+        "루미: MAP05 문장 데이터가 부족해."
       );
 
 
@@ -1742,7 +1631,9 @@ export default class Map05Scene extends Phaser.Scene {
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "dock"
@@ -1750,7 +1641,7 @@ export default class Map05Scene extends Phaser.Scene {
 
 
       await GameUI.say(
-        "루미: 문장 순서를 다시 확인해 보자!"
+        "루미: 별빛 길이 아직 이어지지 않았어. 문장 순서를 다시 맞춰 보자!"
       );
 
 
@@ -1778,11 +1669,11 @@ export default class Map05Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "하늘 선착장의 바람길이 다시 열렸다.",
+      "하늘 선착장에서 별빛으로 된 길이 펼쳐졌다.",
 
-      "나: 오른쪽 아래에서 별 수정이 빛나!",
+      "나: 오른쪽의 수정 제단까지 이어지고 있어.",
 
-      "루미: 별 수정 제단으로 가자!"
+      "루미: 좋아! 별 수정 제단으로 가자!"
 
     ]);
 
@@ -1811,7 +1702,9 @@ export default class Map05Scene extends Phaser.Scene {
       );
 
 
-    if (!quiz) {
+    if (
+      !quiz
+    ) {
 
       await GameUI.say(
         "루미: 마지막 문제를 만들 MAP05 학습 데이터가 부족해."
@@ -1828,13 +1721,15 @@ export default class Map05Scene extends Phaser.Scene {
 
     const correct =
       await GameUI.choice(
-        `별 수정의 마지막 시험!\n${quiz.question}`,
+        quiz.question,
         quiz.options,
         quiz.correctIndex
       );
 
 
-    if (!correct) {
+    if (
+      !correct
+    ) {
 
       this.markWrong(
         "altar"
@@ -1842,7 +1737,7 @@ export default class Map05Scene extends Phaser.Scene {
 
 
       await GameUI.say(
-        "루미: 별 수정의 봉인이 아직 남아 있어. 다시 해 보자!"
+        "루미: 별 수정의 빛이 아직 약해. 마지막 문제를 다시 풀어 보자!"
       );
 
 
@@ -1869,13 +1764,15 @@ export default class Map05Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "별 수정에서 세 번째 말의 조각이 나타났다.",
+      "별 수정 제단에서 강한 빛이 하늘로 솟아올랐다.",
 
-      "나: 세 조각을 모두 모았어!",
+      "세 번째 말의 조각이 나타났다.",
 
-      "루미: 좋아! 가운데 위의 별빛 성문이 열렸어.",
+      "나: 세 조각을 모두 찾았어!",
 
-      "루미: 별빛 성문으로 가자!"
+      "루미: 별빛 도시의 힘이 완전히 돌아왔어.",
+
+      "루미: 이제 가운데 위의 별빛 성문으로 가자!"
 
     ]);
 
@@ -1912,22 +1809,22 @@ export default class Map05Scene extends Phaser.Scene {
     const hints = {
 
       fountain:
-        "루미: 중앙의 별빛 분수를 조사해 봐!",
+        "루미: 중앙의 빛나는 별빛 분수를 조사해 봐!",
 
       observatory:
-        "루미: 왼쪽 위 천체 관측대로 가자!",
+        "루미: 왼쪽 위의 천체 관측대로 가자!",
 
       library:
-        "루미: 오른쪽 위 공중 서고로 가자!",
+        "루미: 오른쪽 위의 공중 서고로 가자!",
 
       dock:
         "루미: 아래쪽 중앙의 하늘 선착장으로 가자!",
 
       altar:
-        "루미: 오른쪽 아래 별 수정 제단으로 가자!",
+        "루미: 오른쪽의 빛나는 별 수정 제단을 조사해 봐!",
 
       exit:
-        "루미: 가운데 위쪽의 큰 별빛 성문으로 가자!"
+        "루미: 가운데 위쪽의 별빛 성문으로 가자!"
 
     };
 
@@ -1937,7 +1834,7 @@ export default class Map05Scene extends Phaser.Scene {
         this.state.phase
       ]
       ||
-      "루미: 별빛이 가리키는 곳을 따라가자!"
+      "루미: 별빛이 가리키는 곳으로 가자!"
     );
 
   }
@@ -1947,8 +1844,12 @@ export default class Map05Scene extends Phaser.Scene {
     english
   ) {
 
-    if (!english) {
+    if (
+      !english
+    ) {
+
       return;
+
     }
 
 
@@ -1971,8 +1872,12 @@ export default class Map05Scene extends Phaser.Scene {
     english
   ) {
 
-    if (!english) {
+    if (
+      !english
+    ) {
+
       return;
+
     }
 
 
@@ -2125,15 +2030,15 @@ export default class Map05Scene extends Phaser.Scene {
 
     await GameUI.say([
 
-      "별빛 성문이 열리며 구름길이 이어졌다.",
+      "공중도시를 둘러싼 별빛이 다시 밝아졌다.",
 
-      "루미: 다섯 번째 언어 수정도 복원됐어!",
+      "다섯 번째 언어 수정이 원래의 힘을 되찾았다.",
 
-      "나: 다음 장소로 가자!",
+      "루미: 좋아! 다섯 번째 미로도 해결했어!",
 
       nextMap
         ? `루미: 다음 목적지는 ${nextMap}이야!`
-        : "루미: 모든 언어 수정을 복원했어!"
+        : "루미: 모든 모험이 끝났어!"
 
     ]);
 
@@ -2245,22 +2150,22 @@ export default class Map05Scene extends Phaser.Scene {
     const objectives = {
 
       fountain:
-        "별빛 분수의 문제를 풀자.",
+        "중앙의 별빛 분수를 활성화하자.",
 
       observatory:
-        "천체 관측대의 단어 문제를 풀자.",
+        "왼쪽 위 천체 관측대를 복구하자.",
 
       library:
-        "공중 서고의 표현 문제를 풀자.",
+        "오른쪽 위 공중 서고의 기록을 복원하자.",
 
       dock:
-        "하늘 선착장의 문장 배열 문제를 풀자.",
+        "하늘 선착장에서 별빛 길을 복구하자.",
 
       altar:
-        "별 수정 제단의 마지막 시험을 풀자.",
+        "별 수정 제단을 활성화하자.",
 
       exit:
-        "가운데 위쪽의 별빛 성문으로 가자."
+        "가운데 위 별빛 성문으로 가자."
 
     };
 
@@ -2270,7 +2175,7 @@ export default class Map05Scene extends Phaser.Scene {
         this.state.phase
       ]
       ||
-      "별빛 공중도시를 탐험하자.";
+      "별빛 공중도시의 언어 수정을 복원하자.";
 
   }
 
