@@ -1,7 +1,7 @@
 // Only a publishable/anon key belongs in this browser bundle.
 const env = import.meta.env || {};
-const URL_BASE = (env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
-const API_KEY = env.VITE_SUPABASE_PUBLISHABLE_KEY || env.VITE_SUPABASE_ANON_KEY || '';
+const URL_BASE = (env.VITE_SUPABASE_URL || 'https://ufpsyzoxggmxnwalrmff.supabase.co').replace(/\/$/, '');
+const API_KEY = env.VITE_SUPABASE_PUBLISHABLE_KEY || env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_xyPDyPHupbs3gcpupjUODg__ybeolMM';
 const SESSION_KEY = 'wisdom_teacher_session_v1';
 const QUEUE_KEY = 'wisdom_cloud_queue_v1';
 export const cloudEnabled = Boolean(URL_BASE && API_KEY);
