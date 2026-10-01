@@ -29,9 +29,15 @@ jobs:
           node-version: 22
 
       - name: Install
-        run: npm install
+        run: npm ci
+
+      - name: Test
+        run: npm test
 
       - name: Build
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
         run: npm run build
 
       - name: Setup Pages

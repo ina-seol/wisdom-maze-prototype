@@ -1,1602 +1,245 @@
-import "./style.css";
-
+import './style.css';
+import QRCode from 'qrcode';
 import {
-
-  MAP_IDS,
-
-  MAP_NAMES,
-
-  getTeacherPin,
-
-  getAllMapContent,
-
-  getMapContent,
-
-  saveMapContent,
-
-  saveAllMapContent,
-
-  parseAllMapsTxt,
-
-  serializeAllMapsTxt,
-
-  parseAllMapsCsv,
-
-  serializeAllMapsCsv,
-
-  serializeCsvTemplate
-
-} from "./data.js";
-
-
-const base =
-  import.meta.env.BASE_URL;
-
-
-/* =====================================================
-   DOM
-===================================================== */
-
-const loginScreen =
-  document.querySelector(
-    "#admin-login"
-  );
-
-
-const adminApp =
-  document.querySelector(
-    "#admin-app"
-  );
-
-
-const pinInput =
-  document.querySelector(
-    "#teacher-pin"
-  );
-
-
-const loginButton =
-  document.querySelector(
-    "#teacher-login"
-  );
-
-
-const backTitle =
-  document.querySelector(
-    "#back-title"
-  );
-
-
-const adminHome =
-  document.querySelector(
-    "#admin-home"
-  );
-
-
-const mapSelect =
-  document.querySelector(
-    "#map-select"
-  );
-
-
-const txtUpload =
-  document.querySelector(
-    "#txt-upload"
-  );
-
-
-const wordsEditor =
-  document.querySelector(
-    "#words-editor"
-  );
-
-
-const expressionsEditor =
-  document.querySelector(
-    "#expressions-editor"
-  );
-
-
-const wordCount =
-  document.querySelector(
-    "#word-count"
-  );
-
-
-const expressionCount =
-  document.querySelector(
-    "#expression-count"
-  );
-
-
-const saveButton =
-  document.querySelector(
-    "#save-content"
-  );
-
-
-const downloadTxtButton =
-  document.querySelector(
-    "#download-txt"
-  );
-
-
-const saveTitle =
-  document.querySelector(
-    "#save-title"
-  );
-
-
-const status =
-  document.querySelector(
-    "#save-status"
-  );
-
-
-let currentMap =
-  "MAP01";
-
-
-/* =====================================================
-   CSV UI
-===================================================== */
-
-let csvUpload =
-  null;
-
-
-let downloadCsvButton =
-  null;
-
-
-let templateCsvButton =
-  null;
-
-
-function createCsvControls() {
-
-  if (
-    document.querySelector(
-      "#csv-tools"
-    )
-  ) {
-
-    csvUpload =
-      document.querySelector(
-        "#csv-upload"
-      );
-
-
-    downloadCsvButton =
-      document.querySelector(
-        "#download-csv"
-      );
-
-
-    templateCsvButton =
-      document.querySelector(
-        "#download-csv-template"
-      );
-
-
-    return;
-
-  }
-
-
-  const tools =
-    document.createElement(
-      "div"
-    );
-
-
-  tools.id =
-    "csv-tools";
-
-
-  tools.style.cssText = `
-
-    margin:
-      14px 0;
-
-    padding:
-      16px;
-
-    border:
-      1px solid
-      rgba(
-        110,
-        145,
-        220,
-        0.35
-      );
-
-    border-radius:
-      14px;
-
-    background:
-      rgba(
-        14,
-        25,
-        50,
-        0.75
-      );
-
-  `;
-
-
-  tools.innerHTML = `
-
-    <div
-      style="
-        margin-bottom:10px;
-        color:#ffe188;
-        font-weight:900;
-        font-size:15px;
-      "
-    >
-      CSV / Excel 학습자료
-    </div>
-
-
-    <div
-      style="
-        margin-bottom:12px;
-        color:#adbfdf;
-        font-size:12px;
-        line-height:1.7;
-      "
-    >
-      Excel 또는 Google Sheets에서
-      <strong>CSV UTF-8</strong> 형식으로 저장한 뒤 업로드할 수 있습니다.<br>
-
-      열 순서:
-      <strong>map, type, english, korean</strong>
-    </div>
-
-
-    <div
-      style="
-        display:flex;
-        flex-wrap:wrap;
-        gap:8px;
-        align-items:center;
-      "
-    >
-
-      <label
-        for="csv-upload"
-        class="admin-secondary"
-        style="
-          display:inline-flex;
-          align-items:center;
-          justify-content:center;
-          min-height:40px;
-          padding:0 14px;
-          border:1px solid #556f9f;
-          border-radius:9px;
-          color:white;
-          background:#20365c;
-          cursor:pointer;
-          font-weight:800;
-        "
-      >
-        CSV 업로드
-      </label>
-
-
-      <input
-        id="csv-upload"
-        type="file"
-        accept=".csv,text/csv"
-        hidden
-      >
-
-
-      <button
-        id="download-csv-template"
-        type="button"
-        style="
-          min-height:40px;
-          padding:0 14px;
-          border:1px solid #556f9f;
-          border-radius:9px;
-          color:white;
-          background:#20365c;
-          cursor:pointer;
-          font-weight:800;
-        "
-      >
-        CSV 템플릿
-      </button>
-
-
-      <button
-        id="download-csv"
-        type="button"
-        style="
-          min-height:40px;
-          padding:0 14px;
-          border:1px solid #d6aa46;
-          border-radius:9px;
-          color:#302000;
-          background:#ffd96c;
-          cursor:pointer;
-          font-weight:900;
-        "
-      >
-        전체 CSV 다운로드
-      </button>
-
-    </div>
-
-
-    <div
-      style="
-        margin-top:10px;
-        color:#7f96bf;
-        font-size:11px;
-        line-height:1.6;
-      "
-    >
-      type에는
-      <strong>word</strong>
-      또는
-      <strong>expression</strong>을 입력하세요.
-      한 맵당 단어 20개, 표현 20개까지 사용합니다.
-    </div>
-
-  `;
-
-
-  const target =
-    txtUpload
-      ?.closest(
-        "section"
-      )
-    ??
-    txtUpload
-      ?.parentElement
-    ??
-    mapSelect
-      ?.parentElement
-    ??
-    adminApp;
-
-
-  if (
-    target
-  ) {
-
-    if (
-      txtUpload?.parentElement
-    ) {
-
-      txtUpload
-        .parentElement
-        .insertAdjacentElement(
-          "afterend",
-          tools
-        );
-
-    }
-
-    else {
-
-      target.appendChild(
-        tools
-      );
-
-    }
-
-  }
-
-
-  csvUpload =
-    tools.querySelector(
-      "#csv-upload"
-    );
-
-
-  downloadCsvButton =
-    tools.querySelector(
-      "#download-csv"
-    );
-
-
-  templateCsvButton =
-    tools.querySelector(
-      "#download-csv-template"
-    );
-
+  MAP_IDS, MAP_NAMES, getTeacherPin, getAllMapContent, getMapContent,
+  saveAllMapContent, parseAllMapsCsv, parseAllMapsTxt,
+  serializeAllMapsCsv, serializeAllMapsTxt
+} from './data.js';
+import {
+  cloudEnabled, signIn, signOut, hasTeacherSession, listRooms, createRoom,
+  updateRoom, readRoomRecords, getRoom, setRoom
+} from './cloud.js';
+
+const $ = id => document.getElementById(id);
+let currentMap = 'MAP01';
+let rooms = [];
+let records = [];
+let busy = false;
+let dirty = false;
+const goHome = () => { location.href = import.meta.env.BASE_URL; };
+$('back-title').onclick = goHome;
+$('admin-home').onclick = goHome;
+for (const id of MAP_IDS) {
+  const option = document.createElement('option');
+  option.value = id;
+  option.textContent = `${id} · ${MAP_NAMES[id]}`;
+  $('map-select').append(option);
 }
-
-
-/* =====================================================
-   MAP SELECT
-===================================================== */
-
-function buildMapSelect() {
-
-  if (
-    !mapSelect
-  ) {
-
-    return;
-
-  }
-
-
-  mapSelect.innerHTML =
-    "";
-
-
-  for (
-    const mapId of
-    MAP_IDS
-  ) {
-
-    const option =
-      document.createElement(
-        "option"
-      );
-
-
-    option.value =
-      mapId;
-
-
-    option.textContent =
-      `${mapId} · ${MAP_NAMES[mapId]}`;
-
-
-    mapSelect.appendChild(
-      option
-    );
-
-  }
-
-
-  mapSelect.value =
-    currentMap;
-
+if (!cloudEnabled) {
+  $('login-help').textContent = '개인 연습 모드입니다. Supabase 설정 후 교실 저장을 사용할 수 있습니다. PIN 기본값: 1234';
+  $('teacher-email').hidden = true;
+  $('email-label').hidden = true;
+  $('password-label').textContent = '교사용 PIN';
+  $('classroom-panel').hidden = true;
+  $('records-panel').hidden = true;
 }
-
-
-/* =====================================================
-   LOGIN
-===================================================== */
-
-function login() {
-
-  const inputPin =
-    pinInput
-      ?.value
-      .trim();
-
-
-  if (
-    inputPin !==
-    getTeacherPin()
-  ) {
-
-    alert(
-      "PIN이 올바르지 않습니다."
-    );
-
-
-    pinInput
-      ?.focus();
-
-
-    return;
-
+function status(message) { $('save-status').textContent = message; }
+async function action(fn) {
+  if (busy) return;
+  busy = true;
+  const controls = [...document.querySelectorAll('#admin-app input, #admin-app select, #admin-app textarea, #admin-app button')];
+  const disabled = controls.map(x => x.disabled);
+  controls.forEach(x => { x.disabled = true; });
+  try { await fn(); }
+  catch (error) { status(error.message); alert(error.message); }
+  finally {
+    controls.forEach((x, i) => { x.disabled = disabled[i]; });
+    busy = false;
   }
-
-
-  loginScreen
-    ?.classList
-    .add(
-      "hidden"
-    );
-
-
-  adminApp
-    ?.classList
-    .remove(
-      "hidden"
-    );
-
-
-  loadCurrentMap();
-
 }
-
-
-loginButton
-  ?.addEventListener(
-    "click",
-    login
-  );
-
-
-pinInput
-  ?.addEventListener(
-    "keydown",
-    event => {
-
-      if (
-        event.key ===
-        "Enter"
-      ) {
-
-        event.preventDefault();
-
-
-        login();
-
-      }
-
+async function login() {
+  $('teacher-login').disabled = true;
+  try {
+    if (cloudEnabled) {
+      await signIn($('teacher-email').value.trim(), $('teacher-pin').value);
+      await refreshRooms();
+    } else if ($('teacher-pin').value !== getTeacherPin()) {
+      throw new Error('PIN이 올바르지 않습니다.');
     }
-  );
-
-
-/* =====================================================
-   HOME
-===================================================== */
-
-function goHome() {
-
-  window.location.href =
-    `${base}index.html`;
-
+    $('teacher-pin').value = '';
+    $('admin-login').classList.add('hidden');
+    $('admin-app').classList.remove('hidden');
+    renderEditor();
+  } catch (error) { $('login-status').textContent = error.message; }
+  finally { $('teacher-login').disabled = false; }
 }
-
-
-backTitle
-  ?.addEventListener(
-    "click",
-    goHome
-  );
-
-
-adminHome
-  ?.addEventListener(
-    "click",
-    goHome
-  );
-
-
-/* =====================================================
-   MAP CHANGE
-===================================================== */
-
-mapSelect
-  ?.addEventListener(
-    "change",
-    () => {
-
-      currentMap =
-        mapSelect.value;
-
-
-      loadCurrentMap();
-
-    }
-  );
-
-
-/* =====================================================
-   LOAD CURRENT MAP
-===================================================== */
-
-function loadCurrentMap() {
-
-  const data =
-    getMapContent(
-      currentMap
-    );
-
-
-  if (
-    wordsEditor
-  ) {
-
-    wordsEditor.value =
-      data.words
-        .map(
-          formatPair
-        )
-        .join(
-          "\n"
-        );
-
+$('teacher-login').onclick = login;
+$('teacher-pin').onkeydown = e => { if (e.key === 'Enter') login(); };
+$('teacher-logout').onclick = () => action(async () => {
+  if (dirty && !confirm('저장하지 않은 편집 내용이 있습니다. 로그아웃할까요?')) return;
+  if (cloudEnabled) await signOut();
+  location.reload();
+});
+async function refreshRooms(selectId = null) {
+  rooms = await listRooms();
+  $('classroom-select').replaceChildren();
+  const empty = document.createElement('option');
+  empty.value = '';
+  empty.textContent = '교실을 선택하거나 새로 만드세요';
+  $('classroom-select').append(empty);
+  for (const r of rooms) {
+    const option = document.createElement('option');
+    option.value = r.id;
+    option.textContent = `${r.name} (${r.code})`;
+    $('classroom-select').append(option);
   }
-
-
-  if (
-    expressionsEditor
-  ) {
-
-    expressionsEditor.value =
-      data.expressions
-        .map(
-          formatPair
-        )
-        .join(
-          "\n"
-        );
-
+  await selectRoom(rooms.find(r => r.id === selectId) || rooms[0] || null);
+}
+async function selectRoom(room) {
+  setRoom(room);
+  $('classroom-select').value = room?.id || '';
+  $('classroom-info').textContent = room ? `${room.name} · 교실 코드: ${room.code}` : '먼저 교실을 만들어 주세요.';
+  const url = new URL(import.meta.env.BASE_URL, location.origin);
+  if (room) url.searchParams.set('classroom', room.code);
+  $('classroom-link').value = room ? url.href : '';
+  $('classroom-qr').hidden = !room;
+  if (room) await QRCode.toCanvas($('classroom-qr'), url.href, { width: 220, margin: 2 });
+  dirty = false;
+  records = [];
+  $('records-body').replaceChildren();
+  $('records-status').textContent = '새로고침을 누르면 이 교실의 기록을 확인할 수 있습니다.';
+  renderEditor();
+}
+$('classroom-select').onchange = event => action(async () => {
+  if (dirty && !confirm('저장하지 않은 편집 내용이 있습니다. 교실을 바꿀까요?')) {
+    event.target.value = getRoom()?.id || ''; return;
   }
-
-
-  if (
-    saveTitle
-  ) {
-
-    saveTitle.textContent =
-      `${currentMap} · ${MAP_NAMES[currentMap]} 저장`;
-
+  await selectRoom(rooms.find(r => r.id === event.target.value) || null);
+});
+$('create-classroom').onclick = () => action(async () => {
+  const name = $('classroom-name').value.trim();
+  if (!name) throw new Error('새 교실 이름을 입력해 주세요.');
+  if (dirty && !confirm('저장하지 않은 편집 내용이 있습니다. 새 교실을 만들까요?')) return;
+  const created = await createRoom(name, getAllMapContent());
+  await refreshRooms(created.id);
+  $('classroom-name').value = '';
+  status('교실을 만들었습니다. CSV를 업로드해 학생용 학습자료를 저장하세요.');
+});
+$('copy-classroom-link').onclick = () => action(async () => {
+  if (!getRoom()) throw new Error('먼저 교실을 선택해 주세요.');
+  try { await navigator.clipboard.writeText($('classroom-link').value); status('학생 입장 링크를 복사했습니다.'); }
+  catch { $('classroom-link').select(); status('입장 링크를 선택했습니다. Ctrl+C로 복사해 주세요.'); }
+});
+function parseEditor(id) {
+  const lines = $(id).value.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+  if (lines.length > 20) throw new Error('각 맵의 단어와 표현은 각각 최대 20개입니다.');
+  return lines.map(line => {
+    const separator = line.indexOf('|');
+    return { english: separator < 0 ? line : line.slice(0, separator).trim(), korean: separator < 0 ? '' : line.slice(separator + 1).trim() };
+  });
+}
+function validateMap(id, map) {
+  for (const section of ['words', 'expressions']) {
+    if (map[section].length < 4 || map[section].length > 20) throw new Error(`${id}: 단어와 표현을 각각 4~20개 입력해 주세요.`);
+    if (map[section].some(x => !x.english || !x.korean)) throw new Error(`${id}: 영어와 한국어 뜻을 모두 입력해 주세요.`);
+    if (new Set(map[section].map(x => x.english.toLowerCase())).size !== map[section].length) throw new Error(`${id}: 중복된 영어 항목을 확인해 주세요.`);
   }
-
-
-  setStatus(
-    `${currentMap} 편집 중`
-  );
-
-
+}
+function renderEditor() {
+  const map = getMapContent(currentMap);
+  $('words-editor').value = map.words.map(x => `${x.english} | ${x.korean}`).join('\n');
+  $('expressions-editor').value = map.expressions.map(x => `${x.english} | ${x.korean}`).join('\n');
+  $('save-title').textContent = `${currentMap} 저장`;
+  $('map-select').value = currentMap;
   updateCounts();
-
+  dirty = false;
 }
-
-
-/* =====================================================
-   EDITOR
-===================================================== */
-
-function parseEditor(
-  textarea
-) {
-
-  if (
-    !textarea
-  ) {
-
-    return [];
-
-  }
-
-
-  return textarea.value
-
-    .split(
-      /\r?\n/
-    )
-
-    .map(
-      line =>
-        line.trim()
-    )
-
-    .filter(
-      Boolean
-    )
-
-    .slice(
-      0,
-      20
-    )
-
-    .map(
-      line => {
-
-        const separator =
-          line.indexOf(
-            "|"
-          );
-
-
-        if (
-          separator ===
-          -1
-        ) {
-
-          return {
-
-            english:
-              line.trim(),
-
-            korean:
-              ""
-
-          };
-
-        }
-
-
-        return {
-
-          english:
-            line
-              .slice(
-                0,
-                separator
-              )
-              .trim(),
-
-          korean:
-            line
-              .slice(
-                separator + 1
-              )
-              .trim()
-
-        };
-
-      }
-    )
-
-    .filter(
-      item =>
-        item.english
-    );
-
-}
-
-
-function formatPair(
-  item
-) {
-
-  if (
-    item.korean
-  ) {
-
-    return (
-      `${item.english} | ${item.korean}`
-    );
-
-  }
-
-
-  return item.english;
-
-}
-
-
-/* =====================================================
-   COUNTS
-===================================================== */
-
 function updateCounts() {
-
-  const words =
-    parseEditor(
-      wordsEditor
-    );
-
-
-  const expressions =
-    parseEditor(
-      expressionsEditor
-    );
-
-
-  if (
-    wordCount
-  ) {
-
-    wordCount.textContent =
-      words.length;
-
+  for (const [editor, count] of [['words-editor', 'word-count'], ['expressions-editor', 'expression-count']]) {
+    $(count).textContent = $(editor).value.split(/\r?\n/).filter(x => x.trim()).length;
   }
-
-
-  if (
-    expressionCount
-  ) {
-
-    expressionCount.textContent =
-      expressions.length;
-
-  }
-
 }
-
-
-wordsEditor
-  ?.addEventListener(
-    "input",
-    updateCounts
-  );
-
-
-expressionsEditor
-  ?.addEventListener(
-    "input",
-    updateCounts
-  );
-
-
-/* =====================================================
-   STATUS
-===================================================== */
-
-function setStatus(
-  message
-) {
-
-  if (
-    status
-  ) {
-
-    status.textContent =
-      message;
-
+for (const id of ['words-editor', 'expressions-editor']) $(id).oninput = () => { dirty = true; updateCounts(); };
+$('map-select').onchange = event => {
+  if (dirty && !confirm('저장하지 않은 편집 내용이 있습니다. 맵을 바꿀까요?')) { event.target.value = currentMap; return; }
+  currentMap = event.target.value;
+  renderEditor();
+};
+async function persist(maps) {
+  if (cloudEnabled) {
+    if (!getRoom()) throw new Error('먼저 교실을 선택하거나 만들어 주세요.');
+    const saved = await updateRoom(getRoom().id, maps);
+    setRoom(saved);
+    rooms = rooms.map(r => r.id === saved.id ? saved : r);
   }
-
+  saveAllMapContent(maps);
+  dirty = false;
 }
-
-
-/* =====================================================
-   VALIDATION
-===================================================== */
-
-function validateCurrentMap(
-  words,
-  expressions
-) {
-
-  if (
-    words.length <
-    4
-  ) {
-
-    alert(
-      "객관식 문제를 만들기 위해 단어를 최소 4개 입력해 주세요."
-    );
-
-
-    return false;
-
-  }
-
-
-  if (
-    expressions.length <
-    4
-  ) {
-
-    alert(
-      "객관식 문제를 만들기 위해 영어 표현을 최소 4개 입력해 주세요."
-    );
-
-
-    return false;
-
-  }
-
-
-  const missingWordMeaning =
-    words.find(
-      item =>
-        !item.korean
-    );
-
-
-  if (
-    missingWordMeaning
-  ) {
-
-    alert(
-      `한국어 뜻이 없습니다:\n${missingWordMeaning.english}`
-    );
-
-
-    return false;
-
-  }
-
-
-  const missingExpressionMeaning =
-    expressions.find(
-      item =>
-        !item.korean
-    );
-
-
-  if (
-    missingExpressionMeaning
-  ) {
-
-    alert(
-      `한국어 뜻이 없습니다:\n${missingExpressionMeaning.english}`
-    );
-
-
-    return false;
-
-  }
-
-
-  return true;
-
+$('save-content').onclick = () => action(async () => {
+  const map = { words: parseEditor('words-editor'), expressions: parseEditor('expressions-editor') };
+  validateMap(currentMap, map);
+  const maps = structuredClone(getAllMapContent());
+  maps[currentMap] = map;
+  status('저장 중…');
+  await persist(maps);
+  status(`${currentMap} ${cloudEnabled ? '교실에 저장 완료' : '이 기기에 저장 완료'}`);
+});
+$('content-upload').onchange = event => action(async () => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  try {
+    if (file.size > 1024 * 1024) throw new Error('학습자료 파일은 1MB 이하로 업로드해 주세요.');
+    const text = await file.text();
+    const maps = /\.csv$/i.test(file.name) ? parseAllMapsCsv(text) : parseAllMapsTxt(text);
+    // Incomplete imports must not replace a working classroom with empty later maps.
+    for (const id of MAP_IDS) validateMap(id, maps[id]);
+    if (!confirm('선택한 교실의 MAP01~MAP12 학습자료를 이 파일로 교체할까요?')) return;
+    status('전체 학습자료 저장 중…');
+    await persist(maps);
+    renderEditor();
+    status(`전체 학습자료 ${cloudEnabled ? '교실에 저장 완료. 학생들은 입장 링크로 불러올 수 있습니다.' : '이 기기에 저장 완료.'}`);
+  } finally { event.target.value = ''; }
+});
+function download(filename, text, type = 'text/csv;charset=utf-8') {
+  const url = URL.createObjectURL(new Blob(['\uFEFF', text], { type }));
+  const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-
-
-/* =====================================================
-   SAVE CURRENT EDITOR
-===================================================== */
-
-function saveCurrentEditor(
-  validate = true
-) {
-
-  const words =
-    parseEditor(
-      wordsEditor
-    );
-
-
-  const expressions =
-    parseEditor(
-      expressionsEditor
-    );
-
-
-  if (
-    validate
-    &&
-    !validateCurrentMap(
-      words,
-      expressions
-    )
-  ) {
-
-    return false;
-
-  }
-
-
-  saveMapContent(
-    currentMap,
-    {
-
-      words,
-
-      expressions
-
-    }
-  );
-
-
-  return true;
-
+function exportMaps() {
+  const maps = structuredClone(getAllMapContent());
+  maps[currentMap] = { words: parseEditor('words-editor'), expressions: parseEditor('expressions-editor') };
+  return maps;
 }
-
-
-/* =====================================================
-   SAVE BUTTON
-===================================================== */
-
-saveButton
-  ?.addEventListener(
-    "click",
-    () => {
-
-      const words =
-        parseEditor(
-          wordsEditor
-        );
-
-
-      const expressions =
-        parseEditor(
-          expressionsEditor
-        );
-
-
-      if (
-        !validateCurrentMap(
-          words,
-          expressions
-        )
-      ) {
-
-        return;
-
-      }
-
-
-      saveMapContent(
-        currentMap,
-        {
-
-          words,
-
-          expressions
-
-        }
-      );
-
-
-      setStatus(
-        `${currentMap} 저장 완료 · 단어 ${words.length}개 · 표현 ${expressions.length}개`
-      );
-
-    }
-  );
-
-
-/* =====================================================
-   IMPORT VALIDATION
-===================================================== */
-
-function countImportedContent(
-  maps
-) {
-
-  let wordTotal =
-    0;
-
-
-  let expressionTotal =
-    0;
-
-
-  let activeMaps =
-    0;
-
-
-  for (
-    const mapId of
-    MAP_IDS
-  ) {
-
-    const words =
-      maps?.[mapId]?.words
-      ??
-      [];
-
-
-    const expressions =
-      maps?.[mapId]?.expressions
-      ??
-      [];
-
-
-    wordTotal +=
-      words.length;
-
-
-    expressionTotal +=
-      expressions.length;
-
-
-    if (
-      words.length > 0
-      ||
-      expressions.length > 0
-    ) {
-
-      activeMaps++;
-
-    }
-
-  }
-
-
-  return {
-
-    wordTotal,
-
-    expressionTotal,
-
-    activeMaps
-
+$('download-csv').onclick = () => action(() => download('wisdom-maze-map01-map12.csv', serializeAllMapsCsv(exportMaps())));
+$('download-txt').onclick = () => action(() => download('wisdom-maze-map01-map12.txt', serializeAllMapsTxt(exportMaps()), 'text/plain;charset=utf-8'));
+$('download-csv-template').onclick = () => {
+  const maps = {};
+  for (const id of MAP_IDS) maps[id] = {
+    words: ['door|문', 'key|열쇠', 'book|책', 'desk|책상'].map(x => { const [english, korean] = x.split('|'); return { english, korean }; }),
+    expressions: ['Open the door.|문을 여세요.', 'Where is the key?|열쇠는 어디에 있나요?', 'Look at the book.|책을 보세요.', 'The key is on the desk.|열쇠는 책상 위에 있습니다.'].map(x => { const [english, korean] = x.split('|'); return { english, korean }; })
   };
-
-}
-
-
-/* =====================================================
-   TXT IMPORT
-===================================================== */
-
-txtUpload
-  ?.addEventListener(
-    "change",
-    async event => {
-
-      const file =
-        event.target
-          .files?.[0];
-
-
-      if (
-        !file
-      ) {
-
-        return;
-
-      }
-
-
-      try {
-
-        const text =
-          await file.text();
-
-
-        const maps =
-          parseAllMapsTxt(
-            text
-          );
-
-
-        const counts =
-          countImportedContent(
-            maps
-          );
-
-
-        if (
-          counts.wordTotal ===
-          0
-          &&
-          counts.expressionTotal ===
-          0
-        ) {
-
-          throw new Error(
-            "TXT에 사용할 수 있는 학습자료가 없습니다."
-          );
-
-        }
-
-
-        const ok =
-          confirm(
-            `TXT 학습자료를 불러옵니다.\n\n`
-            +
-            `맵: ${counts.activeMaps}개\n`
-            +
-            `단어: ${counts.wordTotal}개\n`
-            +
-            `표현: ${counts.expressionTotal}개\n\n`
-            +
-            `현재 저장된 MAP01~MAP12 학습자료를 교체할까요?`
-          );
-
-
-        if (
-          !ok
-        ) {
-
-          return;
-
-        }
-
-
-        saveAllMapContent(
-          maps
-        );
-
-
-        loadCurrentMap();
-
-
-        setStatus(
-          `TXT 불러오기 완료 · ${counts.activeMaps}개 맵 · 단어 ${counts.wordTotal}개 · 표현 ${counts.expressionTotal}개`
-        );
-
-      }
-
-      catch (
-        error
-      ) {
-
-        console.error(
-          "TXT 불러오기 실패:",
-          error
-        );
-
-
-        alert(
-          error?.message
-          ||
-          "TXT 파일을 읽지 못했습니다."
-        );
-
-      }
-
-      finally {
-
-        event.target.value =
-          "";
-
-      }
-
+  download('wisdom-maze-csv-template.csv', serializeAllMapsCsv(maps));
+};
+async function refreshRecords() {
+  if (!getRoom()) throw new Error('먼저 교실을 선택해 주세요.');
+  records = await readRoomRecords(getRoom().id);
+  $('records-body').replaceChildren();
+  for (const record of records) {
+    const row = document.createElement('tr');
+    for (const value of [record.student_name, record.map_id, record.play_time, record.first_try_correct, record.wrong_attempts, record.hints_used, record.completed ? '완료' : '진행 중']) {
+      const cell = document.createElement('td'); cell.textContent = value; row.append(cell);
     }
-  );
-
-
-/* =====================================================
-   TXT EXPORT
-===================================================== */
-
-downloadTxtButton
-  ?.addEventListener(
-    "click",
-    () => {
-
-      /*
-        다운로드 직전 현재 편집 내용도 반영
-      */
-
-      saveCurrentEditor(
-        false
-      );
-
-
-      const maps =
-        getAllMapContent();
-
-
-      const text =
-        serializeAllMapsTxt(
-          maps
-        );
-
-
-      downloadTextFile({
-
-        filename:
-          "wisdom-maze-map01-map12.txt",
-
-        content:
-          text,
-
-        type:
-          "text/plain;charset=utf-8",
-
-        bom:
-          false
-
-      });
-
-
-      setStatus(
-        "MAP01~MAP12 전체 TXT를 다운로드했습니다."
-      );
-
-    }
-  );
-
-
-/* =====================================================
-   CSV IMPORT
-===================================================== */
-
-function setupCsvImport() {
-
-  csvUpload
-    ?.addEventListener(
-      "change",
-      async event => {
-
-        const file =
-          event.target
-            .files?.[0];
-
-
-        if (
-          !file
-        ) {
-
-          return;
-
-        }
-
-
-        try {
-
-          const text =
-            await file.text();
-
-
-          const maps =
-            parseAllMapsCsv(
-              text
-            );
-
-
-          const counts =
-            countImportedContent(
-              maps
-            );
-
-
-          if (
-            counts.wordTotal ===
-            0
-            &&
-            counts.expressionTotal ===
-            0
-          ) {
-
-            throw new Error(
-              "CSV에서 사용할 수 있는 학습자료를 찾지 못했습니다.\n\n열 이름을 확인해 주세요:\nmap,type,english,korean"
-            );
-
-          }
-
-
-          const ok =
-            confirm(
-              `CSV 학습자료를 불러옵니다.\n\n`
-              +
-              `맵: ${counts.activeMaps}개\n`
-              +
-              `단어: ${counts.wordTotal}개\n`
-              +
-              `표현: ${counts.expressionTotal}개\n\n`
-              +
-              `현재 저장된 MAP01~MAP12 학습자료를 교체할까요?`
-            );
-
-
-          if (
-            !ok
-          ) {
-
-            return;
-
-          }
-
-
-          saveAllMapContent(
-            maps
-          );
-
-
-          loadCurrentMap();
-
-
-          setStatus(
-            `CSV 불러오기 완료 · ${counts.activeMaps}개 맵 · 단어 ${counts.wordTotal}개 · 표현 ${counts.expressionTotal}개`
-          );
-
-
-          alert(
-            "CSV 학습자료를 성공적으로 불러왔습니다."
-          );
-
-        }
-
-        catch (
-          error
-        ) {
-
-          console.error(
-            "CSV 불러오기 실패:",
-            error
-          );
-
-
-          alert(
-            error?.message
-            ||
-            "CSV 파일을 읽지 못했습니다."
-          );
-
-        }
-
-        finally {
-
-          event.target.value =
-            "";
-
-        }
-
-      }
-    );
-
+    $('records-body').append(row);
+  }
+  $('records-status').textContent = `최근 ${records.length}개 기록 · 같은 학생의 맵별 최신 상태를 표시합니다 (최대 1,000개). 첫 시도 정답은 재시도 정답을 제외합니다.`;
 }
-
-
-/* =====================================================
-   CSV EXPORT
-===================================================== */
-
-function setupCsvExport() {
-
-  downloadCsvButton
-    ?.addEventListener(
-      "click",
-      () => {
-
-        /*
-          현재 화면에서 수정 중인 내용도
-          CSV에 포함
-        */
-
-        saveCurrentEditor(
-          false
-        );
-
-
-        const maps =
-          getAllMapContent();
-
-
-        const csv =
-          serializeAllMapsCsv(
-            maps
-          );
-
-
-        downloadTextFile({
-
-          filename:
-            "wisdom-maze-map01-map12.csv",
-
-          content:
-            csv,
-
-          type:
-            "text/csv;charset=utf-8",
-
-          bom:
-            true
-
-        });
-
-
-        setStatus(
-          "MAP01~MAP12 전체 CSV를 다운로드했습니다."
-        );
-
-      }
-    );
-
-
-  templateCsvButton
-    ?.addEventListener(
-      "click",
-      () => {
-
-        const csv =
-          serializeCsvTemplate();
-
-
-        downloadTextFile({
-
-          filename:
-            "wisdom-maze-csv-template.csv",
-
-          content:
-            csv,
-
-          type:
-            "text/csv;charset=utf-8",
-
-          bom:
-            true
-
-        });
-
-
-        setStatus(
-          "CSV 입력 템플릿을 다운로드했습니다."
-        );
-
-      }
-    );
-
+$('refresh-records').onclick = () => action(refreshRecords);
+$('download-records').onclick = () => action(async () => {
+  await refreshRecords();
+  const fields = ['student_name', 'map_id', 'play_time', 'questions_shown', 'first_try_correct', 'wrong_attempts', 'hints_used', 'completed', 'updated_at'];
+  const escape = x => {
+    const text = String(x ?? '');
+    // Prevent spreadsheet formula execution when students choose their own names.
+    return `"${(/^[=+@-]/.test(text) ? "'" : '') + text.replaceAll('"', '""')}"`;
+  };
+  download(`records-${getRoom().code}.csv`, [fields, ...records.map(r => fields.map(f => r[f]))].map(row => row.map(escape).join(',')).join('\r\n'));
+});
+window.addEventListener('beforeunload', event => { if (dirty) { event.preventDefault(); event.returnValue = ''; } });
+if (cloudEnabled && hasTeacherSession()) {
+  action(async () => {
+    await refreshRooms();
+    $('admin-login').classList.add('hidden');
+    $('admin-app').classList.remove('hidden');
+  });
 }
-
-
-/* =====================================================
-   DOWNLOAD HELPER
-===================================================== */
-
-function downloadTextFile({
-
-  filename,
-
-  content,
-
-  type,
-
-  bom =
-    false
-
-}) {
-
-  const data =
-    bom
-
-      ? "\uFEFF" +
-        content
-
-      : content;
-
-
-  const blob =
-    new Blob(
-      [
-        data
-      ],
-      {
-        type
-      }
-    );
-
-
-  const url =
-    URL.createObjectURL(
-      blob
-    );
-
-
-  const anchor =
-    document.createElement(
-      "a"
-    );
-
-
-  anchor.href =
-    url;
-
-
-  anchor.download =
-    filename;
-
-
-  document.body
-    .appendChild(
-      anchor
-    );
-
-
-  anchor.click();
-
-
-  anchor.remove();
-
-
-  window.setTimeout(
-    () => {
-
-      URL.revokeObjectURL(
-        url
-      );
-
-    },
-    1000
-  );
-
-}
-
-
-/* =====================================================
-   INITIALIZE
-===================================================== */
-
-function init() {
-
-  buildMapSelect();
-
-  createCsvControls();
-
-  setupCsvImport();
-
-  setupCsvExport();
-
-  loadCurrentMap();
-
-}
-
-
-init();
+renderEditor();

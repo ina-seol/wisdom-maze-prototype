@@ -1,286 +1,84 @@
 <!doctype html>
-
 <html lang="ko">
-
 <head>
-
   <meta charset="UTF-8" />
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  />
-
-  <title>
-    지혜의 미로 탐험대 - 교사용 설정
-  </title>
-
-  <link
-    rel="stylesheet"
-    href="/src/style.css"
-  />
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>지혜의 미로 탐험대 - 교사용 설정</title>
+  <link rel="stylesheet" href="/src/style.css" />
 </head>
-
-
 <body class="admin-body">
-
-
-  <div
-    id="admin-login"
-    class="admin-center"
-  >
-
+  <div id="admin-login" class="admin-center">
     <div class="panel admin-login-panel">
-
-      <h1>
-        교사용 설정
-      </h1>
-
-      <p>
-        교사용 PIN을 입력하세요.
-      </p>
-
-      <input
-        id="teacher-pin"
-        type="password"
-        inputmode="numeric"
-        placeholder="PIN"
-      />
-
-      <button
-        id="teacher-login"
-        class="big-gold"
-        type="button"
-      >
-        접속
-      </button>
-
-      <button
-        id="back-title"
-        class="text-button"
-        type="button"
-      >
-        게임으로 돌아가기
-      </button>
-
+      <h1>교사용 설정</h1>
+      <p id="login-help">교사 계정으로 로그인하세요.</p>
+      <label id="email-label" for="teacher-email">이메일</label>
+      <input id="teacher-email" type="email" autocomplete="username" />
+      <label id="password-label" for="teacher-pin">비밀번호</label>
+      <input id="teacher-pin" type="password" autocomplete="current-password" />
+      <button id="teacher-login" class="big-gold" type="button">로그인</button>
+      <p id="login-status" role="status"></p>
+      <button id="back-title" class="text-button" type="button">게임으로 돌아가기</button>
     </div>
-
   </div>
-
-
-  <div
-    id="admin-app"
-    class="hidden"
-  >
-
+  <div id="admin-app" class="hidden">
     <header class="admin-header">
-
-      <div>
-
-        <h1>
-          학습 데이터 설정
-        </h1>
-
-        <p>
-          MAP01 ~ MAP12
-        </p>
-
-      </div>
-
-
-      <button
-        id="admin-home"
-        class="main-button"
-        type="button"
-      >
-        게임으로 돌아가기
-      </button>
-
+      <div><h1>학습 데이터 설정</h1><p>MAP01 ~ MAP12</p></div>
+      <button id="admin-home" class="main-button" type="button">게임으로 돌아가기</button>
+      <button id="teacher-logout" class="main-button" type="button">로그아웃</button>
     </header>
-
-
     <main class="admin-main">
-
-
-      <section class="panel">
-
-        <h2>
-          편집할 맵
-        </h2>
-
-        <select
-          id="map-select"
-          class="admin-map-select"
-        ></select>
-
+      <section id="classroom-panel" class="panel">
+        <h2>내 교실</h2>
+        <label for="classroom-select">편집할 교실</label>
+        <select id="classroom-select" class="admin-map-select"></select>
+        <label for="classroom-name">새 교실 이름</label>
+        <input id="classroom-name" maxlength="80" placeholder="예: 5학년 1반" />
+        <button id="create-classroom" class="main-button" type="button">교실 생성</button>
+        <p id="classroom-info" role="status"></p>
+        <label for="classroom-link">학생 입장 링크</label>
+        <input id="classroom-link" readonly />
+        <button id="copy-classroom-link" class="main-button" type="button">링크 복사</button>
+        <canvas id="classroom-qr" aria-label="학생 교실 입장 QR 코드" role="img"></canvas>
+        <p>CSV를 한 번 저장하면 학생들이 같은 자료를 불러옵니다. 학생 입장 전 모든 맵에 단어와 표현을 각각 4개 이상 준비해 주세요.</p>
       </section>
-
-
       <section class="panel">
-
-        <h2>
-          전체 TXT 불러오기
-        </h2>
-
-        <p>
-          MAP01 ~ MAP12를 한 파일에서 관리합니다.
-        </p>
-
-        <input
-          id="txt-upload"
-          class="admin-file"
-          type="file"
-          accept=".txt,text/plain"
-        />
-
+        <h2>편집할 맵</h2>
+        <select id="map-select" class="admin-map-select"></select>
       </section>
-
-
+      <section class="panel">
+        <h2>전체 CSV / TXT 불러오기</h2>
+        <p>CSV 열: map,type,english,korean · type: word 또는 expression</p>
+        <input id="content-upload" class="admin-file" type="file" accept=".csv,.txt,text/csv,text/plain" />
+        <button id="download-csv-template" class="main-button" type="button">12개 맵 CSV 양식</button>
+      </section>
       <section class="admin-editor">
-
-
         <div class="panel">
-
-          <h2>
-            단어
-          </h2>
-
-          <p>
-            영어 | 한국어 뜻
-          </p>
-
-          <p>
-            <span id="word-count">
-              0
-            </span>
-            / 20
-          </p>
-
-          <textarea
-            id="words-editor"
-            placeholder="door | 문
-key | 열쇠
-desk | 책상"
-          ></textarea>
-
+          <h2>단어</h2><p>영어 | 한국어 뜻 · <span id="word-count">0</span> / 20</p>
+          <textarea id="words-editor" placeholder="door | 문"></textarea>
         </div>
-
-
         <div class="panel">
-
-          <h2>
-            영어 표현
-          </h2>
-
-          <p>
-            영어 표현 | 한국어 뜻
-          </p>
-
-          <p>
-            <span id="expression-count">
-              0
-            </span>
-            / 20
-          </p>
-
-          <textarea
-            id="expressions-editor"
-            placeholder="Open the door. | 문을 여세요.
-Where is the key? | 열쇠는 어디에 있나요?"
-          ></textarea>
-
+          <h2>영어 표현</h2><p>영어 표현 | 한국어 뜻 · <span id="expression-count">0</span> / 20</p>
+          <textarea id="expressions-editor" placeholder="Open the door. | 문을 여세요."></textarea>
         </div>
-
-
       </section>
-
-
       <section class="panel">
-
-        <h2 id="save-title">
-          MAP01 저장
-        </h2>
-
-        <button
-          id="save-content"
-          class="big-gold"
-          type="button"
-        >
-          현재 맵 저장
-        </button>
-
-        <button
-          id="download-txt"
-          class="main-button"
-          type="button"
-        >
-          MAP01~MAP12 전체 TXT 저장
-        </button>
-
-        <p
-          id="save-status"
-          class="english-preview"
-        ></p>
-
+        <h2 id="save-title">MAP01 저장</h2>
+        <button id="save-content" class="big-gold" type="button">현재 맵 저장</button>
+        <button id="download-csv" class="main-button" type="button">전체 CSV 다운로드</button>
+        <button id="download-txt" class="main-button" type="button">전체 TXT 다운로드</button>
+        <p id="save-status" class="english-preview" role="status" aria-live="polite"></p>
       </section>
-
-
-      <section class="panel">
-
-        <h2>
-          TXT 예시
-        </h2>
-
-        <pre class="english-preview">[MAP01]
-
-[WORDS]
-door | 문
-key | 열쇠
-desk | 책상
-window | 창문
-
-[EXPRESSIONS]
-Open the door. | 문을 여세요.
-Where is the key? | 열쇠는 어디에 있나요?
-
-
-[MAP02]
-
-[WORDS]
-library | 도서관
-shelf | 책장
-magic | 마법
-read | 읽다
-
-[EXPRESSIONS]
-Find the purple book. | 보라색 책을 찾으세요.
-Read the magic book. | 마법 책을 읽으세요.
-
-
-...
-
-[MAP12]
-
-[WORDS]
-...
-
-[EXPRESSIONS]
-...</pre>
-
+      <section id="records-panel" class="panel">
+        <h2>교실 플레이 기록</h2>
+        <button id="refresh-records" class="main-button" type="button">기록 새로고침</button>
+        <button id="download-records" class="main-button" type="button">기록 CSV 다운로드</button>
+        <p id="records-status" role="status"></p>
+        <div class="records-scroll">
+          <table><thead><tr><th>이름</th><th>맵</th><th>시간(초)</th><th>첫 시도 정답</th><th>오답</th><th>힌트</th><th>완료</th></tr></thead><tbody id="records-body"></tbody></table>
+        </div>
       </section>
-
-
     </main>
-
   </div>
-
-
-  <script
-    type="module"
-    src="/src/admin.js"
-  ></script>
-
+  <script type="module" src="/src/admin.js"></script>
 </body>
-
 </html>

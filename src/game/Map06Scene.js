@@ -117,6 +117,13 @@ export default class Map06Scene extends Phaser.Scene {
 
     this.prepareState();
 
+    // Capture map entry and unfinished sessions, as well as quiz save points.
+    this.save();
+    this.time.addEvent({ delay: 15000, loop: true, callback: () => {
+      if (!this.state.completed) this.save();
+    }});
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.save());
+
 
     this.inputLocked =
       true;

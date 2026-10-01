@@ -1,3 +1,5 @@
+import { installQuizKeyboard } from "./quiz-keyboard.js";
+import { cloudEnabled, enterClassroom, resetStudentContext, getRoom } from "./cloud.js";
 import Phaser from "phaser";
 
 import "./style.css";
@@ -31,7 +33,8 @@ import {
   getProfile,
   clearAllProgress,
   getCurrentMap,
-  shuffle
+  shuffle,
+  getMapContent
 } from "./data.js";
 
 
@@ -455,7 +458,22 @@ beginBtn
       }
 
 
+      const code = document.querySelector('#classroom-code').value.trim().toUpperCase();
+      if (code && !cloudEnabled) { alert('아직 Supabase 연결 설정이 완료되지 않았습니다.'); return; }
+      beginBtn.disabled = true;
+      let classroom = {};
+      try {
+        if (code) classroom = await enterClassroom(code, name, { fresh: true });
+        else resetStudentContext();
+        if (code) validateRoomContent();
+      } catch (error) {
+        beginBtn.disabled = false;
+        alert(error.message);
+        return;
+      }
+      beginBtn.disabled = false;
       const profile = {
+        ...classroom,
 
         name,
 
@@ -593,6 +611,18 @@ async function launchGame(
   profile,
   startMapId = "MAP01"
 ) {
+  try {
+    const linkCode = new URLSearchParams(location.search).get('classroom');
+    const code = profile.classroomCode || linkCode;
+    if (linkCode && profile.classroomCode !== linkCode.toUpperCase()) {
+      throw new Error('이 링크의 교실에서 새 모험을 시작해 주세요.');
+    }
+    if (code) {
+      if (!cloudEnabled) throw new Error('Supabase 연결 설정이 필요합니다.');
+      if (!getRoom() || getRoom().code !== code) await enterClassroom(code, profile.name);
+      validateRoomContent();
+    } else resetStudentContext();
+  } catch (error) { alert(error.message); return; }
 
   /*
     이미 게임이 떠 있다면 완전히 종료
@@ -1819,6 +1849,7 @@ window.GameUI = {
           <div class="quiz-header">
             영어 퀴즈
           </div>
+          <p class="quiz-keyboard-help">방향키: 선택 · 스페이스바 / Enter: 확인</p>
 
           <p class="dialogue-text">
             ${escapeHtml(
@@ -2043,7 +2074,7 @@ window.GameUI = {
           </div>
 
           <p class="dialogue-text">
-            단어를 올바른 순서대로 선택하세요.
+            단어를 올바른 순서대로 선택하세요. 방향키로 이동하고 스페이스바 / Enter로 선택할 수 있습니다.
           </p>
 
           <div
@@ -2788,6 +2819,8 @@ function showDialogue(
    GLOBAL ENTER / SPACE CONTROL
 ===================================================== */
 
+installQuizKeyboard(modal, modalBody);
+
 document.addEventListener(
   "keydown",
   event => {
@@ -3023,3 +3056,19 @@ function formatTime(
   );
 
 }
+
+function validateRoomContent() {
+  for (let i = 1; i <= 12; i++) {
+    const id = `MAP${String(i).padStart(2, '0')}`;
+    const content = getMapContent(id);
+    if (content.words.length < 4 || content.expressions.length < 4 ||
+        [...content.words, ...content.expressions].some(x => !x.korean)) {
+      throw new Error(`${id}의 학습자료가 아직 준비되지 않았습니다. 선생님에게 알려 주세요.`);
+    }
+  }
+}
+const classroomInput = document.querySelector('#classroom-code');
+classroomInput.value = new URLSearchParams(location.search).get('classroom') || '';
+window.addEventListener('wisdom-cloud-status', event => {
+  document.querySelector('#cloud-record-status').textContent = event.detail;
+});

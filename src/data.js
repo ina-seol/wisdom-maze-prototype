@@ -1,3 +1,5 @@
+import { getRoom, storageScope, queueProgress } from "./cloud.js";
+
 /* =====================================================
    MAP CONFIG
 ===================================================== */
@@ -554,6 +556,7 @@ function progressKey(
 
   return (
     KEYS.progressPrefix
+    + (getRoom() ? storageScope() + "_" : "")
     +
     safeStudentKey(
       studentName
@@ -572,6 +575,8 @@ function progressKey(
 ===================================================== */
 
 export function getAllMapContent() {
+  if (getRoom()) return normalizeAllMaps(getRoom().maps);
+
 
   try {
 
@@ -623,6 +628,9 @@ export function getAllMapContent() {
 export function saveAllMapContent(
   maps
 ) {
+  // Cloud writes are awaited by the teacher UI before this cache is updated.
+  if (getRoom()) getRoom().maps = normalizeAllMaps(maps);
+
 
   const normalized =
     normalizeAllMaps(
@@ -2170,6 +2178,8 @@ export function saveMapProgress(
   studentName,
   state
 ) {
+  queueProgress(mapId, studentName, state);
+
 
   if (
     !mapId
@@ -2276,6 +2286,9 @@ export function clearAllProgress(
 export function saveRecord(
   record
 ) {
+  const state = loadMapProgress(record.mapId, record.studentName) || {};
+  queueProgress(record.mapId, record.studentName, state, record);
+
 
   let records =
     [];
@@ -2399,15 +2412,7 @@ export function getRecords() {
 ===================================================== */
 
 export function getTeacherPin() {
-
-  return (
-    localStorage.getItem(
-      KEYS.pin
-    )
-    ||
-    "1234"
-  );
-
+  return localStorage.getItem(KEYS.pin) || "1234";
 }
 
 

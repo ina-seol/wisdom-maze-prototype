@@ -1741,3 +1741,15 @@ button:disabled {
   }
 
 }
+
+/* Classroom sharing and teacher records */
+#classroom-panel input { display: block; width: 100%; box-sizing: border-box; margin: 8px 0 12px; padding: 12px; }
+#classroom-qr { display: block; margin-top: 16px; max-width: 100%; }
+#classroom-qr[hidden] { display: none; }
+#cloud-record-status { margin: 4px 16px; min-height: 1.4em; font-size: 13px; text-align: center; }
+.records-scroll { overflow-x: auto; }
+#records-panel table { width: 100%; border-collapse: collapse; }
+#records-panel th, #records-panel td { padding: 10px; text-align: left; border-bottom: 1px solid #64748b; white-space: nowrap; }
+
+.quiz-option:focus-visible, .token:focus-visible, #sentence-reset:focus-visible, #sentence-submit:focus-visible { outline: 3px solid #f7d783; outline-offset: 3px; }
+.quiz-keyboard-help { text-align: center; font-size: 13px; color: #b9c9e5; }
