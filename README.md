@@ -6,13 +6,13 @@ Vite + Phaser 게임입니다. GitHub Pages는 게임 파일을 배포하고, Su
 
 1. https://supabase.com/dashboard 에서 새 프로젝트를 만듭니다. 가까운 지역을 선택합니다.
 2. SQL Editor에서 `supabase/schema.sql` 전체를 실행합니다. 신규 프로젝트용 스크립트이므로 이미 설치한 경우 다시 실행하지 않습니다.
-3. Authentication → Users → Add user에서 교사 이메일과 비밀번호를 등록하고 이메일을 확인 처리합니다. 공개 회원가입은 꺼 두세요. 교사 계정은 대시보드에서 추가합니다.
+3. Authentication → Sign In / Providers에서 **Allow new users to sign up**을 켭니다. 같은 화면의 **Email** 설정에서 **Confirm email**을 끄고 저장합니다. 이 설정은 이름으로 가입하는 방식을 사용하기 위해 최초 한 번 필요합니다. Email 로그인 제공자는 켜 둡니다.
 4. 프로젝트 설정에서 Project URL과 **publishable key**를 복사합니다. 기존 프로젝트의 `anon` 키도 지원합니다. **secret / service_role 키는 사용하지 않습니다.**
 5. GitHub 저장소 Settings → Secrets and variables → Actions → **Variables**에 아래 두 항목을 등록합니다.
    - `VITE_SUPABASE_URL`: `https://프로젝트ID.supabase.co`
    - `VITE_SUPABASE_PUBLISHABLE_KEY`: 공개 publishable key 또는 기존 anon 키
 6. GitHub Actions에서 `Deploy Vite to GitHub Pages`를 다시 실행합니다. 최초 설정 이후 일반 코드 배포 시 별도 CSV 업로드가 필요 없습니다.
-7. 교사용 설정에서 이메일·비밀번호 로그인 → 교실 이름 입력 → 교실 생성 → CSV 업로드합니다. 생성된 입장 링크나 QR을 학생에게 공유합니다.
+7. 교사용 설정에서 이름·비밀번호를 입력하고 **교사 계정 만들기**를 누릅니다. 이후에는 같은 이름·비밀번호로 로그인합니다. 교실 이름 입력 → 교실 생성 → CSV 업로드 후 **학생 입장 QR 크게 보기** 버튼으로 교실 QR을 띄웁니다.
 
 설정이 없으면 기존 개인 연습 모드와 PIN(기본 1234)을 사용할 수 있습니다. 이 PIN은 로컬 편집용이며 Supabase 접근 권한을 주지 않습니다. 교사 인증 토큰은 탭의 sessionStorage에 보관합니다.
 
@@ -50,7 +50,7 @@ npm test
 npm run build
 ```
 
-RLS와 RPC 권한은 `supabase/security-check.sql`로 새 테스트 프로젝트에서 검증할 수 있습니다. 실제 서버에 연결한 뒤 교사 로그인 → 교실 생성 → CSV 저장 → 학생 링크 입장 → 정답/오답/힌트 사용 → 기록 조회 → 네트워크 차단/재연결을 확인하세요.
+RLS와 RPC 권한은 `supabase/security-check.sql`로 새 테스트 프로젝트에서 검증할 수 있습니다. 실제 서버에 연결한 뒤 이름으로 교사 가입·로그인 → 교실 생성 → CSV 저장 → 학생 링크 입장 → 정답/오답/힌트 사용 → 기록 조회 → 네트워크 차단/재연결을 확인하세요.
 
 `src/cloud.js`는 Supabase REST·인증·재전송을, `src/data.js`는 맵 데이터와 로컬 캐시를, `src/admin.js`는 교사 화면을 담당합니다. `src/game/Map01Scene.js`~`Map12Scene.js`의 기존 게임 동작을 유지합니다.
 
@@ -59,3 +59,11 @@ RLS와 RPC 권한은 `supabase/security-check.sql`로 새 테스트 프로젝트
 객관식은 방향키로 선택지를 이동하고 스페이스바 또는 Enter로 제출합니다. 아직 선택지가 없으면 첫 방향키 입력으로 첫 선택지를 고릅니다. 문장 만들기는 방향키로 단어와 다시 선택·확인 버튼 사이를 이동하고 스페이스바 또는 Enter로 누릅니다. 단어를 고르면 다음 단어로, 모든 단어를 고르면 확인 버튼으로 초점이 이동합니다. 마우스·터치도 함께 사용할 수 있습니다.
 
 교사용 실제 로그인 비밀번호는 Supabase Authentication에서 설정·변경합니다. 공개 저장소에는 비밀번호를 기록하지 않습니다.
+
+## 이름으로 교사 가입·로그인
+
+교사는 이메일을 입력하거나 이메일 인증을 할 필요 없이 이름과 비밀번호(8자 이상)만 입력합니다. 이름은 공백 정리·유니코드 정규화·영문 소문자화를 거쳐 고유 로그인 ID로 사용합니다. 다른 교사와 이름이 겹치면 학교명 등을 붙여 다른 이름을 사용하세요. 이름 변경은 다른 로그인 ID가 되므로 같은 이름으로 로그인해야 합니다.
+
+내부적으로 Supabase Auth를 그대로 사용하며 이름의 SHA-256 해시를 메일을 받지 않는 내부 이메일 형식의 식별자로 변환합니다. 비밀번호는 Auth에만 전달되고 브라우저 저장소나 저장소 코드에는 보관하지 않습니다. 기존 이메일 계정은 이름 칸에 기존 이메일을 입력해서 로그인할 수도 있습니다. 비밀번호 복구 이메일은 지원하지 않으며 프로젝트 관리자가 Authentication → Users에서 관리합니다.
+
+기존 SQL 설치를 다시 실행할 필요는 없습니다. 교실 및 학생 기록의 소유자별 RLS 정책은 그대로 적용됩니다. 큰 QR 창에는 교실 이름·교실 코드·학생 입장 QR이 표시되며 닫기 버튼이나 Esc로 닫을 수 있습니다.

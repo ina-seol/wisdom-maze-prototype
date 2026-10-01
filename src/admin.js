@@ -6,7 +6,7 @@ import {
   serializeAllMapsCsv, serializeAllMapsTxt
 } from './data.js';
 import {
-  cloudEnabled, signIn, signOut, hasTeacherSession, listRooms, createRoom,
+  cloudEnabled, signIn, signUpTeacher, signOut, hasTeacherSession, listRooms, createRoom,
   updateRoom, readRoomRecords, getRoom, setRoom
 } from './cloud.js';
 
@@ -27,9 +27,11 @@ for (const id of MAP_IDS) {
 }
 if (!cloudEnabled) {
   $('login-help').textContent = '개인 연습 모드입니다. Supabase 설정 후 교실 저장을 사용할 수 있습니다. PIN 기본값: 1234';
-  $('teacher-email').hidden = true;
-  $('email-label').hidden = true;
+  $('teacher-name').hidden = true;
+  $('name-label').hidden = true;
   $('password-label').textContent = '교사용 PIN';
+  $('teacher-signup').hidden = true;
+  document.querySelector('.teacher-account-help').hidden = true;
   $('classroom-panel').hidden = true;
   $('records-panel').hidden = true;
 }
@@ -45,26 +47,45 @@ async function action(fn) {
   finally {
     controls.forEach((x, i) => { x.disabled = disabled[i]; });
     busy = false;
+    $('show-classroom-qr').disabled = !getRoom();
   }
 }
-async function login() {
+let authenticating = false;
+async function login(createAccount = false) {
+  if (authenticating) return;
+  authenticating = true;
   $('teacher-login').disabled = true;
+  $('teacher-signup').disabled = true;
+  $('login-status').textContent = createAccount ? '교사 계정 만드는 중…' : '로그인 중…';
+  let accountCreated = false;
   try {
     if (cloudEnabled) {
-      await signIn($('teacher-email').value.trim(), $('teacher-pin').value);
+      const name = $('teacher-name').value.trim();
+      const password = $('teacher-pin').value;
+      if (createAccount) { await signUpTeacher(name, password); accountCreated = true; }
+      else await signIn(name, password);
+      $('teacher-pin').value = '';
       await refreshRooms();
     } else if ($('teacher-pin').value !== getTeacherPin()) {
       throw new Error('PIN이 올바르지 않습니다.');
     }
     $('teacher-pin').value = '';
+    $('login-status').textContent = '';
     $('admin-login').classList.add('hidden');
     $('admin-app').classList.remove('hidden');
     renderEditor();
-  } catch (error) { $('login-status').textContent = error.message; }
-  finally { $('teacher-login').disabled = false; }
+    if (createAccount) status('교사 계정을 만들었습니다. 이제 교실을 만들어 주세요.');
+  } catch (error) {
+    $('login-status').textContent = (accountCreated ? '계정은 만들어졌습니다. 다시 만들지 말고 로그인해 주세요. 교실 조회 오류: ' : '') + error.message;
+  } finally {
+    $('teacher-login').disabled = false;
+    $('teacher-signup').disabled = false;
+    authenticating = false;
+  }
 }
-$('teacher-login').onclick = login;
-$('teacher-pin').onkeydown = e => { if (e.key === 'Enter') login(); };
+$('teacher-login').onclick = () => login(false);
+$('teacher-signup').onclick = () => login(true);
+for (const id of ['teacher-name', 'teacher-pin']) $(id).onkeydown = e => { if (e.key === 'Enter') login(false); };
 $('teacher-logout').onclick = () => action(async () => {
   if (dirty && !confirm('저장하지 않은 편집 내용이 있습니다. 로그아웃할까요?')) return;
   if (cloudEnabled) await signOut();
@@ -93,6 +114,8 @@ async function selectRoom(room) {
   if (room) url.searchParams.set('classroom', room.code);
   $('classroom-link').value = room ? url.href : '';
   $('classroom-qr').hidden = !room;
+  $('show-classroom-qr').disabled = !room;
+  if ($('classroom-qr-dialog').open) $('classroom-qr-dialog').close();
   if (room) await QRCode.toCanvas($('classroom-qr'), url.href, { width: 220, margin: 2 });
   dirty = false;
   records = [];
@@ -243,3 +266,15 @@ if (cloudEnabled && hasTeacherSession()) {
   });
 }
 renderEditor();
+
+$('show-classroom-qr').onclick = () => action(async () => {
+  const room = getRoom();
+  if (!room) throw new Error('먼저 교실을 선택하거나 만들어 주세요.');
+  $('qr-dialog-room').textContent = room.name;
+  $('qr-dialog-code').textContent = `교실 코드: ${room.code}`;
+  await QRCode.toCanvas($('classroom-qr-large'), $('classroom-link').value, { width: 640, margin: 4, errorCorrectionLevel: 'M' });
+  $('classroom-qr-dialog').showModal();
+  $('close-classroom-qr').focus();
+});
+$('close-classroom-qr').onclick = () => $('classroom-qr-dialog').close();
+$('classroom-qr-dialog').addEventListener('close', () => $('show-classroom-qr').focus());

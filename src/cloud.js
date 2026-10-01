@@ -53,10 +53,45 @@ async function request(path, { method = 'GET', body, teacher = false, headers = 
   } finally { clearTimeout(timeout); }
 }
 export const rpc = (name, body) => request(`/rest/v1/rpc/${name}`, { method: 'POST', body });
-export async function signIn(email, password) {
-  session = await request('/auth/v1/token?grant_type=password', { method: 'POST', body: { email, password } });
+function rememberSession(value) {
+  if (!value?.access_token || !value?.user?.id) throw new Error('로그인 정보를 받지 못했습니다. 다시 시도해 주세요.');
+  session = value;
   session.expires_at = session.expires_at || Math.floor(Date.now() / 1000) + session.expires_in;
   sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+}
+export async function teacherLoginId(name) {
+  const normalized = String(name || '').normalize('NFKC').trim().replace(/\s+/g, ' ').toLowerCase();
+  if (!normalized || normalized.length > 40) throw new Error('교사 이름을 1~40자로 입력해 주세요.');
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(normalized));
+  const hex = [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
+  // Internal Auth identifier only. No mailbox or email delivery is used.
+  return `${hex}@teachers.wisdom-maze.invalid`;
+}
+export async function signIn(name, password) {
+  if (!password) throw new Error('비밀번호를 입력해 주세요.');
+  const email = name.includes('@') ? name.trim() : await teacherLoginId(name);
+  try {
+    rememberSession(await request('/auth/v1/token?grant_type=password', { method: 'POST', body: { email, password } }));
+  } catch (error) {
+    if (/invalid login credentials/i.test(error.message)) throw new Error('이름 또는 비밀번호가 올바르지 않습니다. 처음 이용한다면 교사 계정을 만들어 주세요.');
+    throw error;
+  }
+}
+export async function signUpTeacher(name, password) {
+  if (String(name).includes('@')) throw new Error('이메일 대신 사용할 교사 이름을 입력해 주세요.');
+  const email = await teacherLoginId(name);
+  if (password.length < 8) throw new Error('비밀번호는 8자 이상 입력해 주세요.');
+  // Preflight prevents creating an unusable account when email confirmation is still enabled.
+  const settings = await request('/auth/v1/settings');
+  if (settings.disable_signup) throw new Error('가입이 꺼져 있습니다. Supabase → Authentication → Sign In / Providers에서 Allow new users to sign up을 켜 주세요.');
+  if (!settings.mailer_autoconfirm) throw new Error('이름 가입을 사용하려면 Supabase → Authentication → Sign In / Providers → Email에서 Confirm email을 꺼 주세요. 최초 한 번만 설정하면 됩니다.');
+  try {
+    const result = await request('/auth/v1/signup', { method: 'POST', body: { email, password, data: { teacher_name: String(name).normalize('NFKC').trim() } } });
+    rememberSession(result);
+  } catch (error) {
+    if (/already registered|already exists/i.test(error.message)) throw new Error('이미 사용 중인 이름입니다. 로그인하거나 다른 교사 이름을 입력해 주세요.');
+    throw error;
+  }
 }
 export async function signOut() {
   try { if (session) await request('/auth/v1/logout', { method: 'POST', teacher: true }); }

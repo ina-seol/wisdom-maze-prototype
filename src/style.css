@@ -1753,3 +1753,14 @@ button:disabled {
 
 .quiz-option:focus-visible, .token:focus-visible, #sentence-reset:focus-visible, #sentence-submit:focus-visible { outline: 3px solid #f7d783; outline-offset: 3px; }
 .quiz-keyboard-help { text-align: center; font-size: 13px; color: #b9c9e5; }
+
+#teacher-signup { display: block; width: 100%; margin-top: 12px; }
+.teacher-account-help { font-size: 13px; line-height: 1.6; }
+#classroom-qr-dialog { width: min(94vw, 1000px); max-height: 94dvh; box-sizing: border-box; padding: 24px; border: 0; border-radius: 20px; background: #fff; color: #12213a; }
+#classroom-qr-dialog::backdrop { background: rgba(0, 0, 0, .88); }
+.qr-dialog-content { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.qr-dialog-content h2, .qr-dialog-content p { margin: 0; }
+#close-classroom-qr { align-self: flex-end; }
+#classroom-qr-large { width: min(70vh, 75vw, 640px); height: auto; max-width: 100%; }
+#qr-dialog-code { font-size: clamp(22px, 4vw, 42px); font-weight: 900; }
+#qr-dialog-room { font-size: 24px; font-weight: 700; }

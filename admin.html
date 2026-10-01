@@ -10,12 +10,14 @@
   <div id="admin-login" class="admin-center">
     <div class="panel admin-login-panel">
       <h1>교사용 설정</h1>
-      <p id="login-help">교사 계정으로 로그인하세요.</p>
-      <label id="email-label" for="teacher-email">이메일</label>
-      <input id="teacher-email" type="email" autocomplete="username" />
+      <p id="login-help">이름과 비밀번호로 로그인하세요. 처음 이용하면 계정을 만들어 주세요.</p>
+      <label id="name-label" for="teacher-name">교사 이름</label>
+      <input id="teacher-name" type="text" maxlength="40" autocomplete="username" placeholder="예: 한나_종촌" />
       <label id="password-label" for="teacher-pin">비밀번호</label>
       <input id="teacher-pin" type="password" autocomplete="current-password" />
       <button id="teacher-login" class="big-gold" type="button">로그인</button>
+      <button id="teacher-signup" class="main-button" type="button">교사 계정 만들기</button>
+      <p class="teacher-account-help">가입할 이름과 비밀번호(8자 이상)를 위에 입력한 뒤 계정 만들기를 누르세요. 이름은 다른 교사와 겹치지 않게 정해 주세요.</p>
       <p id="login-status" role="status"></p>
       <button id="back-title" class="text-button" type="button">게임으로 돌아가기</button>
     </div>
@@ -38,6 +40,7 @@
         <label for="classroom-link">학생 입장 링크</label>
         <input id="classroom-link" readonly />
         <button id="copy-classroom-link" class="main-button" type="button">링크 복사</button>
+        <button id="show-classroom-qr" class="big-gold" type="button" disabled>학생 입장 QR 크게 보기</button>
         <canvas id="classroom-qr" aria-label="학생 교실 입장 QR 코드" role="img"></canvas>
         <p>CSV를 한 번 저장하면 학생들이 같은 자료를 불러옵니다. 학생 입장 전 모든 맵에 단어와 표현을 각각 4개 이상 준비해 주세요.</p>
       </section>
@@ -79,6 +82,16 @@
       </section>
     </main>
   </div>
+  <dialog id="classroom-qr-dialog" aria-labelledby="qr-dialog-title">
+    <section class="qr-dialog-content">
+      <button id="close-classroom-qr" class="main-button" type="button">닫기</button>
+      <h2 id="qr-dialog-title">QR을 찍고 교실에 입장하세요</h2>
+      <p id="qr-dialog-room"></p>
+      <canvas id="classroom-qr-large" role="img" aria-label="학생 입장 QR 코드"></canvas>
+      <p id="qr-dialog-code"></p>
+      <p>카메라로 QR을 찍어 접속한 뒤 이름을 입력하세요.</p>
+    </section>
+  </dialog>
   <script type="module" src="/src/admin.js"></script>
 </body>
 </html>

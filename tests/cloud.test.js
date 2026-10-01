@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { SourceTextModule, createContext } from 'node:vm';
+import { webcrypto } from 'node:crypto';
 function storage() {
   const data = new Map();
   return { getItem: k => data.get(k) ?? null, setItem: (k,v) => data.set(k,String(v)), removeItem: k => data.delete(k) };
@@ -12,7 +13,7 @@ async function loadCloud(fetch) {
   const context = createContext({
     localStorage, sessionStorage: storage(), fetch,
     setTimeout: fn => { timers.set(++serial,fn); return serial; }, clearTimeout: id => timers.delete(id),
-    AbortController, structuredClone, Date, JSON, console,
+    AbortController, structuredClone, Date, JSON, console, crypto: webcrypto, TextEncoder,
     CustomEvent: class { constructor(type, data) { this.type = type; this.detail = data.detail; } },
     window: { addEventListener() {}, dispatchEvent() {} },
     document: { addEventListener() {}, visibilityState: 'visible' }
@@ -73,4 +74,36 @@ test('CSV handles quoted commas/newlines and room content wins over old device c
   d.saveMapProgress('MAP01', '학생', { completed: true });
   cloud.setRoom({ code: 'DEF456', maps: {} });
   assert.equal(d.loadMapProgress('MAP01', '학생'), null);
+});
+
+test('teacher names map consistently; signup signs in without an email field', async () => {
+  const calls = [];
+  const { cloud } = await loadCloud(async (url, options) => {
+    calls.push({ url, body: options.body && JSON.parse(options.body) });
+    if (url.includes('/settings')) return ok({ disable_signup: false, mailer_autoconfirm: true });
+    return ok({ access_token: 'test-access', refresh_token: 'test-refresh', expires_in: 3600, user: { id: 'teacher-1' } });
+  });
+  const id = await cloud.teacherLoginId('  한나＿Ａ  ');
+  assert.equal(id, await cloud.teacherLoginId('한나_a'));
+  assert.match(id, /^[a-f0-9]{64}@teachers\.wisdom-maze\.invalid$/);
+  assert.notEqual(id, await cloud.teacherLoginId('다른 교사'));
+  await cloud.signUpTeacher('한나_a', 'test-password');
+  assert(cloud.hasTeacherSession());
+  await cloud.signIn('한나_a', 'test-password');
+  const signup = calls.find(c => c.url.includes('/signup'));
+  const login = calls.find(c => c.url.includes('grant_type=password'));
+  assert.equal(signup.body.email, login.body.email);
+  assert.equal(signup.body.data.teacher_name, '한나_a');
+});
+test('signup configuration errors are shown before creating an account', async () => {
+  for (const settings of [ { disable_signup: true, mailer_autoconfirm: true }, { disable_signup: false, mailer_autoconfirm: false } ]) {
+    let writes = 0;
+    const { cloud } = await loadCloud(async (url, options) => {
+      if (options.method === 'POST') writes++;
+      return ok(settings);
+    });
+    await assert.rejects(cloud.signUpTeacher('교사', 'test-password'), /Supabase/);
+    assert.equal(writes, 0);
+    assert.equal(cloud.hasTeacherSession(), false);
+  }
 });
