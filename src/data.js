@@ -1,3 +1,4 @@
+import { MAX_CONTENT_ITEMS } from "./content-validation.js";
 import { getRoom, storageScope, queueProgress } from "./cloud.js";
 
 /* =====================================================
@@ -433,7 +434,7 @@ function normalizeMapData(
           )
           .slice(
             0,
-            20
+            MAX_CONTENT_ITEMS
           )
 
       : [];
@@ -454,7 +455,7 @@ function normalizeMapData(
           )
           .slice(
             0,
-            20
+            MAX_CONTENT_ITEMS
           )
 
       : [];
@@ -464,7 +465,9 @@ function normalizeMapData(
 
     words,
 
-    expressions
+    expressions,
+    ...(data?.mode ? { mode: data.mode } : {}),
+    ...(data?.lessonTitle ? { lessonTitle: String(data.lessonTitle).slice(0, 80) } : {})
 
   };
 
@@ -901,7 +904,7 @@ export function parseAllMapsTxt(
       result[currentMap][currentSection]
         .length
       >=
-      20
+      MAX_CONTENT_ITEMS
     ) {
 
       continue;
@@ -1330,11 +1333,9 @@ export function parseAllMapsCsv(
       result[mapId][section]
         .length
       >=
-      20
+      MAX_CONTENT_ITEMS
     ) {
-
-      continue;
-
+      throw new Error(`${mapId}: 단어와 표현은 각각 ${MAX_CONTENT_ITEMS}개까지 저장할 수 있습니다.`);
     }
 
 

@@ -1,3 +1,5 @@
+import { validateMapContent } from "./content-validation.js";
+import { mountPhonicsControls } from "./phonics.js";
 import { answerFeedback, bindSoundToggle } from "./feedback.js";
 import { installQuizKeyboard } from "./quiz-keyboard.js";
 import { cloudEnabled, enterClassroom, resetStudentContext, getRoom } from "./cloud.js";
@@ -1576,12 +1578,9 @@ window.QuizEngine = {
     used = []
   ) {
 
-    return pickUnused(
-      usablePairs(
-        expressions
-      ),
-      used
-    );
+    const pairs = usablePairs(expressions);
+    const sentences = pairs.filter(item => item.english.trim().split(/\s+/).length > 1);
+    return pickUnused(sentences.length ? sentences : pairs, used);
 
   },
 
@@ -1832,7 +1831,8 @@ window.GameUI = {
   async choice(
     question,
     options,
-    correctIndex
+    correctIndex,
+    phonicsQuiz = null
   ) {
 
     return new Promise(
@@ -1903,6 +1903,11 @@ window.GameUI = {
 
         }
 
+
+        if (phonicsQuiz) {
+          modalBody.querySelector('.quiz-header').textContent = '3학년 1단원 · 알파벳 퀴즈';
+          mountPhonicsControls(modalBody, phonicsQuiz);
+        }
 
         options.forEach(
           (
@@ -1994,6 +1999,7 @@ window.GameUI = {
 
             modalBody.querySelectorAll("button").forEach(button => { button.disabled = true; });
             await answerFeedback(correct, modalBody);
+            if (phonicsQuiz) globalThis.speechSynthesis?.cancel();
             closeModal();
 
 
@@ -2830,6 +2836,7 @@ bindSoundToggle(document.getElementById("sfx-toggle"));
 document.addEventListener(
   "keydown",
   event => {
+    if (event.target?.closest?.('.phonics-controls')) return;
 
     if (
       event.repeat
@@ -3067,11 +3074,8 @@ function formatTime(
 function validateRoomContent() {
   for (let i = 1; i <= 12; i++) {
     const id = `MAP${String(i).padStart(2, '0')}`;
-    const content = getMapContent(id);
-    if (content.words.length < 4 || content.expressions.length < 4 ||
-        [...content.words, ...content.expressions].some(x => !x.korean)) {
-      throw new Error(`${id}의 학습자료가 아직 준비되지 않았습니다. 선생님에게 알려 주세요.`);
-    }
+    try { validateMapContent(id, getMapContent(id)); }
+    catch { throw new Error(`${id}의 학습자료가 아직 준비되지 않았습니다. 선생님에게 알려 주세요.`); }
   }
 }
 const classroomInput = document.querySelector('#classroom-code');

@@ -3,6 +3,7 @@ export function installQuizKeyboard(modal, root) {
   const handler = event => {
     if (!modal || modal.classList.contains('hidden')) return;
     if (event.target?.matches?.('input, textarea, [contenteditable="true"]')) return;
+    if (event.target?.closest?.('.phonics-controls')) return;
     const choices = [...root.querySelectorAll('.quiz-option')];
     const tokens = root.querySelector('#sentence-tokens');
     if (!choices.length && !tokens) return;

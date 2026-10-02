@@ -1,3 +1,5 @@
+import { validateAllMaps } from "./content-validation.js";
+import { TEXTBOOK_PRESETS, getTextbookPreset } from "./textbook-presets.js";
 import './style.css';
 import QRCode from 'qrcode';
 import { MAP_IDS, getTeacherPin, getAllMapContent, saveAllMapContent, parseAllMapsCsv, serializeAllMapsCsv } from './data.js';
@@ -12,6 +14,7 @@ $('admin-home').onclick = home;
 function controls() {
   for (const element of document.querySelectorAll('#admin-app button, #admin-app input, #admin-app select')) element.disabled = busy;
   for (const id of ['show-classroom-qr', 'copy-classroom-link', 'refresh-records', 'open-delete-classroom']) $(id).disabled = busy || !getRoom();
+  for (const button of document.querySelectorAll('[data-textbook-grade]')) button.disabled = busy || (cloudEnabled && !getRoom()) || !TEXTBOOK_PRESETS.find(preset => preset.grade === Number(button.dataset.textbookGrade))?.available;
   $('content-upload').disabled = busy || (cloudEnabled && !getRoom());
   document.querySelector('.csv-upload-zone').classList.toggle('upload-disabled', $('content-upload').disabled);
 }
@@ -23,7 +26,7 @@ async function action(fn) {
 }
 function renderContent() {
   const maps = cloudEnabled ? getRoom()?.maps : getAllMapContent();
-  const ready = MAP_IDS.filter(id => maps?.[id]?.words?.length >= 4 && maps?.[id]?.expressions?.length >= 4).length;
+  const ready = MAP_IDS.filter(id => maps?.[id]?.words?.length >= 4 && (maps?.[id]?.expressions?.length >= 4 || (id === 'MAP01' && maps?.[id]?.mode === 'phonics'))).length;
   $('content-summary').textContent = !maps ? '학급을 선택해 주세요.' : ready ? `${ready}/12개 맵 준비 완료 · 저장된 자료를 학생들이 자동으로 불러옵니다.` : '아직 학습자료가 없어요. CSV를 올리면 자동으로 저장됩니다.';
 }
 function renderRanking() {
@@ -114,13 +117,23 @@ $('create-classroom').onclick = () => action(async () => {
   $('classroom-name').value = ''; $('create-classroom-form').open = false;
   status('학급을 만들었습니다. CSV 파일을 올려 주세요.');
 });
-function validateMaps(maps) {
-  for (const id of MAP_IDS) for (const section of ['words', 'expressions']) {
-    const items = maps[id]?.[section];
-    if (!items || items.length < 4 || items.length > 20) throw new Error(`${id}: 단어와 표현을 각각 4~20개 넣어 주세요.`);
-    if (items.some(item => !item.english || !item.korean)) throw new Error(`${id}: 영어와 한국어 뜻이 모두 필요합니다.`);
-    if (new Set(items.map(item => item.english.toLowerCase())).size !== items.length) throw new Error(`${id}: 중복된 영어 항목을 확인해 주세요.`);
+async function persistMaps(maps) {
+  validateAllMaps(maps);
+  if (cloudEnabled) {
+    const saved = await updateRoom(getRoom().id, maps); setRoom(saved); rooms = rooms.map(room => room.id === saved.id ? saved : room);
   }
+  saveAllMapContent(maps); renderContent();
+}
+for (const button of document.querySelectorAll('[data-textbook-grade]')) {
+  button.onclick = () => action(async () => {
+    if (cloudEnabled && !getRoom()) throw new Error('먼저 학급을 만들어 주세요.');
+    const preset = TEXTBOOK_PRESETS.find(item => item.grade === Number(button.dataset.textbookGrade));
+    if (!preset?.available) return;
+    if (MAP_IDS.some(id => getRoom()?.maps?.[id]?.words?.length) && !confirm(`현재 학급의 학습자료를 ${preset.label} 세트로 교체할까요?`)) return;
+    status(`${preset.label} 저장 중…`);
+    await persistMaps(getTextbookPreset(preset.grade));
+    status(`${preset.label} · 12개 맵 저장 완료! ${preset.grade === 3 ? '1단원은 알파벳 학습입니다. ' : ''} 학생들은 기존 QR로 입장하면 됩니다.`);
+  });
 }
 $('content-upload').onchange = event => action(async () => {
   const file = event.target.files?.[0]; if (!file) return;
@@ -128,13 +141,10 @@ $('content-upload').onchange = event => action(async () => {
     if (cloudEnabled && !getRoom()) throw new Error('먼저 학급을 만들어 주세요.');
     if (!/\.csv$/i.test(file.name)) throw new Error('CSV 파일을 선택해 주세요.');
     if (file.size > 1024 * 1024) throw new Error('1MB 이하 파일을 올려 주세요.');
-    const maps = parseAllMapsCsv(await file.text()); validateMaps(maps);
+    const maps = parseAllMapsCsv(await file.text()); validateAllMaps(maps);
     if (MAP_IDS.some(id => getRoom()?.maps?.[id]?.words?.length) && !confirm('현재 학급의 학습자료를 이 CSV로 교체할까요?')) return;
     status('CSV 저장 중…');
-    if (cloudEnabled) {
-      const saved = await updateRoom(getRoom().id, maps); setRoom(saved); rooms = rooms.map(room => room.id === saved.id ? saved : room);
-    }
-    saveAllMapContent(maps); renderContent();
+    await persistMaps(maps);
     status('12개 맵 저장 완료! 학생들은 QR로 입장하면 됩니다.');
   } finally { event.target.value = ''; }
 });

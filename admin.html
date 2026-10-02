@@ -49,6 +49,17 @@
           <label class="csv-upload-zone" for="content-upload"><span class="upload-symbol" aria-hidden="true">↑</span><strong>CSV 파일 선택</strong><span>MAP01~12 자료를 한 번에 저장</span></label>
           <input id="content-upload" class="visually-hidden" type="file" accept=".csv,text/csv" />
           <button id="download-csv-template" class="text-button" type="button">CSV 양식 다운로드</button>
+          <div class="textbook-presets">
+            <h3>교과서 세트 바로 사용</h3>
+            <p>CSV 없이 선택한 학급에 12개 단원을 저장합니다.</p>
+            <div class="textbook-buttons">
+              <button type="button" data-textbook-grade="3">천재(함)-3학년</button>
+              <button type="button" data-textbook-grade="4">천재(함)-4학년</button>
+              <button type="button" data-textbook-grade="5">천재(함)-5학년</button>
+              <button type="button" data-textbook-grade="6">천재(함)-6학년</button>
+            </div>
+            <p class="preset-note">3학년 1단원은 알파벳 듣기·대소문자 학습입니다. 일부 문형은 제공된 단어로 예문을 확장했습니다.</p>
+          </div>
           <p id="save-status" role="status" aria-live="polite"></p>
         </section>
         <section class="dashboard-card">

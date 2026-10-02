@@ -63,11 +63,19 @@ test('CSV handles quoted commas/newlines and room content wins over old device c
   const link = new SyntheticModule(['getRoom', 'storageScope', 'queueProgress'], function () {
     for (const key of ['getRoom', 'storageScope', 'queueProgress']) this.setExport(key, cloud[key]);
   }, { context });
-  await data.link(() => link); await data.evaluate();
+  const validation = new SourceTextModule(await readFile(new URL('../src/content-validation.js', import.meta.url), 'utf8'), { context });
+  await validation.link(() => {}); await validation.evaluate();
+  await data.link(specifier => specifier === './content-validation.js' ? validation : link); await data.evaluate();
   const d = data.namespace;
   const parsed = d.parseAllMapsCsv('\uFEFFmap,type,english,korean\nMAP01,word,"hello, friend",친구\nMAP12,expression,"Line one\nline two",줄');
   assert.equal(parsed.MAP01.words[0].english, 'hello, friend');
   assert.equal(parsed.MAP12.expressions[0].english, 'Line one\nline two');
+  const { getTextbookPreset } = await import('../src/textbook-presets.js');
+  d.saveAllMapContent(getTextbookPreset(3));
+  assert.equal(d.getMapContent('MAP01').words.length, 27);
+  assert.equal(d.getMapContent('MAP01').mode, 'phonics');
+  const csv27 = 'map,type,english,korean\n' + getTextbookPreset(3).MAP01.words.map(item => `MAP01,word,${item.english},${item.korean}`).join('\n');
+  assert.equal(d.parseAllMapsCsv(csv27).MAP01.words.length, 27);
   d.saveAllMapContent(parsed);
   cloud.setRoom({ code: 'ABC123', maps: { MAP01: { words: [{ english: 'cloud', korean: '구름' }], expressions: [] } } });
   assert.equal(d.getMapContent('MAP01').words[0].english, 'cloud');

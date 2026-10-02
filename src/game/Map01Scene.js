@@ -1,3 +1,4 @@
+import { makePhonicsQuiz } from "../phonics.js";
 import { installScenePolish } from "../scene-polish.js";
 import Phaser from "phaser";
 
@@ -1630,6 +1631,30 @@ export default class Map01Scene extends Phaser.Scene {
      영어 단어 -> 한국어
   ====================================================== */
 
+  async runPhonicsStage(stage, kind, nextPhase, shards = null) {
+    const quiz = makePhonicsQuiz(kind, this.content.words);
+    this.state.questionsShown++;
+    const success = await GameUI.choice(quiz.question, quiz.options, quiz.correctIndex, quiz);
+    if (!success) {
+      this.markWrong(stage);
+      await GameUI.say(`루미: ${quiz.letter.upper}와 ${quiz.letter.lower}의 이름은 ‘${quiz.letter.name}’야. 읽는 법을 듣고 다시 도전해 보자!`);
+      return;
+    }
+    this.markCorrect(stage);
+    this.state.phase = nextPhase;
+    if (shards !== null) this.state.shards = shards;
+    if (nextPhase === 'chest') this.state.targetChest = Phaser.Utils.Array.GetRandom(['red', 'blue', 'black']);
+    this.save();
+    const next = {
+      desk_quiz: '첫 번째 조각을 찾았어! 가운데 아래쪽의 빛나는 책상으로 가자.',
+      desk_push: '이제 책상을 두 번 밀어 보자!',
+      chest_quiz: '두 번째 조각이야! 오른쪽 아래의 세 보물상자를 조사해 보자.',
+      chest: `세 번째 조각은 ${chestName(this.state.targetChest)} 상자 안에 있어!`,
+      exit: '봉인문이 열렸어! 문을 한 번 더 조사하면 다음 미로로 갈 수 있어.'
+    };
+    await GameUI.say([`루미: 정답! ${quiz.letter.upper} ${quiz.letter.lower}는 ‘${quiz.letter.name}’라고 읽어.`, `루미: ${next[nextPhase]}`]);
+  }
+
   async handleBlackboard() {
 
     if (
@@ -1643,6 +1668,8 @@ export default class Map01Scene extends Phaser.Scene {
 
     }
 
+
+    if (this.content.mode === 'phonics') return this.runPhonicsStage('blackboard', 'listen', 'desk_quiz', 1);
 
     const quiz =
       QuizEngine.wordToKorean(
@@ -1754,6 +1781,8 @@ export default class Map01Scene extends Phaser.Scene {
       this.state.phase ===
       "desk_quiz"
     ) {
+
+      if (this.content.mode === 'phonics') return this.runPhonicsStage('desk_quiz', 'lower', 'desk_push');
 
       const quiz =
         QuizEngine.koreanToWord(
@@ -1917,6 +1946,8 @@ export default class Map01Scene extends Phaser.Scene {
     }
 
 
+    if (this.content.mode === 'phonics') return this.runPhonicsStage('locker', 'initial', 'chest_quiz', 2);
+
     const expression =
       QuizEngine.pickExpression(
         this.content.expressions,
@@ -2019,6 +2050,8 @@ export default class Map01Scene extends Phaser.Scene {
       this.state.phase ===
       "chest_quiz"
     ) {
+
+      if (this.content.mode === 'phonics') return this.runPhonicsStage('chest_quiz', 'upper', 'chest');
 
       const quiz =
         QuizEngine.expressionToKorean(
@@ -2218,6 +2251,7 @@ export default class Map01Scene extends Phaser.Scene {
 
 
   async runFinalQuiz() {
+    if (this.content.mode === 'phonics') return this.runPhonicsStage('final', 'listen', 'exit');
 
     const quiz =
       QuizEngine.randomReview(
