@@ -57,7 +57,7 @@ async function refreshRecords() {
     const result = await readRoomRecords(room.id);
     if (serial !== recordRequest || getRoom()?.id !== room.id) return;
     records = result; renderRanking();
-    $('records-status').textContent = `${new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 갱신 · 15초마다 자동 새로고침`;
+    $('records-status').textContent = `${new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 갱신 · 5분마다 자동 새로고침`;
   } catch (error) {
     if (serial === recordRequest) $('records-status').textContent = `${error.message} · 잠시 후 다시 시도합니다.`;
   } finally { if (serial === recordRequest) fetchingRoom = null; }
@@ -168,7 +168,7 @@ $('close-classroom-qr').onclick = () => $('classroom-qr-dialog').close();
 $('classroom-qr-dialog').addEventListener('close', () => $('show-classroom-qr').focus());
 $('refresh-records').onclick = refreshRecords;
 $('ranking-filter').onchange = renderRanking;
-setInterval(() => { if (!document.hidden && !$('admin-app').classList.contains('hidden') && !busy) refreshRecords(); }, 15000);
+setInterval(() => { if (!document.hidden && !$('admin-app').classList.contains('hidden') && !busy) refreshRecords(); }, 5 * 60 * 1000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden && !$('admin-app').classList.contains('hidden')) refreshRecords(); });
 if (!cloudEnabled) {
   $('login-help').textContent = '개인 연습 모드 · 교사용 PIN으로 로그인하세요.';
