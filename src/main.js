@@ -1,3 +1,4 @@
+import { answerFeedback, bindSoundToggle } from "./feedback.js";
 import { installQuizKeyboard } from "./quiz-keyboard.js";
 import { cloudEnabled, enterClassroom, resetStudentContext, getRoom } from "./cloud.js";
 import Phaser from "phaser";
@@ -1974,7 +1975,7 @@ window.GameUI = {
 
         submit.addEventListener(
           "click",
-          () => {
+          async () => {
 
             if (
               selectedIndex <
@@ -1991,6 +1992,8 @@ window.GameUI = {
               correctIndex;
 
 
+            modalBody.querySelectorAll("button").forEach(button => { button.disabled = true; });
+            await answerFeedback(correct, modalBody);
             closeModal();
 
 
@@ -2269,7 +2272,7 @@ window.GameUI = {
 
         submitButton.addEventListener(
           "click",
-          () => {
+          async () => {
 
             const result =
               selected
@@ -2296,6 +2299,8 @@ window.GameUI = {
               반드시 모달 닫기
             */
 
+            modalBody.querySelectorAll("button").forEach(button => { button.disabled = true; });
+            await answerFeedback(correct, modalBody);
             closeModal();
 
 
@@ -2820,6 +2825,7 @@ function showDialogue(
 ===================================================== */
 
 installQuizKeyboard(modal, modalBody);
+bindSoundToggle(document.getElementById("sfx-toggle"));
 
 document.addEventListener(
   "keydown",

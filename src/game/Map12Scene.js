@@ -1,3 +1,4 @@
+import { installScenePolish } from "../scene-polish.js";
 import Phaser from "phaser";
 
 import {
@@ -178,6 +179,7 @@ export default class Map12Scene extends Phaser.Scene {
     this.createPlayer();
 
     this.createInput();
+    installScenePolish(this);
 
     this.createBossHud();
 

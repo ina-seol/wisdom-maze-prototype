@@ -1,3 +1,4 @@
+import { installScenePolish } from "../scene-polish.js";
 import Phaser from "phaser";
 
 import {
@@ -176,6 +177,7 @@ export default class Map01Scene extends Phaser.Scene {
     this.createPlayer();
 
     this.createInput();
+    installScenePolish(this);
 
     this.updateHUD();
 
@@ -1714,10 +1716,6 @@ export default class Map01Scene extends Phaser.Scene {
     this.save();
 
 
-    window.WisdomFeedback
-      ?.shard();
-
-
     await GameUI.say([
 
       "루미: 정답이야! 첫 번째 말의 조각이 나타났어.",
@@ -1994,10 +1992,6 @@ export default class Map01Scene extends Phaser.Scene {
     this.save();
 
 
-    window.WisdomFeedback
-      ?.shard();
-
-
     await GameUI.say([
 
       "사물함의 자물쇠가 열렸다!",
@@ -2169,10 +2163,6 @@ export default class Map01Scene extends Phaser.Scene {
 
 
     this.save();
-
-
-    window.WisdomFeedback
-      ?.shard();
 
 
     await GameUI.say([
