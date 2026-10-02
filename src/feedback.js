@@ -29,6 +29,42 @@ function notes(frequencies, volume = .035) {
 export const playCorrect = () => notes([660, 880]);
 export const playWrong = () => notes([294, 247], .025);
 export const playShard = () => notes([620, 820, 1040]);
+// Short drum-like cues, generated locally; no audio file download is needed.
+function impact(ctx, start, pitch, duration, volume, noiseVolume) {
+  const oscillator = ctx.createOscillator(), body = ctx.createGain();
+  oscillator.type = 'sine';
+  oscillator.frequency.setValueAtTime(pitch, start);
+  oscillator.frequency.exponentialRampToValueAtTime(38, start + duration * .7);
+  body.gain.setValueAtTime(.0001, start);
+  body.gain.exponentialRampToValueAtTime(volume, start + .008);
+  body.gain.exponentialRampToValueAtTime(.0001, start + duration);
+  oscillator.connect(body); body.connect(ctx.destination);
+  oscillator.start(start); oscillator.stop(start + duration + .02);
+  oscillator.onended = () => { oscillator.disconnect(); body.disconnect(); };
+  const buffer = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * .12), ctx.sampleRate);
+  const samples = buffer.getChannelData(0);
+  for (let i = 0; i < samples.length; i++) samples[i] = Math.random() * 2 - 1;
+  const noise = ctx.createBufferSource(), filter = ctx.createBiquadFilter(), attack = ctx.createGain();
+  noise.buffer = buffer; filter.type = 'lowpass'; filter.frequency.setValueAtTime(1800, start);
+  attack.gain.setValueAtTime(.0001, start);
+  attack.gain.exponentialRampToValueAtTime(noiseVolume, start + .003);
+  attack.gain.exponentialRampToValueAtTime(.0001, start + .11);
+  noise.connect(filter); filter.connect(attack); attack.connect(ctx.destination);
+  noise.start(start); noise.stop(start + .12);
+  noise.onended = () => { noise.disconnect(); filter.disconnect(); attack.disconnect(); };
+}
+export function playBossEntrance() {
+  const ctx = audio(); if (!ctx) return;
+  try {
+    [[0, 100, .25], [.18, 85, .28], [.42, 65, .65]].forEach(([offset, pitch, duration]) => {
+      impact(ctx, ctx.currentTime + offset, pitch, duration, .095, .025);
+    });
+  } catch {}
+}
+export function playBossHit() {
+  const ctx = audio(); if (!ctx) return;
+  try { impact(ctx, ctx.currentTime, 165, .34, .11, .065); } catch {}
+}
 export function bindSoundToggle(button) {
   if (!button) return;
   const render = () => { button.textContent = soundEnabled ? '효과음 켜짐' : '효과음 꺼짐'; button.setAttribute('aria-pressed', String(soundEnabled)); };
@@ -52,7 +88,7 @@ export async function answerFeedback(correct, root) {
   root.querySelectorAll('.answer-feedback, .answer-spark').forEach(element => element.remove());
 }
 if (typeof window !== 'undefined') {
-  window.WisdomFeedback = { correct: playCorrect, wrong: playWrong, shard: playShard, clear: () => notes([523, 659, 784, 1046]), tap: () => notes([520], .02), vibrate: pattern => { try { navigator.vibrate?.(pattern); } catch {} }, bossHit: () => notes([180], .025) };
+  window.WisdomFeedback = { correct: playCorrect, wrong: playWrong, shard: playShard, clear: () => notes([523, 659, 784, 1046]), tap: () => notes([520], .02), vibrate: pattern => { try { navigator.vibrate?.(pattern); } catch {} }, bossHit: playBossHit, bossEntrance: playBossEntrance };
   const unlock = () => audio();
   document.addEventListener('pointerdown', unlock, { once: true });
   document.addEventListener('keydown', unlock, { once: true });
