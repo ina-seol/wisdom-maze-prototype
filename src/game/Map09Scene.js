@@ -632,7 +632,8 @@ export default class Map09Scene extends Phaser.Scene {
           "E",
 
         enter:
-          "ENTER"
+          "ENTER",
+        space: "SPACE"
       });
   }
 
@@ -770,7 +771,9 @@ export default class Map09Scene extends Phaser.Scene {
       ||
       Phaser.Input.Keyboard.JustDown(
         this.keys.enter
-      );
+      )
+      ||
+      Phaser.Input.Keyboard.JustDown(this.keys.space);
 
     const touchInteract =
       Boolean(

@@ -3,95 +3,86 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>지혜의 미로 탐험대 - 교사용 설정</title>
+  <title>지혜의 미로 탐험대 · 교실 관리</title>
   <link rel="stylesheet" href="/src/style.css" />
 </head>
-<body class="admin-body">
+<body class="admin-body teacher-dashboard">
   <div id="admin-login" class="admin-center">
     <div class="panel admin-login-panel">
-      <h1>교사용 설정</h1>
-      <p id="login-help">이름과 비밀번호로 로그인하세요. 처음 이용하면 계정을 만들어 주세요.</p>
+      <p class="dashboard-eyebrow">WISDOM MAZE · TEACHER</p>
+      <h1>우리 반의 모험을<br>준비하세요.</h1>
+      <p id="login-help">이름과 비밀번호로 로그인하세요.</p>
       <label id="name-label" for="teacher-name">교사 이름</label>
       <input id="teacher-name" type="text" maxlength="40" autocomplete="username" placeholder="예: 한나_종촌" />
       <label id="password-label" for="teacher-pin">비밀번호</label>
       <input id="teacher-pin" type="password" autocomplete="current-password" />
       <button id="teacher-login" class="big-gold" type="button">로그인</button>
       <button id="teacher-signup" class="main-button" type="button">교사 계정 만들기</button>
-      <p class="teacher-account-help">가입할 이름과 비밀번호(8자 이상)를 위에 입력한 뒤 계정 만들기를 누르세요. 이름은 다른 교사와 겹치지 않게 정해 주세요.</p>
-      <p id="login-status" role="status"></p>
+      <p class="teacher-account-help">처음 이용한다면 이름과 비밀번호(8자 이상)를 입력하고 계정을 만들어 주세요.</p>
+      <p id="login-status" role="status" aria-live="polite"></p>
       <button id="back-title" class="text-button" type="button">게임으로 돌아가기</button>
     </div>
   </div>
   <div id="admin-app" class="hidden">
-    <header class="admin-header">
-      <div><h1>학습 데이터 설정</h1><p>MAP01 ~ MAP12</p></div>
-      <button id="admin-home" class="main-button" type="button">게임으로 돌아가기</button>
-      <button id="teacher-logout" class="main-button" type="button">로그아웃</button>
+    <header class="dashboard-header">
+      <div><p class="dashboard-eyebrow">WISDOM MAZE · TEACHER</p><h1>교실 관리</h1><p>CSV 한 번으로 준비하고, 우리 반의 모험을 한눈에.</p></div>
+      <nav><button id="admin-home" class="main-button" type="button">게임으로</button><button id="open-delete-account" class="text-button danger-text" type="button">계정 삭제</button><button id="teacher-logout" class="text-button" type="button">로그아웃</button></nav>
     </header>
-    <main class="admin-main">
-      <section id="classroom-panel" class="panel">
-        <h2>내 교실</h2>
-        <label for="classroom-select">편집할 교실</label>
-        <select id="classroom-select" class="admin-map-select"></select>
-        <label for="classroom-name">새 교실 이름</label>
-        <input id="classroom-name" maxlength="80" placeholder="예: 5학년 1반" />
-        <button id="create-classroom" class="main-button" type="button">교실 생성</button>
-        <p id="classroom-info" role="status"></p>
-        <label for="classroom-link">학생 입장 링크</label>
-        <input id="classroom-link" readonly />
-        <button id="copy-classroom-link" class="main-button" type="button">링크 복사</button>
-        <button id="show-classroom-qr" class="big-gold" type="button" disabled>학생 입장 QR 크게 보기</button>
-        <canvas id="classroom-qr" aria-label="학생 교실 입장 QR 코드" role="img"></canvas>
-        <p>CSV를 한 번 저장하면 학생들이 같은 자료를 불러옵니다. 학생 입장 전 모든 맵에 단어와 표현을 각각 4개 이상 준비해 주세요.</p>
-      </section>
-      <section class="panel">
-        <h2>편집할 맵</h2>
-        <select id="map-select" class="admin-map-select"></select>
-      </section>
-      <section class="panel">
-        <h2>전체 CSV / TXT 불러오기</h2>
-        <p>CSV 열: map,type,english,korean · type: word 또는 expression</p>
-        <input id="content-upload" class="admin-file" type="file" accept=".csv,.txt,text/csv,text/plain" />
-        <button id="download-csv-template" class="main-button" type="button">12개 맵 CSV 양식</button>
-      </section>
-      <section class="admin-editor">
-        <div class="panel">
-          <h2>단어</h2><p>영어 | 한국어 뜻 · <span id="word-count">0</span> / 20</p>
-          <textarea id="words-editor" placeholder="door | 문"></textarea>
+    <main class="dashboard-layout">
+      <aside class="dashboard-sidebar">
+        <section id="classroom-panel" class="dashboard-card">
+          <p class="dashboard-step">01 · 학급 선택</p>
+          <label for="classroom-select">내 학급</label>
+          <select id="classroom-select"></select>
+          <details id="create-classroom-form">
+            <summary>새 학급 만들기</summary>
+            <label for="classroom-name">학급 이름</label>
+            <input id="classroom-name" maxlength="80" placeholder="예: 5학년 1반" />
+            <button id="create-classroom" class="main-button" type="button">학급 생성</button>
+          </details>
+          <button id="open-delete-classroom" class="text-button danger-text" type="button" disabled>선택한 학급 삭제</button>
+        </section>
+        <section class="dashboard-card">
+          <p class="dashboard-step">02 · 학습자료 준비</p>
+          <h2>CSV 파일 업로드</h2>
+          <p id="content-summary">학급을 선택해 주세요.</p>
+          <label class="csv-upload-zone" for="content-upload"><span class="upload-symbol" aria-hidden="true">↑</span><strong>CSV 파일 선택</strong><span>MAP01~12 자료를 한 번에 저장</span></label>
+          <input id="content-upload" class="visually-hidden" type="file" accept=".csv,text/csv" />
+          <button id="download-csv-template" class="text-button" type="button">CSV 양식 다운로드</button>
+          <p id="save-status" role="status" aria-live="polite"></p>
+        </section>
+        <section class="dashboard-card">
+          <p class="dashboard-step">03 · 학생 입장</p>
+          <p id="classroom-info">학급을 선택해 주세요.</p>
+          <canvas id="classroom-qr" aria-label="학생 입장 QR" role="img" hidden></canvas>
+          <button id="show-classroom-qr" class="big-gold" type="button" disabled>학생 입장 QR 크게 보기</button>
+          <input id="classroom-link" readonly aria-label="학생 입장 링크" hidden />
+          <button id="copy-classroom-link" class="text-button" type="button" disabled>입장 링크 복사</button>
+        </section>
+      </aside>
+      <section id="records-panel" class="dashboard-ranking">
+        <div class="ranking-heading"><div><p class="dashboard-eyebrow">CLASS LEADERBOARD</p><h2 id="ranking-title">우리 반 탐험 랭킹</h2></div><button id="refresh-records" class="main-button" type="button" disabled>새로고침</button></div>
+        <div class="ranking-stats">
+          <div><span>참여 학생</span><strong id="student-total">0<small>명</small></strong></div>
+          <div><span>최근 1분 활동</span><strong id="student-active">0<small>명</small></strong></div>
+          <div><span>완료한 맵</span><strong id="map-total">0<small>개</small></strong></div>
         </div>
-        <div class="panel">
-          <h2>영어 표현</h2><p>영어 표현 | 한국어 뜻 · <span id="expression-count">0</span> / 20</p>
-          <textarea id="expressions-editor" placeholder="Open the door. | 문을 여세요."></textarea>
+        <div class="dashboard-card leaderboard-card">
+          <div class="ranking-toolbar"><p id="records-status" role="status" aria-live="polite">학급을 선택하면 랭킹이 표시됩니다.</p><label>표시 <select id="ranking-filter"><option value="all">전체 학생</option><option value="active">최근 활동 학생</option></select></label></div>
+          <div class="records-scroll"><table class="leaderboard-table"><thead><tr><th>순위</th><th>학생</th><th>점수</th><th>완료</th><th>첫 정답률</th><th>진행 상태</th></tr></thead><tbody id="records-body"></tbody></table></div>
+          <p id="ranking-empty" class="ranking-empty">QR로 학생들이 입장하고 게임을 시작하면 여기에 표시됩니다.</p>
         </div>
-      </section>
-      <section class="panel">
-        <h2 id="save-title">MAP01 저장</h2>
-        <button id="save-content" class="big-gold" type="button">현재 맵 저장</button>
-        <button id="download-csv" class="main-button" type="button">전체 CSV 다운로드</button>
-        <button id="download-txt" class="main-button" type="button">전체 TXT 다운로드</button>
-        <p id="save-status" class="english-preview" role="status" aria-live="polite"></p>
-      </section>
-      <section id="records-panel" class="panel">
-        <h2>교실 플레이 기록</h2>
-        <button id="refresh-records" class="main-button" type="button">기록 새로고침</button>
-        <button id="download-records" class="main-button" type="button">기록 CSV 다운로드</button>
-        <p id="records-status" role="status"></p>
-        <div class="records-scroll">
-          <table><thead><tr><th>이름</th><th>맵</th><th>시간(초)</th><th>첫 시도 정답</th><th>오답</th><th>힌트</th><th>완료</th></tr></thead><tbody id="records-body"></tbody></table>
-        </div>
+        <details class="dashboard-card score-guide"><summary>점수는 어떻게 정해지나요?</summary><p>맵 완료 600점 + 첫 시도 정답률 보너스 최대 400점. 오답 한 번은 −20점, 힌트 한 번은 −10점입니다.</p><p>맵당 0~1,000점, 12개 맵에서 최대 12,000점. 진행 중인 맵은 완료 후 점수가 반영됩니다. 같은 이름의 재도전은 맵별 최고 점수만 합산합니다.</p><p>동점이면 완료 맵 수 → 첫 정답률 → 완료 맵의 플레이 시간 순으로 정합니다. 최근 활동은 기록이 마지막으로 저장된 시간을 기준으로 표시합니다.</p></details>
       </section>
     </main>
   </div>
-  <dialog id="classroom-qr-dialog" aria-labelledby="qr-dialog-title">
-    <section class="qr-dialog-content">
-      <button id="close-classroom-qr" class="main-button" type="button">닫기</button>
-      <h2 id="qr-dialog-title">QR을 찍고 교실에 입장하세요</h2>
-      <p id="qr-dialog-room"></p>
-      <canvas id="classroom-qr-large" role="img" aria-label="학생 입장 QR 코드"></canvas>
-      <p id="qr-dialog-code"></p>
-      <p>카메라로 QR을 찍어 접속한 뒤 이름을 입력하세요.</p>
-    </section>
-  </dialog>
+  <dialog id="classroom-qr-dialog" aria-labelledby="qr-dialog-title"><section class="qr-dialog-content"><button id="close-classroom-qr" class="main-button" type="button">닫기</button><h2 id="qr-dialog-title">QR을 찍고 교실에 입장하세요</h2><p id="qr-dialog-room"></p><canvas id="classroom-qr-large" role="img" aria-label="학생 입장 QR 코드"></canvas><p id="qr-dialog-code"></p><p>카메라로 QR을 찍어 접속한 뒤 이름을 입력하세요.</p></section></dialog>
+  <dialog id="delete-dialog" aria-labelledby="delete-title"><section class="delete-dialog-content">
+    <p class="dashboard-eyebrow">DELETE</p><h2 id="delete-title"></h2><p id="delete-description"></p>
+    <label id="delete-confirm-label" for="delete-confirm-input"></label><input id="delete-confirm-input" autocomplete="off" />
+    <div id="delete-password-section" hidden><label for="delete-password">현재 비밀번호</label><input id="delete-password" type="password" autocomplete="current-password" /></div>
+    <p id="delete-status" role="status" aria-live="polite"></p><div class="delete-dialog-actions"><button id="cancel-delete" class="main-button" type="button">취소</button><button id="confirm-delete" class="danger-button" type="button">영구 삭제</button></div>
+  </section></dialog>
   <script type="module" src="/src/admin.js"></script>
 </body>
 </html>

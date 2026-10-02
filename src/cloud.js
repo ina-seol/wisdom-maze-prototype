@@ -113,7 +113,28 @@ export async function updateRoom(id, maps) {
   if (rows?.length !== 1) throw new Error('교실 저장 권한이 없거나 교실이 삭제되었습니다.');
   return rows[0];
 }
-export const readRoomRecords = id => request(`/rest/v1/play_records?classroom_id=eq.${encodeURIComponent(id)}&select=id,student_name,map_id,play_time,questions_shown,first_try_correct,wrong_attempts,hints_used,completed,updated_at&order=updated_at.desc&limit=1000`, { teacher: true });
+export async function deleteRoom(id) {
+  const rows = await request(`/rest/v1/classrooms?id=eq.${encodeURIComponent(id)}`, { method: 'DELETE', teacher: true, headers: { Prefer: 'return=representation' } });
+  if (rows?.length !== 1) throw new Error('삭제 권한이 없거나 이미 삭제된 학급입니다.');
+}
+export async function deleteTeacherAccount(password) {
+  if (!session?.user?.email) throw new Error('다시 로그인한 뒤 삭제해 주세요.');
+  await signIn(session.user.email, password);
+  try { await request('/rest/v1/rpc/delete_teacher_account', { method: 'POST', body: {}, teacher: true }); }
+  catch (error) {
+    if (/delete_teacher_account|schema cache/i.test(error.message)) throw new Error('계정 삭제 기능의 최초 설정이 필요합니다. Supabase SQL Editor에서 supabase/account-deletion.sql을 한 번 실행해 주세요.');
+    throw error;
+  }
+  session = null; room = null; sessionStorage.removeItem(SESSION_KEY);
+}
+export async function readRoomRecords(id) {
+  const records = [];
+  for (let offset = 0; ; offset += 1000) {
+    const page = await request(`/rest/v1/play_records?classroom_id=eq.${encodeURIComponent(id)}&select=id,classroom_id,student_id,student_name,map_id,play_time,questions_shown,first_try_correct,wrong_attempts,hints_used,completed,updated_at&order=id.asc&limit=1000&offset=${offset}`, { teacher: true });
+    records.push(...page);
+    if (page.length < 1000) return records;
+  }
+}
 export const getRoom = () => room;
 export const setRoom = value => { room = value; };
 export const storageScope = () => room ? `${room.code}_${student?.id || 'teacher'}` : 'local';

@@ -2866,6 +2866,7 @@ document.addEventListener(
 
 
     event.preventDefault();
+    event.stopImmediatePropagation();
 
 
     /*

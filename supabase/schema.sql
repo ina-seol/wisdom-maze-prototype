@@ -120,4 +120,16 @@ revoke all on function public.get_classroom(text), public.join_classroom(text,te
   public.save_play_progress(uuid,uuid,text,jsonb,jsonb) from public, anon, authenticated;
 grant execute on function public.get_classroom(text), public.join_classroom(text,text),
   public.save_play_progress(uuid,uuid,text,jsonb,jsonb) to anon, authenticated;
+-- Self deletion is restricted to the authenticated caller.
+create function public.delete_teacher_account() returns void
+language plpgsql security definer set search_path = '' as $$
+declare caller uuid := auth.uid();
+begin
+  if caller is null then raise exception '교사 로그인이 필요합니다.'; end if;
+  delete from auth.users where id = caller;
+  if not found then raise exception '계정을 찾을 수 없습니다.'; end if;
+end;
+$$;
+revoke all on function public.delete_teacher_account() from public, anon, authenticated;
+grant execute on function public.delete_teacher_account() to authenticated;
 commit;

@@ -40,5 +40,19 @@ test('schema runs; RLS isolates teachers and student credentials protect records
   assert.equal(record.completed, true);
   assert.equal(record.student_name, '학생');
   assert.equal((await db.query('select count(*)::int as count from public.play_records')).rows[0].count, 1);
+  // Upgrade migration is safe to apply to a schema that already includes the function.
+  await db.exec(await readFile(new URL('../supabase/account-deletion.sql', import.meta.url), 'utf8'));
+  await db.exec("insert into auth.users values ('10000000-0000-0000-0000-000000000004','other@example.invalid');");
+  await db.exec('set role anon');
+  await assert.rejects(db.query('select public.delete_teacher_account()'));
+  await db.exec("set role authenticated; select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000004',false);");
+  assert.equal((await db.query('delete from public.classrooms returning id')).rows.length, 0);
+  await db.exec("select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000003',false);");
+  await db.query('select public.delete_teacher_account()');
+  await db.exec('reset role');
+  assert.equal((await db.query('select count(*)::int as count from public.classrooms')).rows[0].count, 0);
+  assert.equal((await db.query('select count(*)::int as count from public.play_records')).rows[0].count, 0);
+  assert.equal((await db.query('select count(*)::int as count from public.classroom_students')).rows[0].count, 0);
+  assert.equal((await db.query('select count(*)::int as count from auth.users')).rows[0].count, 1);
   await db.close();
 });

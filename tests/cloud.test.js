@@ -107,3 +107,24 @@ test('signup configuration errors are shown before creating an account', async (
     assert.equal(cloud.hasTeacherSession(), false);
   }
 });
+
+test('teacher leaderboard paginates records and deletion uses authenticated requests with password reauthentication', async () => {
+  const calls = [];
+  const session = { access_token: 'test-access', refresh_token: 'test-refresh', expires_in: 3600, user: { id: 'teacher1', email: 'teacher@example.invalid' } };
+  const { cloud } = await loadCloud(async (url, options) => {
+    calls.push({ url, ...options });
+    if (url.includes('grant_type=password')) return ok(session);
+    if (url.includes('play_records')) return ok(url.includes('offset=0') ? Array.from({ length: 1000 }, (_, id) => ({ id, classroom_id: 'room1' })) : [{ id: 1000, classroom_id: 'room1' }]);
+    if (url.includes('classrooms')) return ok([{ id: 'room1' }]);
+    if (url.includes('delete_teacher_account')) return ok(null);
+    throw new Error(url);
+  });
+  await cloud.signIn('teacher@example.invalid', 'test-password');
+  assert.equal((await cloud.readRoomRecords('room1')).length, 1001);
+  await cloud.deleteRoom('room1');
+  assert.equal(calls.at(-1).method, 'DELETE'); assert.equal(calls.at(-1).headers.Authorization, 'Bearer test-access');
+  await cloud.deleteTeacherAccount('test-password');
+  assert.match(calls.at(-2).url, /grant_type=password/);
+  assert.match(calls.at(-1).url, /delete_teacher_account/); assert.equal(calls.at(-1).headers.Authorization, 'Bearer test-access');
+  assert.equal(cloud.hasTeacherSession(), false);
+});
