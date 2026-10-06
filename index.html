@@ -15,6 +15,8 @@
   />
 
   <title>지혜의 미로 탐험대</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
 </head>
 
 
@@ -168,22 +170,25 @@
 
 
 
-    <p id="cloud-record-status" role="status" aria-live="polite"></p>
-    <div class="game-utility">
-      <span class="pointer-help">바닥 클릭·터치: 이동 · 물건: 조사</span>
+    <!-- STATUS · CONTROLS -->
+
+    <footer class="game-bar">
+
+      <p id="cloud-record-status" role="status" aria-live="polite"></p>
+
+      <div class="game-controls">
+
+        <span>
+          이동 : <kbd>방향키</kbd> <kbd>WASD</kbd> <kbd>클릭·터치</kbd>
+        </span>
+
+        <span>
+          조사 : <kbd>E</kbd> <kbd>Enter</kbd> <kbd>Space</kbd> <kbd>물건 클릭</kbd>
+        </span>
+
+      </div>
+
       <button id="sfx-toggle" class="game-sfx-toggle" type="button" aria-pressed="true">효과음 켜짐</button>
-    </div>
-    <!-- CONTROL -->
-
-    <footer class="game-controls">
-
-      <span>
-        이동 : <kbd>방향키</kbd> <kbd>WASD</kbd>
-      </span>
-
-      <span>
-        조사 : <kbd>E</kbd> <kbd>Enter</kbd> <kbd>Space</kbd>
-      </span>
 
     </footer>
 
@@ -268,6 +273,7 @@
             class="character-card selected"
             data-gender="male"
             type="button"
+            aria-pressed="true"
           >
 
             <div class="character-portrait-frame">
@@ -284,8 +290,8 @@
               남자 캐릭터
             </div>
 
-            <div class="character-select-label">
-              선택
+            <div class="character-select-label" aria-hidden="true">
+              선택됨
             </div>
 
           </button>
@@ -298,6 +304,7 @@
             class="character-card"
             data-gender="female"
             type="button"
+            aria-pressed="false"
           >
 
             <div class="character-portrait-frame">
@@ -314,8 +321,8 @@
               여자 캐릭터
             </div>
 
-            <div class="character-select-label">
-              선택
+            <div class="character-select-label" aria-hidden="true">
+              선택됨
             </div>
 
           </button>

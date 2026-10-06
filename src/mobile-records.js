@@ -1579,8 +1579,8 @@ function injectStyles() {
 
       .mobile-interact span {
         margin-top: 2px;
-        font-size: 10px;
-        opacity: .65;
+        font-size: 12px;
+        opacity: .8;
       }
 
 

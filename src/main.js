@@ -339,12 +339,22 @@ characterCards.forEach(
               "selected"
             );
 
+            item.setAttribute(
+              "aria-pressed",
+              "false"
+            );
+
           }
         );
 
 
         card.classList.add(
           "selected"
+        );
+
+        card.setAttribute(
+          "aria-pressed",
+          "true"
         );
 
 
@@ -380,6 +390,14 @@ startBtn
             "selected",
             card.dataset.gender ===
               "male"
+          );
+
+          card.setAttribute(
+            "aria-pressed",
+            String(
+              card.dataset.gender ===
+                "male"
+            )
           );
 
         }
